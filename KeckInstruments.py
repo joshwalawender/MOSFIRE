@@ -1,9 +1,24 @@
 from datetime import datetime as dt
+from time import sleep
+
+# Wrap ktl import in try/except so that we can maintain test case or simulator
+# version of functions.
+try:
+    import ktl
+    from ktl import Exceptions as ktlExceptions
+except:
+    ktl = None
 
 
+# -----------------------------------------------------------------------------
+# Abstract Instrument
+# -----------------------------------------------------------------------------
 class AbstractInstrument(object):
-    def __init__(self):
+    def __init__(self, readonly=True):
         self.name = 'AbstractInstrument'
+        self.readonly = readonly
+        self.serviceNames = []
+        self.services = {}
         self.frameno = 1
         self.basename = 'image'
         self.itime = 1
@@ -121,6 +136,9 @@ class AbstractInstrument(object):
         self.set_itime(120)
 
 
+# -----------------------------------------------------------------------------
+# HIRES
+# -----------------------------------------------------------------------------
 class HIRES(AbstractInstrument):
     def __init__(self):
         super().__init__()
@@ -130,22 +148,80 @@ class HIRES(AbstractInstrument):
         self.scripts = ["stare", "slit nod", "ABBA", "ABB'A'"]
         self.binnings = ["1x1", "1x2", "2x1", "2x2"]
         self.basename = f"h{dt.utcnow().strftime('%Y%m%d')}_"
+        self.serviceNames = ["hires", "hiccd", "expo"]
+    
+    
+    def connect(self):
+        if ktl is not None:
+            for service in self.serviceNames:
+                try:
+                    self.services[service] = ktl.Service(service)
+                except ktlExceptions.ktlError:
+                    print(f"Failed to connect to service {service}")
     
     
     def get_DWRN2LV(self):
-        DWRN2LV = 100 - dt.now().minute/60*90 # mock up (100 to 10 each hour)
+        if ktl is not None:
+            DWRN2LV = self.services['hiccd']['DWRN2LV'].read()
+        else:
+            DWRN2LV = 100 - dt.now().minute/60*90 # mock up (100 to 10 each hour)
         return DWRN2LV
     
     
     def get_RESN2LV(self):
-        RESN2LV = 100 - dt.now().weekday()/6*50 # mock up (100 to 50 each week)
+        if ktl is not None:
+            RESN2LV = self.services['hiccd']['RESN2LV'].read()
+        else:
+            RESN2LV = 100 - dt.now().weekday()/6*50 # mock up (100 to 50 each week)
         return RESN2LV
     
     
     def fill_dewar(self):
         print('Initiating camera dewar fill.')
+        if ktl is not None:
+            pass
     
     
+    def take_exposure(self, obstype=None, exptime=None, nexp=1):
+        if self.services['hiccd']['OBSERVIP'].read() == 'true':
+            print('Waiting up to 300s for current observation to finish')
+            if not ktl.waitFor('($hiccd.OBSERVIP == False )', timeout=300):
+                raise Exception('Timed out waiting for OBSERVIP')
+
+        if obstype is None:
+            obstype = self.services['hiccd']['OBSTYPE'].read()
+
+        if exptime is not None:
+            self.services['hiccd']['TTIME'].write(int(exptime))
+
+        if obstype.lower() == "dark":
+            self.services['hiccd']['AUTOSHUT'].write(False)
+        else:
+            self.services['hiccd']['AUTOSHUT'].write(True)
+
+        for i in range(nexp):
+            exptime = int(self.services['hiccd']['TTIME'].read())
+            print(f"Taking exposure {i:d} of {nexp:d}")
+            print(f"  Exposure Time = {exptime:d} s")
+            self.services['hiccd']['EXPOSE'].write(True)
+            exposing = ktl.Expression("($hiccd.OBSERVIP == True) and ($hiccd.EXPOSIP == True )")
+            reading = ktl.Expression("($hiccd.OBSERVIP == True) and ($hiccd.WCRATE == True )")
+            obsdone = ktl.Expression("($hiccd.OBSERVIP == False)")
+
+            if not exposing.wait(timeout=30):
+                raise Exception('Timed out waiting for EXPOSING state to start')
+            print('  Exposing ...')
+
+            if not reading.wait(timeout=exptime+30):
+                raise Exception('Timed out waiting for READING state to start')
+            print('  Reading out ...')
+
+            if not obsdone.wait(timeout=90):
+                raise Exception('Timed out waiting for READING state to finish')
+            print('Done')
+
+
+
 #     def expo_get_power_on(self):
 #         return True
 #     
@@ -155,6 +231,9 @@ class HIRES(AbstractInstrument):
 #         print(f'Setting power on exposure meter {{True: "ON", False: "OFF"}[new_state]}')
     
     
+# -----------------------------------------------------------------------------
+# MOSFIRE
+# -----------------------------------------------------------------------------
 class MOSFIRE(AbstractInstrument):
     def __init__(self):
         super().__init__()
@@ -164,8 +243,12 @@ class MOSFIRE(AbstractInstrument):
         self.scripts = ["stare", "slit nod", "ABBA", "ABB'A'", "box5", "box9"]
         self.basename = f"m{dt.utcnow().strftime('%Y%m%d')}_"
         self.sampmode = 2
+        self.serviceNames = ["mosfire"]
 
 
+# -----------------------------------------------------------------------------
+# NIRES Spectrograph
+# -----------------------------------------------------------------------------
 class NIRES(AbstractInstrument):
     def __init__(self):
         super().__init__()
@@ -191,6 +274,9 @@ class NIRES(AbstractInstrument):
         self.set_coadds(3)
 
 
+# -----------------------------------------------------------------------------
+# NIRES Imager
+# -----------------------------------------------------------------------------
 class NIRESim(AbstractInstrument):
     def __init__(self):
         super().__init__()
@@ -216,6 +302,9 @@ class NIRESim(AbstractInstrument):
         self.set_coadds(3)
 
 
+# -----------------------------------------------------------------------------
+# LRIS Blue
+# -----------------------------------------------------------------------------
 class LRISb(AbstractInstrument):
     def __init__(self):
         super().__init__()
@@ -227,6 +316,9 @@ class LRISb(AbstractInstrument):
         self.basename = f"b{dt.utcnow().strftime('%Y%m%d')}_"
 
 
+# -----------------------------------------------------------------------------
+# LRIS Red
+# -----------------------------------------------------------------------------
 class LRISr(AbstractInstrument):
     def __init__(self):
         super().__init__()
@@ -238,6 +330,9 @@ class LRISr(AbstractInstrument):
         self.basename = f"r{dt.utcnow().strftime('%Y%m%d')}_"
 
 
+# -----------------------------------------------------------------------------
+# ESI
+# -----------------------------------------------------------------------------
 class ESI(AbstractInstrument):
     def __init__(self):
         super().__init__()
