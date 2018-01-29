@@ -136,6 +136,22 @@ class AbstractInstrument(object):
         self.set_itime(120)
 
 
+    # -------------------------------------------------------------------------
+    # Move and Dither Commands
+    def en(self):
+        pass
+    
+    
+    def xy(self):
+        pass
+    
+    
+    def sltmov(self):
+        pass
+    
+    
+
+
 # -----------------------------------------------------------------------------
 # HIRES
 # -----------------------------------------------------------------------------
@@ -162,16 +178,18 @@ class HIRES(AbstractInstrument):
     
     def get_DWRN2LV(self):
         if ktl is not None:
-            DWRN2LV = self.services['hiccd']['DWRN2LV'].read()
+            DWRN2LV = float(self.services['hiccd']['DWRN2LV'].read())
         else:
+            print('Using simulated results')
             DWRN2LV = 100 - dt.now().minute/60*90 # mock up (100 to 10 each hour)
         return DWRN2LV
     
     
     def get_RESN2LV(self):
         if ktl is not None:
-            RESN2LV = self.services['hiccd']['RESN2LV'].read()
+            RESN2LV = float(self.services['hiccd']['RESN2LV'].read())
         else:
+            print('Using simulated results')
             RESN2LV = 100 - dt.now().weekday()/6*50 # mock up (100 to 50 each week)
         return RESN2LV
     
@@ -219,7 +237,6 @@ class HIRES(AbstractInstrument):
             if not obsdone.wait(timeout=90):
                 raise Exception('Timed out waiting for READING state to finish')
             print('Done')
-
 
 
 #     def expo_get_power_on(self):
