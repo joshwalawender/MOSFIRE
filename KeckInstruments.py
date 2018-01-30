@@ -1,3 +1,4 @@
+import re
 from datetime import datetime as dt
 from time import sleep
 
@@ -175,6 +176,18 @@ class HIRES(AbstractInstrument):
                     self.services[service] = ktl.Service(service)
                 except ktlExceptions.ktlError:
                     print(f"Failed to connect to service {service}")
+    
+    
+    def get_binning(self):
+        if ktl is not None:
+            keywordresult = self.services['hiccd']['BINNING'].read()
+            binningmatch = re.match('\\n\\tXbinning (\d)\\n\\tYbinning (\d)',
+                                    keywordresult)
+            if binningmatch is not None:
+                self.binning = (int(binningmatch.group(1)),
+                                int(binningmatch.group(2)))
+            else:
+                print(f'Could not parse keyword value "{keywordresult}"')
     
     
     def get_DWRN2LV(self):
