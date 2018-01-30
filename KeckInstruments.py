@@ -165,6 +165,7 @@ class HIRES(AbstractInstrument):
         self.binnings = ["1x1", "1x2", "2x1", "2x2"]
         self.basename = f"h{dt.utcnow().strftime('%Y%m%d')}_"
         self.serviceNames = ["hires", "hiccd", "expo"]
+        self.obstypes = ["object", "dark", "line", "intflat", "bias"]
     
     
     def connect(self):
@@ -201,18 +202,22 @@ class HIRES(AbstractInstrument):
     
     
     def take_exposure(self, obstype=None, exptime=None, nexp=1):
+        if obstype is None:
+            obstype = self.services['hiccd']['OBSTYPE'].read()
+
+        if obstype.lower() not in self.obstypes:
+            print(f'OBSTYPE "{obstype} not understood"')
+            return
+
         if self.services['hiccd']['OBSERVIP'].read() == 'true':
             print('Waiting up to 300s for current observation to finish')
             if not ktl.waitFor('($hiccd.OBSERVIP == False )', timeout=300):
                 raise Exception('Timed out waiting for OBSERVIP')
 
-        if obstype is None:
-            obstype = self.services['hiccd']['OBSTYPE'].read()
-
         if exptime is not None:
             self.services['hiccd']['TTIME'].write(int(exptime))
 
-        if obstype.lower() == "dark":
+        if obstype.lower() in ["dark", "bias", "zero"]:
             self.services['hiccd']['AUTOSHUT'].write(False)
         else:
             self.services['hiccd']['AUTOSHUT'].write(True)
