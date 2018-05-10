@@ -19,7 +19,7 @@ class AbstractInstrument(object):
         self.name = 'AbstractInstrument'
         self.readonly = readonly
         self.serviceNames = []
-        self.services = {}
+        self.services = None
         self.frameno = 1
         self.basename = 'image'
         self.itime = 1
@@ -34,8 +34,18 @@ class AbstractInstrument(object):
         self.script = 'stare'
         self.scripts = ["stare", "slit nod", "ABBA", "ABB'A'", "box5", "box9"]
         self.repeats = 1
-
-
+    
+    
+    def connect(self):
+        if ktl is not None:
+            self.services = {}
+            for service in self.serviceNames:
+                try:
+                    self.services[service] = ktl.Service(service)
+                except ktlExceptions.ktlError:
+                    print(f"Failed to connect to service {service}")
+    
+    
     def get_filename(self):
         return f'{self.basename}{self.frameno:04d}.fits'
     

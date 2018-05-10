@@ -28,13 +28,6 @@ class HIRES(AbstractInstrument):
         self.obstypes = ["object", "dark", "line", "intflat", "bias"]
     
     
-    def connect(self):
-        if ktl is not None:
-            for service in self.serviceNames:
-                try:
-                    self.services[service] = ktl.Service(service)
-                except ktlExceptions.ktlError:
-                    print(f"Failed to connect to service {service}")
     
     
     def get_binning(self):
