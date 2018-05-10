@@ -31,32 +31,29 @@ class HIRES(AbstractInstrument):
     
     
     def get_binning(self):
-        if ktl is not None:
-            keywordresult = self.services['hiccd']['BINNING'].read()
-            binningmatch = re.match('\\n\\tXbinning (\d)\\n\\tYbinning (\d)',
-                                    keywordresult)
-            if binningmatch is not None:
-                self.binning = (int(binningmatch.group(1)),
-                                int(binningmatch.group(2)))
-            else:
-                print(f'Could not parse keyword value "{keywordresult}"')
+        if self.services is None:
+            return None
+        keywordresult = self.services['hiccd']['BINNING'].read()
+        binningmatch = re.match('\\n\\tXbinning (\d)\\n\\tYbinning (\d)',
+                                keywordresult)
+        if binningmatch is not None:
+            self.binning = (int(binningmatch.group(1)),
+                            int(binningmatch.group(2)))
+        else:
+            print(f'Could not parse keyword value "{keywordresult}"')
     
     
     def get_DWRN2LV(self):
-        if ktl is not None:
-            DWRN2LV = float(self.services['hiccd']['DWRN2LV'].read())
-        else:
-            print('Using simulated results')
-            DWRN2LV = 100 - dt.now().minute/60*90 # mock up (100 to 10 each hour)
+        if self.services is None:
+            return None
+        DWRN2LV = float(self.services['hiccd']['DWRN2LV'].read())
         return DWRN2LV
     
     
     def get_RESN2LV(self):
-        if ktl is not None:
-            RESN2LV = float(self.services['hiccd']['RESN2LV'].read())
-        else:
-            print('Using simulated results')
-            RESN2LV = 100 - dt.now().weekday()/6*50 # mock up (100 to 50 each week)
+        if self.services is None:
+            return None
+        RESN2LV = float(self.services['hiccd']['RESN2LV'].read())
         return RESN2LV
     
     
