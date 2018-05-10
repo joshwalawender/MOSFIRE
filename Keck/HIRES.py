@@ -28,6 +28,16 @@ class HIRES(AbstractInstrument):
         self.obstypes = ["object", "dark", "line", "intflat", "bias"]
     
     
+    def get_collimator(self):
+        collred = self.services['hires']['COLLRED'].read()
+        collblue = self.services['hires']['COLLBLUE'].read()
+        if collred == 'red' and collblue == 'not blue':
+            collimator = 'red'
+        elif collred == 'not red' and collblue == 'blue':
+            collimator = 'blue'
+        else:
+            collimator = None
+        return collimator
     
     
     def get_binning(self):
@@ -57,10 +67,120 @@ class HIRES(AbstractInstrument):
         return RESN2LV
     
     
-    def fill_dewar(self):
+    def fill_dewar(self, wait=True):
+        '''Fill dewar using procedure in /local/home/hireseng/bin/filln2
+        '''
+        if self.services is None:
+            return None
+        if self.services['hiccd']['WCRATE'].read() != False:
+            print('The CCD is currently reading out. Try again when complete.')
+            return None
         print('Initiating camera dewar fill.')
-        if ktl is not None:
-            pass
+        self.services['hiccd']['utbn2fil'].write('on')
+        while self.services['hiccd']['utbn2fil'].read() != 'off':
+            sleep(15)
+        print('HIRES Dewar Fill is Complete.')
+        return True
+    
+    
+    def open_covers(self, wait=True):
+        '''Use same process as: /local/home/hires/bin/open.red and open.blue
+        
+        modify -s hires rcocover = open \
+                        echcover = open   xdcover  = open \
+                        co1cover = open   co2cover = open \
+                        camcover = open   darkslid = open     wait
+
+        modify -s hires bcocover = open \
+                        echcover = open   xdcover  = open \
+                        co1cover = open   co2cover = open \
+                        camcover = open   darkslid = open     wait
+        '''
+        collimator = self.get_collimator()
+
+        if collimator == 'red':
+            self.services['hires']['rcocover'].write('open')
+        elif collimator == 'blue':
+            self.services['hires']['bcocover'].write('open')
+        else:
+            print('Collimator is unknown.  Collimator cover not opened.')
+        self.services['hires']['echcover'].write('open')
+        self.services['hires']['co1cover'].write('open')
+        self.services['hires']['xdcover'].write('open')
+        self.services['hires']['co2cover'].write('open')
+        self.services['hires']['camcover'].write('open')
+        self.services['hires']['darkslid'].write('open')
+    
+        if wait is True:
+            if collimator == 'red':
+                self.services['hires']['rcocover'].write('open', wait=True)
+            elif collimator == 'blue':
+                self.services['hires']['bcocover'].write('open', wait=True)
+            else:
+                print('Collimator is unknown.  Collimator cover not opened.')
+            self.services['hires']['echcover'].write('open', wait=True)
+            self.services['hires']['co1cover'].write('open', wait=True)
+            self.services['hires']['xdcover'].write('open', wait=True)
+            self.services['hires']['co2cover'].write('open', wait=True)
+            self.services['hires']['camcover'].write('open', wait=True)
+            self.services['hires']['darkslid'].write('open', wait=True)
+    
+    
+    def close_covers(self, wait=True):
+        collimator = self.get_collimator()
+
+        if collimator == 'red':
+            self.services['hires']['rcocover'].write('closed')
+        elif collimator == 'blue':
+            self.services['hires']['bcocover'].write('closed')
+        else:
+            print('Collimator is unknown.  Collimator cover not opened.')
+        self.services['hires']['echcover'].write('closed')
+        self.services['hires']['co1cover'].write('closed')
+        self.services['hires']['xdcover'].write('closed')
+        self.services['hires']['co2cover'].write('closed')
+        self.services['hires']['camcover'].write('closed')
+        self.services['hires']['darkslid'].write('closed')
+    
+        if wait is True:
+            if collimator == 'red':
+                self.services['hires']['rcocover'].write('closed', wait=True)
+            elif collimator == 'blue':
+                self.services['hires']['bcocover'].write('closed', wait=True)
+            else:
+                print('Collimator is unknown.  Collimator cover not opened.')
+            self.services['hires']['echcover'].write('closed', wait=True)
+            self.services['hires']['co1cover'].write('closed', wait=True)
+            self.services['hires']['xdcover'].write('closed', wait=True)
+            self.services['hires']['co2cover'].write('closed', wait=True)
+            self.services['hires']['camcover'].write('closed', wait=True)
+            self.services['hires']['darkslid'].write('closed', wait=True)
+    
+    
+    def iodine_start(self):
+        '''Use same process as in /local/home/hires/bin/iod_start
+        
+        modify -s hires moniodt=1
+        modify -s hires setiodt=50.
+        modify -s hires iodheat=on
+        '''
+        if self.services is None:
+            return None
+        self.services['hires']['moniodt'].write(1)
+        self.services['hires']['setiodt'].write(50)
+        self.services['hires']['iodheat'].write('on')
+    
+    
+    def iodine_stop(self):
+        '''Use same process as in /local/home/hires/bin/iod_stop
+        
+        modify -s hires moniodt=0
+        modify -s hires iodheat=off
+        '''
+        if self.services is None:
+            return None
+        self.services['hires']['moniodt'].write(0)
+        self.services['hires']['iodheat'].write('off')
     
     
     def take_exposure(self, obstype=None, exptime=None, nexp=1):
@@ -113,3 +233,91 @@ class HIRES(AbstractInstrument):
 #     def expo_toggle_power(self):
 #         new_state = not self.expo_get_power_on()
 #         print(f'Setting power on exposure meter {{True: "ON", False: "OFF"}[new_state]}')
+
+
+
+# -----------------------------------------------------------------------------
+# HIRES
+# -----------------------------------------------------------------------------
+def PRV_Afternoon_Setup():
+    '''Configure the instrument for afternoon setup (PRV mode).
+    '''
+    h = HIRES()
+    h.connect()
+    # Check dewar level, if below threshold, fill
+    if h.getDWRN2LV() < 20:
+        h.fill_dewar()
+    # Start iodine cell
+    h.iodine_start()
+    # Open covers
+    
+    # Set filename root
+    # Set binning to 3x1
+    # Set full frame
+    # Confirm gain=low
+    # Confirm Speed = fast
+    # m slitname=opened
+    # m fil1name=clear
+    # m fil2name=clear
+    # Confirm collimator = red
+    # m cafraw=0
+    # set ECHANG
+    # set XDANG
+    # tvfilter to BG38
+    # Confirm tempiod1
+    # Confirm tempiod2
+    # Obstype = object
+    ## Focus
+    # Exposure meter off
+    # ThAr2 on
+    # Lamp filter=ng3
+    # m deckname=D5
+    # iodine out
+    # texp = 10 seconds
+    # expose
+    # -> run IDL focus routine and iterate as needed
+    ### Calibrations
+    ## THORIUM Exposures w/ B5
+    # Exposure meter off
+    # ThAr2 on
+    # lamp filter = ng3
+    # m deckname=B5
+    # iodine out
+    # texp=1 second
+    # two exposures
+    ## THORIUM Exposure w/ B1
+    # Exposure meter off
+    # ThAr2 on
+    # lamp filter = ng3
+    # m deckname=B1
+    # iodine out
+    # texp=3 second
+    # one exposure
+    # -> check saturation: < 20,000 counts on middle chip?
+    # -> Check I2 line depth. In center of chip, it should be ~30%
+    ## Iodine Cell Calibrations B5
+    # Make sure cell is fully warmed up before taking these
+    # Exposure meter off
+    # Quartz2 on
+    # Lamp filter=ng3
+    # m deckname=B5
+    # iodine in
+    # texp=2 second
+    # one exposure
+    # -> check saturation: < 20,000 counts on middle chip?
+    # -> Check I2 line depth. In center of chip, it should be ~30%
+    ## Wide Flat Fields
+    # Exposure meter off
+    # Quartz2 on
+    # Lamp filter=ng3
+    # m deckname=C1
+    # iodine out
+    # texp=1 second
+    # Take 1 exposures
+    # -> Check one test exp for saturation (<20k counts)
+    # Take 49 exposures
+    # m lampname=none
+    # m deckname=C2
+    # Check dewar level, if below threshold, fill
+
+
