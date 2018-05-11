@@ -23,7 +23,7 @@ class HIRES(AbstractInstrument):
         self.optical = True
         self.allowed_sampmodes = [1]
         self.scripts = ["stare", "slit nod", "ABBA", "ABB'A'"]
-        self.binnings = ["1x1", "1x2", "2x1", "2x2"]
+        self.binnings = ["1x1", "1x2", "2x1", "2x2", "3x1"]
         self.basename = f"h{dt.utcnow().strftime('%Y%m%d')}_"
         self.serviceNames = ["hires", "hiccd", "expo"]
         self.obstypes = ["object", "dark", "line", "intflat", "bias"]
