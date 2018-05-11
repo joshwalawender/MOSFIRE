@@ -44,6 +44,11 @@ class HIRES(AbstractInstrument):
             collimator = None
         return collimator
 
+    def lights_are_on(self):
+        '''Returns True if lights are on in the enclosure.
+        '''
+        return self.services['hires']['lights'].read() == 'on'
+
     def get_iodine_temps(self):
         '''Returns the iodine cell temperatures (tempiod1, tempiod2) in units
         of degrees C.
@@ -232,6 +237,26 @@ class HIRES(AbstractInstrument):
         self.services['hires']['moniodt'].write(0)
         self.services['hires']['iodheat'].write('off')
 
+    def open_slit(self, wait=True):
+        '''Open the slit jaws.
+        '''
+        self.services['hires']['slitname'].write('opened', wait=wait)
+
+    def set_filters(self, fil1name, fil2name, wait=True):
+        '''Set the filter wheels.
+        '''
+        self.services['hires']['fil1name'].write(fil1name, wait=wait)
+        self.services['hires']['fil2name'].write(fil2name, wait=wait)
+
+    def set_cafraw(self, cafraw, wait=True):
+        self.services['hires']['cafraw'].write(cafraw, wait=wait)
+
+    def set_cofraw(self, cofraw, wait=True):
+        self.services['hires']['cofraw'].write(cafraw, wait=wait)
+
+    def set_tvfilter(self, tvf1name, wait=True):
+        self.services['hires']['TVF1NAME'].write(tvf1name, wait=wait)
+
     def take_exposure(self, obstype=None, exptime=None, nexp=1):
         '''Takes one or more exposures of the given exposure time and type.
         Modeled after goi script.
@@ -296,7 +321,7 @@ def PRV_afternoon_setup():
     h = HIRES()
     h.connect()
     # Check that lights are off in the HIRES enclosure
-    if h.services['hires']['lights'].read() != 'off':
+    if h.lights_are_on() is True:
         print('WARNING:  Lights in HIRES enclosure are on!')
         print('WARNING:  Enclosure may be occupied, halting script.')
         return False
@@ -315,23 +340,21 @@ def PRV_afternoon_setup():
     # Confirm gain=low
     # Confirm Speed = fast
     # m slitname=opened
-    h.services['hires']['slitname'].write('opened', wait=True)
+    h.open_slit()
     # m fil1name=clear
-    h.services['hires']['fil1name'].write('clear', wait=True)
     # m fil2name=clear
-    h.services['hires']['fil2name'].write('clear', wait=True)
+    h.set_filters('clear', 'clear')
     # Confirm collimator = red
     assert h.get_collimator() == 'red'
     # m cafraw=0
-    h.services['hires']['cafraw'].write(0, wait=True)
+    h.set_cafraw(0)
     # set ECHANG
 #     h.services['hires']['ECHANG'].write(0, wait=True)
     # set XDANG
 #     h.services['hires']['XDANG'].write(0, wait=True)
     # tvfilter to BG38
-    h.services['hires']['TVF1NAME'].write('bg38', wait=True)
-    # Confirm tempiod1
-    # Confirm tempiod2
+    h.set_tvfilter('bg38')
+    # Confirm tempiod1 and tempiod2
     while h.check_iodine_temps() is not True:
         print('Iodine cell not at temperature.')
         tempiod1, tempiod2 = h.get_iodine_temps()
