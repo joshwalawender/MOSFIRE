@@ -10,7 +10,7 @@ try:
 except ModuleNotFoundError:
     ktl = None
 
-from Keck.Instruments import AbstractInstrument
+from .Instruments import AbstractInstrument
 
 
 # -----------------------------------------------------------------------------
