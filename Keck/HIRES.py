@@ -40,6 +40,24 @@ class HIRES(AbstractInstrument):
         return collimator
     
     
+    def get_iodine_temps(self):
+        if self.services is None:
+            return None
+        tempiod1 = float(self.services['hires']['tempiod1'].read())
+        tempiod2 = float(self.services['hires']['tempiod2'].read())
+        return [tempiod1, tempiod2]
+    
+    
+    def check_iodine_temps(self, target1=65, target2=50, range=0.1):
+        if self.services is None:
+            return None
+        tempiod1, tempiod2 = self.get_iodine_temps()
+        if abs(tempiod1 - target1) < range and abs(tempiod2 - target2) < range:
+            return True
+        else:
+            return False
+    
+    
     def get_binning(self):
         if self.services is None:
             return None
