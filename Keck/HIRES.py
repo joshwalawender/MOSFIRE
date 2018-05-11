@@ -27,6 +27,7 @@ class HIRES(AbstractInstrument):
         self.basename = f"h{dt.utcnow().strftime('%Y%m%d')}_"
         self.serviceNames = ["hires", "hiccd", "expo"]
         self.obstypes = ["object", "dark", "line", "intflat", "bias"]
+        self.connect()
 
     def get_collimator(self):
         '''Determine which collimator is in the beam.  Returns a string of
