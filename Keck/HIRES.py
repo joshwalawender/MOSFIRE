@@ -145,17 +145,17 @@ class HIRES(AbstractInstrument):
         collimator = self.get_collimator()
 
         if collimator == 'red':
-            self.services['hires']['rcocover'].write('open')
+            self.services['hires']['rcocover'].write('open', wait=False)
         elif collimator == 'blue':
-            self.services['hires']['bcocover'].write('open')
+            self.services['hires']['bcocover'].write('open', wait=False)
         else:
             print('Collimator is unknown.  Collimator cover not opened.')
-        self.services['hires']['echcover'].write('open')
-        self.services['hires']['co1cover'].write('open')
-        self.services['hires']['xdcover'].write('open')
-        self.services['hires']['co2cover'].write('open')
-        self.services['hires']['camcover'].write('open')
-        self.services['hires']['darkslid'].write('open')
+        self.services['hires']['echcover'].write('open', wait=False)
+        self.services['hires']['co1cover'].write('open', wait=False)
+        self.services['hires']['xdcover'].write('open', wait=False)
+        self.services['hires']['co2cover'].write('open', wait=False)
+        self.services['hires']['camcover'].write('open', wait=False)
+        self.services['hires']['darkslid'].write('open', wait=False)
 
         if wait is True:
             if collimator == 'red':
@@ -177,17 +177,17 @@ class HIRES(AbstractInstrument):
         collimator = self.get_collimator()
 
         if collimator == 'red':
-            self.services['hires']['rcocover'].write('closed')
+            self.services['hires']['rcocover'].write('closed', wait=False)
         elif collimator == 'blue':
-            self.services['hires']['bcocover'].write('closed')
+            self.services['hires']['bcocover'].write('closed', wait=False)
         else:
             print('Collimator is unknown.  Collimator cover not opened.')
-        self.services['hires']['echcover'].write('closed')
-        self.services['hires']['co1cover'].write('closed')
-        self.services['hires']['xdcover'].write('closed')
-        self.services['hires']['co2cover'].write('closed')
-        self.services['hires']['camcover'].write('closed')
-        self.services['hires']['darkslid'].write('closed')
+        self.services['hires']['echcover'].write('closed', wait=False)
+        self.services['hires']['co1cover'].write('closed', wait=False)
+        self.services['hires']['xdcover'].write('closed', wait=False)
+        self.services['hires']['co2cover'].write('closed', wait=False)
+        self.services['hires']['camcover'].write('closed', wait=False)
+        self.services['hires']['darkslid'].write('closed', wait=False)
 
         if wait is True:
             if collimator == 'red':
