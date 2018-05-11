@@ -29,6 +29,10 @@ class HIRES(AbstractInstrument):
         self.obstypes = ["object", "dark", "line", "intflat", "bias"]
 
     def get_collimator(self):
+        '''Determine which collimator is in the beam.  Returns a string of
+        'red' or 'blue' indicating which is in beam.  Returns None if it can
+        not interpret the result.
+        '''
         collred = self.services['hires']['COLLRED'].read()
         collblue = self.services['hires']['COLLBLUE'].read()
         if collred == 'red' and collblue == 'not blue':
@@ -40,6 +44,9 @@ class HIRES(AbstractInstrument):
         return collimator
 
     def get_iodine_temps(self):
+        '''Returns the iodine cell temperatures (tempiod1, tempiod2) in units
+        of degrees C.
+        '''
         if self.services is None:
             return None
         tempiod1 = float(self.services['hires']['tempiod1'].read())
@@ -47,6 +54,9 @@ class HIRES(AbstractInstrument):
         return [tempiod1, tempiod2]
 
     def check_iodine_temps(self, target1=65, target2=50, range=0.1):
+        '''Checks the iodine cell temperatures agains the given targets and
+        range.  Default values are those used by the CPS team.
+        '''
         if self.services is None:
             return None
         tempiod1, tempiod2 = self.get_iodine_temps()
@@ -56,6 +66,9 @@ class HIRES(AbstractInstrument):
             return False
 
     def get_binning(self):
+        '''Populates the binning property and return the value.  Both are a
+        tuple of (binX, binY).
+        '''
         if self.services is None:
             return None
         keywordresult = self.services['hiccd']['BINNING'].read()
@@ -64,8 +77,10 @@ class HIRES(AbstractInstrument):
         if binningmatch is not None:
             self.binning = (int(binningmatch.group(1)),
                             int(binningmatch.group(2)))
+            return self.binning
         else:
             print(f'Could not parse keyword value "{keywordresult}"')
+            return None
 
     def _set_binning(self, binX, binY):
         '''Private method called by the set_binning method of the
@@ -79,19 +94,26 @@ class HIRES(AbstractInstrument):
         assert (binX, binY) == self.get_binning()
 
     def get_DWRN2LV(self):
+        '''Returns a float of the current camera dewar level, supposedly in
+        percentage, but as this is poorly calibrated, it maxes out at nearly
+        120% as of mid 2018.
+        '''
         if self.services is None:
             return None
         DWRN2LV = float(self.services['hiccd']['DWRN2LV'].read())
         return DWRN2LV
 
     def get_RESN2LV(self):
+        '''Returns a float of the current reserve dewar level.  Each camera
+        dewar fill takes roughly 10% of the reserve dewar.
+        '''
         if self.services is None:
             return None
         RESN2LV = float(self.services['hiccd']['RESN2LV'].read())
         return RESN2LV
 
     def fill_dewar(self, wait=True):
-        '''Fill dewar using procedure in /local/home/hireseng/bin/filln2
+        '''Fill camera dewar using procedure in /local/home/hireseng/bin/filln2
         '''
         if self.services is None:
             return None
@@ -106,7 +128,9 @@ class HIRES(AbstractInstrument):
         return True
 
     def open_covers(self, wait=True):
-        '''Use same process as: /local/home/hires/bin/open.red and open.blue
+        '''Opens all internal covers.
+        
+        Use same process as: /local/home/hires/bin/open.red and open.blue
 
         modify -s hires rcocover = open \
                         echcover = open   xdcover  = open \
@@ -148,6 +172,8 @@ class HIRES(AbstractInstrument):
             self.services['hires']['darkslid'].write('open', wait=True)
 
     def close_covers(self, wait=True):
+        '''Closes all internal covers.
+        '''
         collimator = self.get_collimator()
 
         if collimator == 'red':
@@ -178,7 +204,9 @@ class HIRES(AbstractInstrument):
             self.services['hires']['darkslid'].write('closed', wait=True)
 
     def iodine_start(self):
-        '''Use same process as in /local/home/hires/bin/iod_start
+        '''Starts the iodine cell heater.  Cell takes ~45 minutes to warm up.
+        
+        Use same process as in /local/home/hires/bin/iod_start
 
         modify -s hires moniodt=1
         modify -s hires setiodt=50.
@@ -191,7 +219,9 @@ class HIRES(AbstractInstrument):
         self.services['hires']['iodheat'].write('on')
 
     def iodine_stop(self):
-        '''Use same process as in /local/home/hires/bin/iod_stop
+        '''Turns off the iodine cell heater.
+        
+        Use same process as in /local/home/hires/bin/iod_stop
 
         modify -s hires moniodt=0
         modify -s hires iodheat=off
@@ -202,6 +232,9 @@ class HIRES(AbstractInstrument):
         self.services['hires']['iodheat'].write('off')
 
     def take_exposure(self, obstype=None, exptime=None, nexp=1):
+        '''Takes one or more exposures of the given exposure time and type.
+        Modeled after goi script.
+        '''
         if obstype is None:
             obstype = self.services['hiccd']['OBSTYPE'].read()
 
