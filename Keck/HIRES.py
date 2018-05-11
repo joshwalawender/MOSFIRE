@@ -7,10 +7,11 @@ from time import sleep
 try:
     import ktl
     from ktl import Exceptions as ktlExceptions
-except:
+except ModuleNotFoundError:
     ktl = None
 
 from Keck.Instruments import AbstractInstrument
+
 
 # -----------------------------------------------------------------------------
 # HIRES
@@ -26,8 +27,7 @@ class HIRES(AbstractInstrument):
         self.basename = f"h{dt.utcnow().strftime('%Y%m%d')}_"
         self.serviceNames = ["hires", "hiccd", "expo"]
         self.obstypes = ["object", "dark", "line", "intflat", "bias"]
-    
-    
+
     def get_collimator(self):
         collred = self.services['hires']['COLLRED'].read()
         collblue = self.services['hires']['COLLBLUE'].read()
@@ -38,16 +38,14 @@ class HIRES(AbstractInstrument):
         else:
             collimator = None
         return collimator
-    
-    
+
     def get_iodine_temps(self):
         if self.services is None:
             return None
         tempiod1 = float(self.services['hires']['tempiod1'].read())
         tempiod2 = float(self.services['hires']['tempiod2'].read())
         return [tempiod1, tempiod2]
-    
-    
+
     def check_iodine_temps(self, target1=65, target2=50, range=0.1):
         if self.services is None:
             return None
@@ -56,8 +54,7 @@ class HIRES(AbstractInstrument):
             return True
         else:
             return False
-    
-    
+
     def get_binning(self):
         if self.services is None:
             return None
@@ -69,28 +66,25 @@ class HIRES(AbstractInstrument):
                             int(binningmatch.group(2)))
         else:
             print(f'Could not parse keyword value "{keywordresult}"')
-    
-    
+
     def get_DWRN2LV(self):
         if self.services is None:
             return None
         DWRN2LV = float(self.services['hiccd']['DWRN2LV'].read())
         return DWRN2LV
-    
-    
+
     def get_RESN2LV(self):
         if self.services is None:
             return None
         RESN2LV = float(self.services['hiccd']['RESN2LV'].read())
         return RESN2LV
-    
-    
+
     def fill_dewar(self, wait=True):
         '''Fill dewar using procedure in /local/home/hireseng/bin/filln2
         '''
         if self.services is None:
             return None
-        if self.services['hiccd']['WCRATE'].read() != False:
+        if self.services['hiccd']['WCRATE'].read() is not False:
             print('The CCD is currently reading out. Try again when complete.')
             return None
         print('Initiating camera dewar fill.')
@@ -99,11 +93,10 @@ class HIRES(AbstractInstrument):
             sleep(15)
         print('HIRES Dewar Fill is Complete.')
         return True
-    
-    
+
     def open_covers(self, wait=True):
         '''Use same process as: /local/home/hires/bin/open.red and open.blue
-        
+
         modify -s hires rcocover = open \
                         echcover = open   xdcover  = open \
                         co1cover = open   co2cover = open \
@@ -128,7 +121,7 @@ class HIRES(AbstractInstrument):
         self.services['hires']['co2cover'].write('open')
         self.services['hires']['camcover'].write('open')
         self.services['hires']['darkslid'].write('open')
-    
+
         if wait is True:
             if collimator == 'red':
                 self.services['hires']['rcocover'].write('open', wait=True)
@@ -142,8 +135,7 @@ class HIRES(AbstractInstrument):
             self.services['hires']['co2cover'].write('open', wait=True)
             self.services['hires']['camcover'].write('open', wait=True)
             self.services['hires']['darkslid'].write('open', wait=True)
-    
-    
+
     def close_covers(self, wait=True):
         collimator = self.get_collimator()
 
@@ -159,7 +151,7 @@ class HIRES(AbstractInstrument):
         self.services['hires']['co2cover'].write('closed')
         self.services['hires']['camcover'].write('closed')
         self.services['hires']['darkslid'].write('closed')
-    
+
         if wait is True:
             if collimator == 'red':
                 self.services['hires']['rcocover'].write('closed', wait=True)
@@ -173,11 +165,10 @@ class HIRES(AbstractInstrument):
             self.services['hires']['co2cover'].write('closed', wait=True)
             self.services['hires']['camcover'].write('closed', wait=True)
             self.services['hires']['darkslid'].write('closed', wait=True)
-    
-    
+
     def iodine_start(self):
         '''Use same process as in /local/home/hires/bin/iod_start
-        
+
         modify -s hires moniodt=1
         modify -s hires setiodt=50.
         modify -s hires iodheat=on
@@ -187,11 +178,10 @@ class HIRES(AbstractInstrument):
         self.services['hires']['moniodt'].write(1)
         self.services['hires']['setiodt'].write(50)
         self.services['hires']['iodheat'].write('on')
-    
-    
+
     def iodine_stop(self):
         '''Use same process as in /local/home/hires/bin/iod_stop
-        
+
         modify -s hires moniodt=0
         modify -s hires iodheat=off
         '''
@@ -199,8 +189,7 @@ class HIRES(AbstractInstrument):
             return None
         self.services['hires']['moniodt'].write(0)
         self.services['hires']['iodheat'].write('off')
-    
-    
+
     def take_exposure(self, obstype=None, exptime=None, nexp=1):
         if obstype is None:
             obstype = self.services['hiccd']['OBSTYPE'].read()
@@ -227,37 +216,36 @@ class HIRES(AbstractInstrument):
             print(f"Taking exposure {i:d} of {nexp:d}")
             print(f"  Exposure Time = {exptime:d} s")
             self.services['hiccd']['EXPOSE'].write(True)
-            exposing = ktl.Expression("($hiccd.OBSERVIP == True) and ($hiccd.EXPOSIP == True )")
-            reading = ktl.Expression("($hiccd.OBSERVIP == True) and ($hiccd.WCRATE == True )")
+            exposing = ktl.Expression("($hiccd.OBSERVIP == True) "
+                                      "and ($hiccd.EXPOSIP == True )")
+            reading = ktl.Expression("($hiccd.OBSERVIP == True) "
+                                     "and ($hiccd.WCRATE == True )")
             obsdone = ktl.Expression("($hiccd.OBSERVIP == False)")
 
             if not exposing.wait(timeout=30):
-                raise Exception('Timed out waiting for EXPOSING state to start')
+                raise Exception('Timed out waiting for EXPOSING to start')
             print('  Exposing ...')
 
             if not reading.wait(timeout=exptime+30):
-                raise Exception('Timed out waiting for READING state to start')
+                raise Exception('Timed out waiting for READING to start')
             print('  Reading out ...')
 
             if not obsdone.wait(timeout=90):
-                raise Exception('Timed out waiting for READING state to finish')
+                raise Exception('Timed out waiting for READING to finish')
             print('Done')
-
 
 #     def expo_get_power_on(self):
 #         return True
-#     
-#     
+#
 #     def expo_toggle_power(self):
 #         new_state = not self.expo_get_power_on()
-#         print(f'Setting power on exposure meter {{True: "ON", False: "OFF"}[new_state]}')
-
+#         print(f'Exposure meter {{True: "ON", False: "OFF"}[new_state]}')
 
 
 # -----------------------------------------------------------------------------
 # HIRES
 # -----------------------------------------------------------------------------
-def PRV_Afternoon_Setup():
+def PRV_afternoon_setup():
     '''Configure the instrument for afternoon setup (PRV mode).
     '''
     h = HIRES()
@@ -269,7 +257,7 @@ def PRV_Afternoon_Setup():
         return False
     # Check dewar level, if below threshold, fill
     if h.getDWRN2LV() < 30:
-        print(f'Dewar level at {h.getDWRN2LV():.1f} %.  Initiating dewar fill.')
+        print(f'Dewar level at {h.getDWRN2LV():.1f} %. Initiating dewar fill.')
         h.fill_dewar()
     # Start iodine cell
     h.iodine_start()
@@ -299,14 +287,14 @@ def PRV_Afternoon_Setup():
     h.services['hires']['TVF1NAME'].write('bg38', wait=True)
     # Confirm tempiod1
     # Confirm tempiod2
-    while h.check_iodine_temps() != True:
+    while h.check_iodine_temps() is not True:
         print('Iodine cell not at temperature.')
         tempiod1, tempiod2 = h.get_iodine_temps()
         print(f'  tempiod1 = {tempiod1:.1f} C')
         print(f'  tempiod2 = {tempiod2:.1f} C')
         print(f'  waiting 5 minutes before checking again (or CTRL-c to exit)')
         sleep(300)
-    if h.check_iodine_temps() == True:
+    if h.check_iodine_temps() is True:
         print('Iodine cell at temperature:')
         tempiod1, tempiod2 = h.get_iodine_temps()
         print(f'  tempiod1 = {tempiod1:.1f} C')
@@ -315,62 +303,60 @@ def PRV_Afternoon_Setup():
     # Obstype = object
     h.services['hiccd']['obstype'].write('Object')
 
-    ## Focus
-    # Exposure meter off
-    # ThAr2 on
-    # Lamp filter=ng3
-    # m deckname=D5
-    # iodine out
-    # texp = 10 seconds
-    # expose
-    # -> run IDL focus routine and iterate as needed
+    # Focus
+    # - Exposure meter off
+    # - ThAr2 on
+    # - Lamp filter=ng3
+    # - m deckname=D5
+    # - iodine out
+    # - texp = 10 seconds
+    # - expose
+    # - -> run IDL focus routine and iterate as needed
 
-    ### Calibrations
+    # Calibrations
 
-    ## THORIUM Exposures w/ B5
-    # Exposure meter off
-    # ThAr2 on
-    # lamp filter = ng3
-    # m deckname=B5
-    # iodine out
-    # texp=1 second
-    # two exposures
+    # THORIUM Exposures w/ B5
+    # - Exposure meter off
+    # - ThAr2 on
+    # - lamp filter = ng3
+    # - m deckname=B5
+    # - iodine out
+    # - texp=1 second
+    # - two exposures
 
-    ## THORIUM Exposure w/ B1
-    # Exposure meter off
-    # ThAr2 on
-    # lamp filter = ng3
-    # m deckname=B1
-    # iodine out
-    # texp=3 second
-    # one exposure
-    # -> check saturation: < 20,000 counts on middle chip?
-    # -> Check I2 line depth. In center of chip, it should be ~30%
+    # THORIUM Exposure w/ B1
+    # - Exposure meter off
+    # - ThAr2 on
+    # - lamp filter = ng3
+    # - m deckname=B1
+    # - iodine out
+    # - texp=3 second
+    # - one exposure
+    # - -> check saturation: < 20,000 counts on middle chip?
+    # - -> Check I2 line depth. In center of chip, it should be ~30%
 
-    ## Iodine Cell Calibrations B5
-    # Make sure cell is fully warmed up before taking these
-    # Exposure meter off
-    # Quartz2 on
-    # Lamp filter=ng3
-    # m deckname=B5
-    # iodine in
-    # texp=2 second
-    # one exposure
-    # -> check saturation: < 20,000 counts on middle chip?
-    # -> Check I2 line depth. In center of chip, it should be ~30%
+    # Iodine Cell Calibrations B5
+    # - Make sure cell is fully warmed up before taking these
+    # - Exposure meter off
+    # - Quartz2 on
+    # - Lamp filter=ng3
+    # - m deckname=B5
+    # - iodine in
+    # - texp=2 second
+    # - one exposure
+    # - -> check saturation: < 20,000 counts on middle chip?
+    # - -> Check I2 line depth. In center of chip, it should be ~30%
 
-    ## Wide Flat Fields
-    # Exposure meter off
-    # Quartz2 on
-    # Lamp filter=ng3
-    # m deckname=C1
-    # iodine out
-    # texp=1 second
-    # Take 1 exposures
-    # -> Check one test exp for saturation (<20k counts)
-    # Take 49 exposures
-    # m lampname=none
-    # m deckname=C2
-    # Check dewar level, if below threshold, fill
-
-
+    # Wide Flat Fields
+    # - Exposure meter off
+    # - Quartz2 on
+    # - Lamp filter=ng3
+    # - m deckname=C1
+    # - iodine out
+    # - texp=1 second
+    # - Take 1 exposures
+    # - -> Check one test exp for saturation (<20k counts)
+    # - Take 49 exposures
+    # - m lampname=none
+    # - m deckname=C2
+    # - Check dewar level, if below threshold, fill

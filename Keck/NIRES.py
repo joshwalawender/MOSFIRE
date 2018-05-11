@@ -1,13 +1,11 @@
-import re
 from datetime import datetime as dt
-from time import sleep
 
 # Wrap ktl import in try/except so that we can maintain test case or simulator
 # version of functions.
 try:
     import ktl
     from ktl import Exceptions as ktlExceptions
-except:
+except ModuleNotFoundError:
     ktl = None
 
 from Keck.Instruments import AbstractInstrument
@@ -25,15 +23,13 @@ class NIRES(AbstractInstrument):
         self.scripts = ["stare", "slit nod", "ABBA", "ABB'A'"]
         self.basename = f"n{dt.utcnow().strftime('%Y%m%d')}_"
         self.sampmode = 2
-    
-    
+
     def set_bright(self):
         print("Setting bright object parameters")
         self.set_itime(2)
         self.set_sampmode(2)
         self.set_coadds(1)
-    
-    
+
     def set_faint(self):
         print("Setting faint object parameters")
         self.set_itime(120)
@@ -53,19 +49,15 @@ class NIRESim(AbstractInstrument):
         self.scripts = ["stare", "box5", "box9"]
         self.basename = f"ns{dt.utcnow().strftime('%Y%m%d')}_"
         self.sampmode = 2
-    
-    
+
     def set_bright(self):
         print("Setting bright object parameters")
         self.set_itime(2)
         self.set_sampmode(2)
         self.set_coadds(1)
-    
-    
+
     def set_faint(self):
         print("Setting faint object parameters")
         self.set_itime(120)
         self.set_sampmode(3)
         self.set_coadds(3)
-
-

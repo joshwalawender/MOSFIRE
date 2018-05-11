@@ -1,16 +1,15 @@
-import re
 from datetime import datetime as dt
-from time import sleep
 
 # Wrap ktl import in try/except so that we can maintain test case or simulator
 # version of functions.
 try:
     import ktl
     from ktl import Exceptions as ktlExceptions
-except:
+except ModuleNotFoundError:
     ktl = None
 
 from Keck.Instruments import AbstractInstrument
+
 
 # -----------------------------------------------------------------------------
 # MOSFIRE
@@ -25,5 +24,3 @@ class MOSFIRE(AbstractInstrument):
         self.basename = f"m{dt.utcnow().strftime('%Y%m%d')}_"
         self.sampmode = 2
         self.serviceNames = ["mosfire"]
-
-
