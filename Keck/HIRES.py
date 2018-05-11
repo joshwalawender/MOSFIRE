@@ -262,29 +262,59 @@ def PRV_Afternoon_Setup():
     '''
     h = HIRES()
     h.connect()
+    # Check that lights are off in the HIRES enclosure
+    if h.services['hires']['lights'].read() != 'off':
+        print('WARNING:  Lights in HIRES enclosure are on!')
+        print('WARNING:  Enclosure may be occupied, halting script.')
+        return False
     # Check dewar level, if below threshold, fill
-    if h.getDWRN2LV() < 20:
+    if h.getDWRN2LV() < 30:
+        print(f'Dewar level at {h.getDWRN2LV():.1f} %.  Initiating dewar fill.')
         h.fill_dewar()
     # Start iodine cell
     h.iodine_start()
     # Open covers
-    
+    h.open_covers()
     # Set filename root
     # Set binning to 3x1
+    h.set_binning('3x1')
     # Set full frame
     # Confirm gain=low
     # Confirm Speed = fast
     # m slitname=opened
+    h.services['hires']['slitname'].write('opened', wait=True)
     # m fil1name=clear
     # m fil2name=clear
+    h.services['hires']['fil1name'].write('clear', wait=True)
+    h.services['hires']['fil2name'].write('clear', wait=True)
     # Confirm collimator = red
+    assert h.get_collimator() == 'red'
     # m cafraw=0
+    h.services['hires']['cafraw'].write(0, wait=True)
     # set ECHANG
+#     h.services['hires']['ECHANG'].write(0, wait=True)
     # set XDANG
+#     h.services['hires']['XDANG'].write(0, wait=True)
     # tvfilter to BG38
+    h.services['hires']['TVF1NAME'].write('bg38', wait=True)
     # Confirm tempiod1
     # Confirm tempiod2
+    while h.check_iodine_temps() != True:
+        print('Iodine cell not at temperature.')
+        tempiod1, tempiod2 = h.get_iodine_temps()
+        print(f'  tempiod1 = {tempiod1:.1f} C')
+        print(f'  tempiod2 = {tempiod2:.1f} C')
+        print(f'  waiting 5 minutes before checking again (or CTRL-c to exit)')
+        sleep(300)
+    if h.check_iodine_temps() == True:
+        print('Iodine cell at temperature:')
+        tempiod1, tempiod2 = h.get_iodine_temps()
+        print(f'  tempiod1 = {tempiod1:.1f} C')
+        print(f'  tempiod2 = {tempiod2:.1f} C')
+
     # Obstype = object
+    h.services['hiccd']['obstype'].write('Object')
+
     ## Focus
     # Exposure meter off
     # ThAr2 on
@@ -294,7 +324,9 @@ def PRV_Afternoon_Setup():
     # texp = 10 seconds
     # expose
     # -> run IDL focus routine and iterate as needed
+
     ### Calibrations
+
     ## THORIUM Exposures w/ B5
     # Exposure meter off
     # ThAr2 on
@@ -303,6 +335,7 @@ def PRV_Afternoon_Setup():
     # iodine out
     # texp=1 second
     # two exposures
+
     ## THORIUM Exposure w/ B1
     # Exposure meter off
     # ThAr2 on
@@ -313,6 +346,7 @@ def PRV_Afternoon_Setup():
     # one exposure
     # -> check saturation: < 20,000 counts on middle chip?
     # -> Check I2 line depth. In center of chip, it should be ~30%
+
     ## Iodine Cell Calibrations B5
     # Make sure cell is fully warmed up before taking these
     # Exposure meter off
@@ -324,6 +358,7 @@ def PRV_Afternoon_Setup():
     # one exposure
     # -> check saturation: < 20,000 counts on middle chip?
     # -> Check I2 line depth. In center of chip, it should be ~30%
+
     ## Wide Flat Fields
     # Exposure meter off
     # Quartz2 on
