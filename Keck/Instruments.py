@@ -71,7 +71,8 @@ class AbstractInstrument(object):
             print(f"Could not interpret {type(input)} {input} as a binning.")
 
         if f"{binX:d}x{binY:d}" in self.binnings:
-            self.binning = (binX, binY)
+            self._set_binning(binX, binY)
+            self.binning = f"{binX:d}x{binY:d}"
             print(f"Binning set to {self.binning_as_str()}")
         else:
             print(f"Binning {input} is not supported on this instrument.")

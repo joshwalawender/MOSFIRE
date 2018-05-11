@@ -67,6 +67,17 @@ class HIRES(AbstractInstrument):
         else:
             print(f'Could not parse keyword value "{keywordresult}"')
 
+    def _set_binning(self, binX, binY):
+        '''Private method called by the set_binning method of the
+        AbstractInstrument class.  That method should be used by users, this
+        method captures the exact keyword commands to change binning for each
+        specific instrument.
+        '''
+        if self.services is None:
+            return None
+        self.services['hiccd']['BINNING'].write((binX, binY))
+        assert (binX, binY) == self.get_binning()
+
     def get_DWRN2LV(self):
         if self.services is None:
             return None
