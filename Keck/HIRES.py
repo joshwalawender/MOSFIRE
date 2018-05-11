@@ -300,7 +300,7 @@ def PRV_afternoon_setup():
         print('WARNING:  Enclosure may be occupied, halting script.')
         return False
     # Check dewar level, if below threshold, fill
-    if h.getDWRN2LV() < 30:
+    if h.get_DWRN2LV() < 30:
         print(f'Dewar level at {h.getDWRN2LV():.1f} %. Initiating dewar fill.')
         h.fill_dewar()
     # Start iodine cell
