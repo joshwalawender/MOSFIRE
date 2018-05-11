@@ -287,7 +287,7 @@ class HIRES(AbstractInstrument):
 
 
 # -----------------------------------------------------------------------------
-# HIRES
+# Afternoon Setup for PRV and Calibrations
 # -----------------------------------------------------------------------------
 def PRV_afternoon_setup():
     '''Configure the instrument for afternoon setup (PRV mode).
@@ -316,8 +316,8 @@ def PRV_afternoon_setup():
     # m slitname=opened
     h.services['hires']['slitname'].write('opened', wait=True)
     # m fil1name=clear
-    # m fil2name=clear
     h.services['hires']['fil1name'].write('clear', wait=True)
+    # m fil2name=clear
     h.services['hires']['fil2name'].write('clear', wait=True)
     # Confirm collimator = red
     assert h.get_collimator() == 'red'
