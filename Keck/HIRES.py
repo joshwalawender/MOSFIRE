@@ -26,7 +26,8 @@ class HIRES(AbstractInstrument):
         self.binnings = ["1x1", "1x2", "2x1", "2x2", "3x1"]
         self.basename = f"h{dt.utcnow().strftime('%Y%m%d')}_"
         self.serviceNames = ["hires", "hiccd", "expo"]
-        self.obstypes = ["object", "dark", "line", "intflat", "bias"]
+        self.obstypes = ['Object', 'Dark', 'Line', 'Bias', 'IntFlat', 'DmFlat',
+                         'SkyFlat']
         self.connect()
 
     def get_collimator(self):
@@ -257,6 +258,15 @@ class HIRES(AbstractInstrument):
     def set_tvfilter(self, tvf1name, wait=True):
         self.services['hires']['TVF1NAME'].write(tvf1name, wait=wait)
 
+    def set_obstype(self, obstype):
+        if obstype in self.obstypes:
+            self.services['hiccd']['obstype'].write(obstype)
+        else:
+            print(f'OBSTYPE {obstype} not recognized.')
+            print(f'Allowed obstypes:')
+            for otype in self.obstypes:
+                print(f'  {otype}')
+
     def take_exposure(self, obstype=None, exptime=None, nexp=1):
         '''Takes one or more exposures of the given exposure time and type.
         Modeled after goi script.
@@ -369,7 +379,7 @@ def PRV_afternoon_setup():
         print(f'  tempiod2 = {tempiod2:.1f} C')
 
     # Obstype = object
-    h.services['hiccd']['obstype'].write('Object')
+    h.set_obstype('Object')
 
     # Focus
     # - Exposure meter off
