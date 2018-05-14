@@ -110,6 +110,17 @@ class HIRES(AbstractInstrument):
         DWRN2LV = float(self.services['hiccd']['DWRN2LV'].read())
         return DWRN2LV
 
+    def estimate_dewar_time(self):
+        '''Estimate time remaining on the camera dewar.
+        '''
+        DWRN2LV = self.get_DWRN2LV()
+        if DWRN2LV > 70:
+            hold_time = '>12 hours'
+        elif DWRN2LV > 10:
+            hold time = f"~{(DWRN2LV-10)/5:.1f} hours"
+        else:
+            hold_time = 'WARNING!  Dewar level Low.  Fill immediately!'
+
     def get_RESN2LV(self):
         '''Returns a float of the current reserve dewar level.  Each camera
         dewar fill takes roughly 10% of the reserve dewar.
