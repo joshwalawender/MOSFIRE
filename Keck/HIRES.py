@@ -28,13 +28,40 @@ class HIRES(AbstractInstrument):
         self.serviceNames = ["hires", "hiccd", "expo"]
         self.obstypes = ['Object', 'Dark', 'Line', 'Bias', 'IntFlat', 'DmFlat',
                          'SkyFlat']
+
+        #----------------------------------------------------------------------
+        # Create logger object
+        #----------------------------------------------------------------------
+        self.log = logging.getLogger('HIRES')
+        self.log.setLevel(logging.DEBUG)
+        ## Set up console output
+        LogConsoleHandler = logging.StreamHandler()
+        LogConsoleHandler.setLevel(logging.DEBUG)
+        LogFormat = logging.Formatter('%(asctime)s %(levelname)8s: %(message)s',
+                                      datefmt='%Y-%m-%d %H:%M:%S')
+        LogConsoleHandler.setFormatter(LogFormat)
+        self.log.addHandler(LogConsoleHandler)
+        ## Set up file output
+#         LogFileName = None
+#         LogFileHandler = logging.FileHandler(LogFileName)
+#         LogFileHandler.setLevel(logging.DEBUG)
+#         LogFileHandler.setFormatter(LogFormat)
+#         self.log.addHandler(LogFileHandler)
+
+        #----------------------------------------------------------------------
+        # Connect to keyword services
+        #----------------------------------------------------------------------
         self.connect()
+
 
     def get_collimator(self):
         '''Determine which collimator is in the beam.  Returns a string of
         'red' or 'blue' indicating which is in beam.  Returns None if it can
         not interpret the result.
         '''
+        if self.services is None:
+            return None
+        self.log.debug('Getting current collimator ...')
         collred = self.services['hires']['COLLRED'].read()
         collblue = self.services['hires']['COLLBLUE'].read()
         if collred == 'red' and collblue == 'not blue':
@@ -43,12 +70,18 @@ class HIRES(AbstractInstrument):
             collimator = 'blue'
         else:
             collimator = None
+        self.log.debug(f'  collimator = {collimator}')
         return collimator
 
     def lights_are_on(self):
         '''Returns True if lights are on in the enclosure.
         '''
-        return self.services['hires']['lights'].read() == 'on'
+        if self.services is None:
+            return None
+        self.log.debug('Getting status of enclosure lights ...')
+        lights = self.services['hires']['lights'].read() == 'on'
+        self.log.debug(f'  lights are {{True: "on", False: "off"}[lights]}')
+        return lights
 
     def get_iodine_temps(self):
         '''Returns the iodine cell temperatures (tempiod1, tempiod2) in units
@@ -56,8 +89,11 @@ class HIRES(AbstractInstrument):
         '''
         if self.services is None:
             return None
+        self.log.debug('Getting iodine cell temperatures ...')
         tempiod1 = float(self.services['hires']['tempiod1'].read())
         tempiod2 = float(self.services['hires']['tempiod2'].read())
+        self.log.debug(f'  tempiod1 = {tempiod1}')
+        self.log.debug(f'  tempiod2 = {tempiod2}')
         return [tempiod1, tempiod2]
 
     def check_iodine_temps(self, target1=65, target2=50, range=0.1):
@@ -66,10 +102,17 @@ class HIRES(AbstractInstrument):
         '''
         if self.services is None:
             return None
+        self.log.debug('Checking whether iodine cell is at operating temp ...')
         tempiod1, tempiod2 = self.get_iodine_temps()
-        if abs(tempiod1 - target1) < range and abs(tempiod2 - target2) < range:
+        tempiod1_diff = tempiod1 - target1
+        tempiod2_diff = tempiod2 - target2
+        self.log.debug(f'  tempiod1 is {tempiod1_diff:.1f} off nominal')
+        self.log.debug(f'  tempiod2 is {tempiod2_diff:.1f} off nominal')
+        if abs(tempiod1_diff) < range and abs(tempiod2_diff) < range:
+            self.log.debug('  Iodine temperatures in range')
             return True
         else:
+            self.log.debug('  Iodine temperatures NOT in range')
             return False
 
     def get_binning(self):
@@ -78,15 +121,17 @@ class HIRES(AbstractInstrument):
         '''
         if self.services is None:
             return None
+        self.log.debug('Getting binning status ...')
         keywordresult = self.services['hiccd']['BINNING'].read()
         binningmatch = re.match('\\n\\tXbinning (\d)\\n\\tYbinning (\d)',
                                 keywordresult)
         if binningmatch is not None:
             self.binning = (int(binningmatch.group(1)),
                             int(binningmatch.group(2)))
+            self.log.debug(f'  binning = {self.binning}')
             return self.binning
         else:
-            print(f'Could not parse keyword value "{keywordresult}"')
+            self.log.error(f'Could not parse keyword value "{keywordresult}"')
             return None
 
     def _set_binning(self, binX, binY):
@@ -97,8 +142,12 @@ class HIRES(AbstractInstrument):
         '''
         if self.services is None:
             return None
+        self.log.debug(f'Setting binning to {(binX, binY)}')
         self.services['hiccd']['BINNING'].write((binX, binY))
-        assert (binX, binY) == self.get_binning()
+        if (binX, binY) == self.get_binning():
+            self.log.debug('  Done')
+        else:
+            self.log.error('  Failed to set binning')
 
     def get_DWRN2LV(self):
         '''Returns a float of the current camera dewar level, supposedly in
@@ -107,19 +156,24 @@ class HIRES(AbstractInstrument):
         '''
         if self.services is None:
             return None
+        self.log.debug('Getting camera dewar level ...')
         DWRN2LV = float(self.services['hiccd']['DWRN2LV'].read())
+        self.log.debug(f'  DWRN2LV = {DWRN2LV:.1f}')
         return DWRN2LV
 
     def estimate_dewar_time(self):
         '''Estimate time remaining on the camera dewar.
         '''
         DWRN2LV = self.get_DWRN2LV()
+        self.log.debug('Estimating camera dewar hold time ...')
         if DWRN2LV > 70:
             hold_time = '>12 hours'
         elif DWRN2LV > 10:
             hold time = f"~{(DWRN2LV-10)/5:.1f} hours"
         else:
             hold_time = 'WARNING!  Dewar level Low.  Fill immediately!'
+        self.log.debug(f'  hold time ~ {hold_time}')
+        return hold_time
 
     def get_RESN2LV(self):
         '''Returns a float of the current reserve dewar level.  Each camera
