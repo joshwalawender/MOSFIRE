@@ -340,7 +340,6 @@ def PRV_afternoon_setup():
     '''Configure the instrument for afternoon setup (PRV mode).
     '''
     h = HIRES()
-    h.connect()
     # Check that lights are off in the HIRES enclosure
     if h.lights_are_on() is True:
         print('WARNING:  Lights in HIRES enclosure are on!')
