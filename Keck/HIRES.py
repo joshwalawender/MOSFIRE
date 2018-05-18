@@ -187,7 +187,7 @@ class HIRES(AbstractInstrument):
         self.log.debug(f'  RESN2LV = {RESN2LV:.1f}')
         return RESN2LV
 
-    def fill_dewar(self, wait=True):
+    def fill_dewar(self):
         '''Fill camera dewar using procedure in /local/home/hireseng/bin/filln2
         '''
         if self.services is None:
