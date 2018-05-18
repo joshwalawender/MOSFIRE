@@ -171,8 +171,9 @@ class HIRES(AbstractInstrument):
         elif DWRN2LV > 10:
             hold time = f"~{(DWRN2LV-10)/5:.1f} hours"
         else:
+            self.log.warning(f'Dewar at {DWRN2LV:.1f} %. Fill immediately!')
             hold_time = 'WARNING!  Dewar level Low.  Fill immediately!'
-        self.log.debug(f'  hold time ~ {hold_time}')
+        self.log.debug(f'  hold time: {hold_time}')
         return hold_time
 
     def get_RESN2LV(self):
@@ -181,7 +182,9 @@ class HIRES(AbstractInstrument):
         '''
         if self.services is None:
             return None
+        self.log.debug('Getting reserve dewar level ...')
         RESN2LV = float(self.services['hiccd']['RESN2LV'].read())
+        self.log.debug(f'  RESN2LV = {RESN2LV:.1f}')
         return RESN2LV
 
     def fill_dewar(self, wait=True):
@@ -189,14 +192,15 @@ class HIRES(AbstractInstrument):
         '''
         if self.services is None:
             return None
+        self.log.debug('Initiating dewar fill ...')
         if self.services['hiccd']['WCRATE'].read() is not False:
-            print('The CCD is currently reading out. Try again when complete.')
+            self.log.warning('The CCD is currently reading out. '
+                             'Try again when complete.')
             return None
-        print('Initiating camera dewar fill.')
         self.services['hiccd']['utbn2fil'].write('on')
         while self.services['hiccd']['utbn2fil'].read() != 'off':
             sleep(15)
-        print('HIRES Dewar Fill is Complete.')
+        self.log.debug('HIRES Dewar Fill is Complete.')
         return True
 
     def open_covers(self, wait=True):
