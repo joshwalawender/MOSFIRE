@@ -200,7 +200,7 @@ class HIRES(AbstractInstrument):
         self.services['hiccd']['utbn2fil'].write('on')
         while self.services['hiccd']['utbn2fil'].read() != 'off':
             sleep(15)
-        self.log.debug('HIRES Dewar Fill is Complete.')
+        self.log.debug('  HIRES Dewar Fill is Complete.')
         return True
 
     def open_covers(self, wait=True):
@@ -219,13 +219,14 @@ class HIRES(AbstractInstrument):
                         camcover = open   darkslid = open     wait
         '''
         collimator = self.get_collimator()
+        self.log.debug(f'Opening {collimator} covers ...')
 
         if collimator == 'red':
             self.services['hires']['rcocover'].write('open', wait=False)
         elif collimator == 'blue':
             self.services['hires']['bcocover'].write('open', wait=False)
         else:
-            print('Collimator is unknown.  Collimator cover not opened.')
+            self.log.error('Collimator is unknown. Cover not opened.')
         self.services['hires']['echcover'].write('open', wait=False)
         self.services['hires']['co1cover'].write('open', wait=False)
         self.services['hires']['xdcover'].write('open', wait=False)
@@ -239,25 +240,27 @@ class HIRES(AbstractInstrument):
             elif collimator == 'blue':
                 self.services['hires']['bcocover'].write('open', wait=True)
             else:
-                print('Collimator is unknown.  Collimator cover not opened.')
+                self.log.error('Collimator is unknown. Cover not opened.')
             self.services['hires']['echcover'].write('open', wait=True)
             self.services['hires']['co1cover'].write('open', wait=True)
             self.services['hires']['xdcover'].write('open', wait=True)
             self.services['hires']['co2cover'].write('open', wait=True)
             self.services['hires']['camcover'].write('open', wait=True)
             self.services['hires']['darkslid'].write('open', wait=True)
+            self.log.debug('  Done.')
 
     def close_covers(self, wait=True):
         '''Closes all internal covers.
         '''
         collimator = self.get_collimator()
+        self.log.debug(f'Closing {collimator} covers ...')
 
         if collimator == 'red':
             self.services['hires']['rcocover'].write('closed', wait=False)
         elif collimator == 'blue':
             self.services['hires']['bcocover'].write('closed', wait=False)
         else:
-            print('Collimator is unknown.  Collimator cover not opened.')
+            self.log.error('Collimator is unknown. Cover not closed.')
         self.services['hires']['echcover'].write('closed', wait=False)
         self.services['hires']['co1cover'].write('closed', wait=False)
         self.services['hires']['xdcover'].write('closed', wait=False)
@@ -271,13 +274,14 @@ class HIRES(AbstractInstrument):
             elif collimator == 'blue':
                 self.services['hires']['bcocover'].write('closed', wait=True)
             else:
-                print('Collimator is unknown.  Collimator cover not opened.')
+                self.log.error('Collimator is unknown. Cover not closed.')
             self.services['hires']['echcover'].write('closed', wait=True)
             self.services['hires']['co1cover'].write('closed', wait=True)
             self.services['hires']['xdcover'].write('closed', wait=True)
             self.services['hires']['co2cover'].write('closed', wait=True)
             self.services['hires']['camcover'].write('closed', wait=True)
             self.services['hires']['darkslid'].write('closed', wait=True)
+            self.log.debug('  Done.')
 
     def iodine_start(self):
         '''Starts the iodine cell heater.  Cell takes ~45 minutes to warm up.
@@ -290,6 +294,7 @@ class HIRES(AbstractInstrument):
         '''
         if self.services is None:
             return None
+        self.log.debug('Starting iodine heater')
         self.services['hires']['moniodt'].write(1)
         self.services['hires']['setiodt'].write(50)
         self.services['hires']['iodheat'].write('on')
@@ -304,17 +309,20 @@ class HIRES(AbstractInstrument):
         '''
         if self.services is None:
             return None
+        self.log.debug('Stopping iodine heater')
         self.services['hires']['moniodt'].write(0)
         self.services['hires']['iodheat'].write('off')
 
     def open_slit(self, wait=True):
         '''Open the slit jaws.
         '''
+        self.log.debug('Setting an open slit (decker)')
         self.services['hires']['slitname'].write('opened', wait=wait)
 
     def set_filters(self, fil1name, fil2name, wait=True):
         '''Set the filter wheels.
         '''
+        self.log.debug(f'Setting filters to {fil1name}, {fil2name}')
         self.services['hires']['fil1name'].write(fil1name, wait=wait)
         self.services['hires']['fil2name'].write(fil2name, wait=wait)
 
