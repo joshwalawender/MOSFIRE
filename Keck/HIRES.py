@@ -122,7 +122,8 @@ class HIRES(AbstractInstrument):
         tuple of (binX, binY).
         '''
         if self.services is None:
-            return None
+            self.log.warning('Not connected to instrument.')
+            return self.binning
         self.log.debug('Getting binning status ...')
         keywordresult = self.services['hiccd']['BINNING'].read()
         binningmatch = re.match('\\n\\tXbinning (\d)\\n\\tYbinning (\d)',
@@ -142,14 +143,20 @@ class HIRES(AbstractInstrument):
         method captures the exact keyword commands to change binning for each
         specific instrument.
         '''
-        if self.services is None:
-            return None
         self.log.debug(f'Setting binning to {(binX, binY)}')
-        self.services['hiccd']['BINNING'].write((binX, binY))
+        if self.services is not None:
+            self.services['hiccd']['BINNING'].write((binX, binY))
+            self.get_binning()
+        else:
+            self.log.warning('Not connected to instrument.')
+            self.binning = (binX, binY)
+
         if (binX, binY) == self.get_binning():
             self.log.debug('  Done')
         else:
             self.log.error('  Failed to set binning')
+            self.log.error(f'  Desired: ({binX}, {binY})')
+            self.log.error(f'  Result: {self.get_binning()}')
 
     def get_DWRN2LV(self):
         '''Returns a float of the current camera dewar level, supposedly in
@@ -157,7 +164,7 @@ class HIRES(AbstractInstrument):
         120% as of mid 2018.
         '''
         if self.services is None:
-            return None
+            return 999.
         self.log.debug('Getting camera dewar level ...')
         DWRN2LV = float(self.services['hiccd']['DWRN2LV'].read())
         self.log.debug(f'  DWRN2LV = {DWRN2LV:.1f}')
@@ -171,7 +178,7 @@ class HIRES(AbstractInstrument):
         if DWRN2LV > 70:
             hold_time = '>12 hours'
         elif DWRN2LV > 10:
-            hold time = f"~{(DWRN2LV-10)/5:.1f} hours"
+            hold_time = f"~{(DWRN2LV-10)/5:.1f} hours"
         else:
             self.log.warning(f'Dewar at {DWRN2LV:.1f} %. Fill immediately!')
             hold_time = 'WARNING!  Dewar level Low.  Fill immediately!'
@@ -183,7 +190,7 @@ class HIRES(AbstractInstrument):
         dewar fill takes roughly 10% of the reserve dewar.
         '''
         if self.services is None:
-            return None
+            return 999.
         self.log.debug('Getting reserve dewar level ...')
         RESN2LV = float(self.services['hiccd']['RESN2LV'].read())
         self.log.debug(f'  RESN2LV = {RESN2LV:.1f}')
@@ -220,6 +227,8 @@ class HIRES(AbstractInstrument):
                         co1cover = open   co2cover = open \
                         camcover = open   darkslid = open     wait
         '''
+        if self.services is None:
+            return None
         collimator = self.get_collimator()
         self.log.debug(f'Opening {collimator} covers ...')
 
@@ -254,6 +263,8 @@ class HIRES(AbstractInstrument):
     def close_covers(self, wait=True):
         '''Closes all internal covers.
         '''
+        if self.services is None:
+            return None
         collimator = self.get_collimator()
         self.log.debug(f'Closing {collimator} covers ...')
 
@@ -318,26 +329,45 @@ class HIRES(AbstractInstrument):
     def open_slit(self, wait=True):
         '''Open the slit jaws.
         '''
+        if self.services is None:
+            return None
         self.log.debug('Setting an open slit (decker)')
         self.services['hires']['slitname'].write('opened', wait=wait)
 
     def set_filters(self, fil1name, fil2name, wait=True):
         '''Set the filter wheels.
         '''
+        if self.services is None:
+            return None
         self.log.debug(f'Setting filters to {fil1name}, {fil2name}')
         self.services['hires']['fil1name'].write(fil1name, wait=wait)
         self.services['hires']['fil2name'].write(fil2name, wait=wait)
 
     def set_cafraw(self, cafraw, wait=True):
+        if self.services is None:
+            return None
         self.services['hires']['cafraw'].write(cafraw, wait=wait)
 
     def set_cofraw(self, cofraw, wait=True):
+        if self.services is None:
+            return None
         self.services['hires']['cofraw'].write(cafraw, wait=wait)
 
     def set_tvfilter(self, tvf1name, wait=True):
+        if self.services is None:
+            return None
         self.services['hires']['TVF1NAME'].write(tvf1name, wait=wait)
 
+    def get_obstype(self):
+        if self.services is None:
+            return 'Object'
+        obstype = self.services['hiccd']['obstype'].read()
+        assert obstype in self.obstypes
+        return obstype
+
     def set_obstype(self, obstype):
+        if self.services is None:
+            return None
         if obstype in self.obstypes:
             self.services['hiccd']['obstype'].write(obstype)
         else:
@@ -350,6 +380,9 @@ class HIRES(AbstractInstrument):
         '''Takes one or more exposures of the given exposure time and type.
         Modeled after goi script.
         '''
+        if self.services is None:
+            return None
+
         if obstype is None:
             obstype = self.services['hiccd']['OBSTYPE'].read()
 
