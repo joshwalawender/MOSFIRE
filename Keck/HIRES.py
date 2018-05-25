@@ -1,6 +1,7 @@
 import re
 from datetime import datetime as dt
 from time import sleep
+import logging
 
 # Wrap ktl import in try/except so that we can maintain test case or simulator
 # version of functions.
@@ -79,8 +80,9 @@ class HIRES(AbstractInstrument):
         if self.services is None:
             return None
         self.log.debug('Getting status of enclosure lights ...')
-        lights = self.services['hires']['lights'].read() == 'on'
-        self.log.debug(f'  lights are {{True: "on", False: "off"}[lights]}')
+        lights_str = self.services['hires']['lights'].read()
+        lights = (lights_str == 'on')
+        self.log.debug(f'  lights are {lights_str}')
         return lights
 
     def get_iodine_temps(self):
