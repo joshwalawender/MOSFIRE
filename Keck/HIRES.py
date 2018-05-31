@@ -488,7 +488,7 @@ def PRV_afternoon_setup():
     h.iodine_start()
     # Open covers
     h.open_covers()
-    # Set filename root
+    # Set filename root (not done!)
     # Set binning to 3x1
     h.set_binning('3x1')
     # Set full frame
@@ -528,9 +528,13 @@ def PRV_afternoon_setup():
 
     # Focus
     # - Exposure meter off
+    self.expo_off()
     # - ThAr2 on
+    self.set_lamp('ThAr2')
     # - Lamp filter=ng3
+    self.set_lamp_filter('ng3')
     # - m deckname=D5
+    
     # - iodine out
     # - texp = 10 seconds
     # - expose
