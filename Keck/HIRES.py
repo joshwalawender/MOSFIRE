@@ -120,7 +120,7 @@ class HIRES(AbstractInstrument):
         self.log.debug(f'  tempiod2 = {tempiod2}')
         return [tempiod1, tempiod2]
 
-    def check_iodine_temps(self, target1=65, target2=50, range=0.1):
+    def check_iodine_temps(self, target1=65, target2=50, range=0.1, wait=False):
         '''Checks the iodine cell temperatures agains the given targets and
         range.  Default values are those used by the CPS team.
         '''
@@ -137,7 +137,20 @@ class HIRES(AbstractInstrument):
             return True
         else:
             self.log.debug('  Iodine temperatures NOT in range')
-            return False
+            if wait is True:
+                self.log.info('  Waiting 10 minutes for iodine cell to reach '
+                              'temperature')
+                done = ktl.waitFor(f'($hires.TEMPIOD1 > {target1-range}) and '\
+                                   f'($hires.TEMPIOD1 < {target1+range}) and '\
+                                   f'($hires.TEMPIOD2 > {target2-range}) and '\
+                                   f'($hires.TEMPIOD2 < {target2+range}) and '\
+                                   timeout=600)
+                if done is False:
+                    self.logger.warning('Iodine cell did not reach temperature'
+                                        'within 10 minutes')
+                return done
+            else:
+                return False
 
     def get_binning(self):
         '''Populates the binning property and return the value.  Both are a
