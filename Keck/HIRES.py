@@ -367,14 +367,15 @@ class HIRES(AbstractInstrument):
 
     def set_obstype(self, obstype):
         if self.services is None:
-            return None
+            return obstype
         if obstype in self.obstypes:
             self.services['hiccd']['obstype'].write(obstype)
+            return self.get_obstype()
         else:
-            print(f'OBSTYPE {obstype} not recognized.')
-            print(f'Allowed obstypes:')
+            self.log.warning(f'OBSTYPE {obstype} not recognized.')
+            self.log.warning(f'Allowed obstypes:')
             for otype in self.obstypes:
-                print(f'  {otype}')
+                self.log.warning(f'  {otype}')
 
     def take_exposure(self, obstype=None, exptime=None, nexp=1):
         '''Takes one or more exposures of the given exposure time and type.
