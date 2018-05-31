@@ -443,6 +443,31 @@ class HIRES(AbstractInstrument):
             return None
         self.services['expo']['EXM0MOD'].write('Off')
 
+    def get_lamp(self):
+        if self.services is None:
+            return None
+        lampname = self.services['hires']['LAMPNAME'].read()
+
+    def set_lamp(self, lampname, wait=True):
+        if self.services is None:
+            return None
+        assert lampname in ['none', 'ThAr1', 'ThAr2', 'quartz1', 'quartz2']
+        self.services['hires']['LAMPNAME'].write(lampname, wait=wait)
+        assert self.get_lamp() == lampname
+
+    def get_lamp_filter(self):
+        if self.services is None:
+            return None
+        lfilname = self.services['hires']['LFILNAME'].read()
+
+    def set_lamp_filter(self, lfilname, wait=True):
+        if self.services is None:
+            return None
+        assert lfilname in ['bg12', 'bg13', 'bg14', 'bg38', 'clear', 'dt',
+                            'etalon', 'gg495', 'ng3', 'ug1', 'ug5']
+        self.services['hires']['LFILNAME'].write(lfilname, wait=wait)
+        assert self.get_lamp_name() == lfilname
+
 # -----------------------------------------------------------------------------
 # Afternoon Setup for PRV and Calibrations
 # -----------------------------------------------------------------------------
