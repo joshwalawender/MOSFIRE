@@ -48,6 +48,7 @@ class AbstractInstrument(object):
         print(f'OBJECT set to "{self.object}"')
 
     def set_itime(self, itime):
+        self._set_itime(itime)
         self.itime = itime
         print(f'ITIME set to {self.itime:.1f} s')
 
