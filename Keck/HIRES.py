@@ -193,6 +193,49 @@ class HIRES(AbstractInstrument):
             self.log.error(f'  Desired: ({binX}, {binY})')
             self.log.error(f'  Result: {self.get_binning()}')
 
+    def _set_itime(self, itime):
+        self.services['hiccd']['TTIME'].write(itime)
+
+    def take_exposure(self, n=1):
+        images = []
+        busy = bool(self.services['hiccd']['OBSERVIP'].read())
+        if busy is True:
+            self.info('Waiting 5 minutes for current observation to finish')
+            busy = not ktl.waitFor('($hiccd.OBSERVIP == false)', timeout=300)
+
+#         for i in range(0,n):
+#             ## Check output file name
+#             outfile_base = self.get('OUTFILE')
+#             outfile_seq = int(self.get('FRAMENO'))
+#             outfile_name = '{}{:04d}.fits'.format(outfile_base, outfile_seq)
+#             outfile_path = self.get('OUTDIR')
+#             outfile = os.path.join(outfile_path, outfile_name)
+#             if os.path.exists(outfile):
+#                 self.warning('{} already exists'.format(outfile_name))
+#                 self.warning('System will copy old file to {}.old'.format(outfile_name))
+#             ## Begin Exposure
+#             self.info('Exposing ({:d} of {:d}) ...'.format(i+1, n))
+#             exptime = float(self.get('TTIME'))
+#             self.info('  Exposure Time = {:.1f} s'.format(exptime))
+#             self.info('  Object = "{}"'.format(self.get('OBJECT')))
+#             self.info('  Type = "{}"'.format(self.get('OBSTYPE')))
+#             tick = time.now()
+#             tock = time.now()
+#             elapsed = (tock-tick).total_seconds()
+#             self.debug('  {:.1f}s: {}'.format(elapsed, 'Erasing CCD'))
+#             done = ktl.Expression('($hiccd.OBSERVIP == false) and ($hiccd.WDISK == false)')
+#             self.set('EXPOSE', True)
+#             while not done.evaluate():
+#                 self.print_state_change(tick=tick)
+#                 sleep(0.1)
+#             sleep(1.0) # time shim :(
+#             tock = time.now()
+#             elapsed = (tock-tick).total_seconds()
+#             self.info('  File will be written to: {}'.format(outfile))
+#             images.append(outfile)
+#             self.info('  Done ({:.1f} s elapsed)'.format(elapsed))
+#     return images
+
     def get_DWRN2LV(self):
         '''Returns a float of the current camera dewar level, supposedly in
         percentage, but as this is poorly calibrated, it maxes out at nearly
