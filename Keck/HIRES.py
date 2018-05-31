@@ -427,13 +427,21 @@ class HIRES(AbstractInstrument):
                 raise Exception('Timed out waiting for READING to finish')
             print('Done')
 
-#     def expo_get_power_on(self):
-#         return True
-#
-#     def expo_toggle_power(self):
-#         new_state = not self.expo_get_power_on()
-#         print(f'Exposure meter {{True: "ON", False: "OFF"}[new_state]}')
+    def get_expo_status(self):
+        if self.services is None:
+            return None
+        EXM0STA = self.services['expo']['EXM0STA'].read()
+        return EXM0STA
 
+    def expo_on(self):
+        if self.services is None:
+            return None
+        self.services['expo']['EXM0MOD'].write('On')
+
+    def expo_off(self):
+        if self.services is None:
+            return None
+        self.services['expo']['EXM0MOD'].write('Off')
 
 # -----------------------------------------------------------------------------
 # Afternoon Setup for PRV and Calibrations
