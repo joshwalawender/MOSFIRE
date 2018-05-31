@@ -29,6 +29,28 @@ class HIRES(AbstractInstrument):
         self.serviceNames = ["hires", "hiccd", "expo"]
         self.obstypes = ['Object', 'Dark', 'Line', 'Bias', 'IntFlat', 'DmFlat',
                          'SkyFlat']
+        self.slits = {'B1': (3.5, 0.574),
+                      'B2': (7.0, 0.574),
+                      'B3': (14.0, 0.574),
+                      'B4': (28.0, 0.574),
+                      'B5': (3.5, 0.861),
+                      'C1': (7.0, 0.861),
+                      'C2': (14.0, 0.861),
+                      'C3': (28.0, 0.861),
+                      'C4': (3.5, 1.148),
+                      'C5': (7.0, 1.148),
+                      'D1': (14.0, 1.148),
+                      'D2': (28.0, 1.148),
+                      'D3': (7.0, 1.722),
+                      'D4': (14.0, 1.722),
+                      'D5': (0.119, 0.179),
+                      'E1': (1.0, 0.4),
+                      'E2': (3.0, 0.4),
+                      'E3': (5.0, 0.4),
+                      'E4': (7.0, 0.4),
+                      'E5': (1.0, 0.8),
+                      }
+
 
         #----------------------------------------------------------------------
         # Create logger object
@@ -333,6 +355,21 @@ class HIRES(AbstractInstrument):
             return None
         self.log.debug('Setting an open slit (decker)')
         self.services['hires']['slitname'].write('opened', wait=wait)
+
+    def set_decker(self, deckname, wait=True):
+        '''Set the deckname keyword.  This method does not change any other
+        configuration values.
+        '''
+        if self.services is None:
+            return None
+        assert deckname in self.slits.keys()
+        slitdims = self.slits[deckname]
+        self.log.debug(f'Setting decker to slit {deckname} '
+                        '({slitdims[0]} x {slitdims[1]})')
+        self.services['hires']['deckname'].write(deckname, wait=wait)
+
+    def set_slit(self, deckname, wait=True):
+        self.set_decker(deckname, wait=wait)
 
     def set_filters(self, fil1name, fil2name, wait=True):
         '''Set the filter wheels.
