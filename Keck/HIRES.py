@@ -529,7 +529,7 @@ class HIRES(AbstractInstrument):
 # -----------------------------------------------------------------------------
 # Afternoon Setup for PRV and Calibrations
 # -----------------------------------------------------------------------------
-def PRV_afternoon_setup():
+def PRV_afternoon_setup(check_iodine=True):
     '''Configure the instrument for afternoon setup (PRV mode).
     '''
     h = HIRES()
@@ -568,15 +568,18 @@ def PRV_afternoon_setup():
     # tvfilter to BG38
     h.set_tvfilter('bg38')
     # Confirm tempiod1 and tempiod2
-    while h.check_iodine_temps() is not True:
-        print('Iodine cell not at temperature.')
-        tempiod1, tempiod2 = h.get_iodine_temps()
-        print(f'  tempiod1 = {tempiod1:.1f} C')
-        print(f'  tempiod2 = {tempiod2:.1f} C')
-        print(f'  waiting 5 minutes before checking again (or CTRL-c to exit)')
-        sleep(300)
+    if check_iodine is True:
+        while h.check_iodine_temps() is not True:
+            print('Iodine cell not at temperature.')
+            tempiod1, tempiod2 = h.get_iodine_temps()
+            print(f'  tempiod1 = {tempiod1:.1f} C')
+            print(f'  tempiod2 = {tempiod2:.1f} C')
+            print(f'  waiting 5 minutes before checking again (or CTRL-c to exit)')
+            sleep(300)
     if h.check_iodine_temps() is True:
         print('Iodine cell at temperature:')
+    else:
+        print('Iodine cell is not at recommended temperature:')
         tempiod1, tempiod2 = h.get_iodine_temps()
         print(f'  tempiod1 = {tempiod1:.1f} C')
         print(f'  tempiod2 = {tempiod2:.1f} C')
@@ -592,13 +595,22 @@ def PRV_afternoon_setup():
     # - Lamp filter=ng3
     self.set_lamp_filter('ng3')
     # - m deckname=D5
-    
+    self.set_decker('D5')
     # - iodine out
+    self.iodine_out()
     # - texp = 10 seconds
+    self.set_itime(10)
     # - expose
     # - -> run IDL focus routine and iterate as needed
 
-    # Calibrations
+
+def PRV_calibrations():
+    print('Running PRV afternoon calibrations.  Before running this, the '
+          'instrument should already be configured for PRV observations.')
+    proceed = input('Continue? ')
+    if proceed.lower() not in ['y', 'yes', 'ok']:
+        print('Exiting calibrations script.')
+        return False
 
     # THORIUM Exposures w/ B5
     # - Exposure meter off
