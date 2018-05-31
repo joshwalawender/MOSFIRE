@@ -361,6 +361,14 @@ class HIRES(AbstractInstrument):
         self.services['hires']['moniodt'].write(0)
         self.services['hires']['iodheat'].write('off')
 
+    def iodine_in(self, wait=True):
+        self.log.debug('Inserting iodine cell')
+        self.services['hires']['IODCELL'].write('in', wait=wait)
+
+    def iodine_out(self, wait=True):
+        self.log.debug('Removing iodine cell')
+        self.services['hires']['IODCELL'].write('out', wait=wait)
+
     def open_slit(self, wait=True):
         '''Open the slit jaws.
         '''
