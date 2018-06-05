@@ -143,7 +143,7 @@ class HIRES(AbstractInstrument):
                 done = ktl.waitFor(f'($hires.TEMPIOD1 > {target1-range}) and '\
                                    f'($hires.TEMPIOD1 < {target1+range}) and '\
                                    f'($hires.TEMPIOD2 > {target2-range}) and '\
-                                   f'($hires.TEMPIOD2 < {target2+range}) and '\
+                                   f'($hires.TEMPIOD2 < {target2+range})',\
                                    timeout=600)
                 if done is False:
                     self.logger.warning('Iodine cell did not reach temperature'
@@ -194,7 +194,10 @@ class HIRES(AbstractInstrument):
             self.log.error(f'  Result: {self.get_binning()}')
 
     def _set_itime(self, itime):
-        self.services['hiccd']['TTIME'].write(itime)
+        if self.services is not None:
+            self.services['hiccd']['TTIME'].write(itime)
+        else:
+            self.log.warning('Not connected to instrument.')
 
     def take_exposure(self, n=1):
         images = []
