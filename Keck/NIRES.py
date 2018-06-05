@@ -24,6 +24,9 @@ class NIRES(AbstractInstrument):
         self.basename = f"n{dt.utcnow().strftime('%Y%m%d')}_"
         self.sampmode = 2
 
+    def _set_itime(self, itime):
+        print(f"Setting exposure time to {itime:.0f} s")
+
     def set_bright(self):
         print("Setting bright object parameters")
         self.set_itime(2)
