@@ -592,12 +592,12 @@ def PRV_afternoon_setup(check_iodine=True):
     h.iodine_start()
     # Open covers
     h.open_covers()
-    # Set filename root (not done!)
+    # --> Set filename root (not done!)
     # Set binning to 3x1
     h.set_binning('3x1')
-    # Set full frame
-    # Confirm gain=low
-    # Confirm Speed = fast
+    # --> Set full frame
+    # --> Confirm gain=low
+    # --> Confirm Speed = fast
     # m slitname=opened
     h.open_slit()
     # m fil1name=clear
@@ -607,12 +607,12 @@ def PRV_afternoon_setup(check_iodine=True):
     assert h.get_collimator() == 'red'
     # m cafraw=0
     h.set_cafraw(0)
-    # set ECHANG
+    # --> set ECHANG
 #     h.services['hires']['ECHANG'].write(0, wait=True)
-    # set XDANG
+    # --> set XDANG
 #     h.services['hires']['XDANG'].write(0, wait=True)
-    # tvfilter to BG38
-    h.set_tvfilter('bg38')
+    # --> tvfilter to BG38
+#     h.set_tvfilter('bg38')  # check that tvfocus is set properly
     # Confirm tempiod1 and tempiod2
     if check_iodine is True:
         while h.check_iodine_temps() is not True:
