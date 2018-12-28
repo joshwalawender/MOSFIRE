@@ -172,6 +172,29 @@ class HIRES(AbstractInstrument):
             self.log.error(f'Could not parse keyword value "{keywordresult}"')
             return None
 
+
+    def get_gain(self):
+        '''Return the gain as a string 'low' or 'high'.
+        '''
+        if self.services is None:
+            self.log.warning('Not connected to instrument.')
+            return self.binning
+        self.log.debug('Getting gain ...')
+        gain = self.services['hiccd']['CCDGAIN'].read()
+        return gain
+
+
+    def get_ccdspeed(self):
+        '''Return the CCD readout speed as a string.
+        '''
+        if self.services is None:
+            self.log.warning('Not connected to instrument.')
+            return self.binning
+        self.log.debug('Getting CCDSPEED ...')
+        speed = self.services['hiccd']['CCDSPEED'].read()
+        return speed
+
+
     def _set_binning(self, binX, binY):
         '''Private method called by the set_binning method of the
         AbstractInstrument class.  That method should be used by users, this
@@ -592,12 +615,14 @@ def PRV_afternoon_setup(check_iodine=True):
     h.iodine_start()
     # Open covers
     h.open_covers()
-    # Set filename root (not done!)
+    # --> Set filename root
     # Set binning to 3x1
     h.set_binning('3x1')
-    # Set full frame
+    # --> Set full frame
     # Confirm gain=low
+    assert h.get_gain() == 'low'
     # Confirm Speed = fast
+    assert h.get_speed() == 'fast'
     # m slitname=opened
     h.open_slit()
     # m fil1name=clear
