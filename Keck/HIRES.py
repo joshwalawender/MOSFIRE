@@ -173,6 +173,31 @@ class HIRES(AbstractInstrument):
             return None
 
 
+    def get_window(self):
+        '''
+        '''
+        if self.services is None:
+            self.log.warning('Not connected to instrument.')
+            return None
+        self.log.debug('Getting windowing status ...')
+        keywordresult = self.services['hiccd']['WINDOW'].read()
+        winmatch = re.match('\\n\\tchip number (\d)\\n\\txstart (\d+)\\n\\t'
+                            'ystart (\d+)\\n\\txlen (\d+)\\n\\tylen (\d+)',
+                                keywordresult)
+        if winmatch is not None:
+            self.window = (int(winmatch.group(1)),
+                           int(winmatch.group(2)),
+                           int(winmatch.group(3)),
+                           int(winmatch.group(4)),
+                           int(winmatch.group(5)),
+                          )
+            self.log.debug(f'  window = {self.window}')
+            return self.window
+        else:
+            self.log.error(f'Could not parse keyword value "{keywordresult}"')
+            return None
+
+
     def get_gain(self):
         '''Return the gain as a string 'low' or 'high'.
         '''
