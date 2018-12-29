@@ -2,6 +2,7 @@ import re
 from datetime import datetime as dt
 from time import sleep
 import logging
+import numpy as np
 
 # Wrap ktl import in try/except so that we can maintain test case or simulator
 # version of functions.
@@ -495,6 +496,65 @@ class HIRES(AbstractInstrument):
         self.services['hires']['fil1name'].write(fil1name, wait=wait)
         self.services['hires']['fil2name'].write(fil2name, wait=wait)
 
+    def get_xdang(self):
+        current = float(self.services['hires']['XDANGL'].read())
+        return current
+
+    def set_xdang(self, dest, simple=False, threshold=0.5, step=0.5):
+        if self.services is None:
+            return None
+        if simple is True:
+            self.log.debug(f"Making simple move to {dest:.3f}")
+            self.services['hires']['XDANGL'].write(dest, wait=True)
+        else:
+            self.log.info(f'Moving XDANGL to {dest:.3f} deg')
+            delta = dest - self.get_xdang()
+            self.log.debug(f'Total move is {delta:.3f} deg')
+            if abs(delta) > threshold:
+                nsteps = int(np.floor(abs(delta) / step))
+                self.log.debug(f"Will move in {nsteps+1} steps")
+                for i in range(nsteps):
+                    movedest = self.get_xdang() + np.sign(delta)*step
+                    self.log.debug(f"Making intermediate move to {movedest:.3f}")
+                    self.services['hires']['XDANGL'].write(movedest, wait=True)
+                    sleep(1)
+            self.log.debug(f"Making final move to {dest:.3f}")
+            self.services['hires']['XDANGL'].write(dest, wait=True)
+            sleep(1)
+        self.log.debug(f"Done.  XDANGL = {self.get_xdang():.3f} deg")
+        return self.get_xdang()
+
+    def get_raw_xdang(self):
+        current = int(self.services['hires']['XDRAW'].read())
+        return current
+
+    def set_raw_xdang(self, dest, simple=False, threshold=2000, step=2000):
+        if self.services is None:
+            return None
+        if simple is True:
+            self.log.debug(f"Making simple move to {dest:.3f}")
+            self.services['hires']['XDRAW'].write(dest, wait=True)
+        else:
+            self.log.info(f'Moving XDRAW to {dest:.3f} counts')
+            delta = dest - self.get_raw_xdang()
+            self.log.debug(f'Total move is {delta:.3f} counts')
+            if abs(delta) > threshold:
+                nsteps = int(np.floor(abs(delta) / step))
+                self.log.debug(f"Will move in {nsteps+1} steps")
+                for i in range(nsteps):
+                    movedest = self.get_raw_xdang() + np.sign(delta)*step
+                    self.log.debug(f"Making intermediate move to {movedest:.3f}")
+                    self.services['hires']['XDRAW'].write(movedest, wait=True)
+                    sleep(1)
+            self.log.debug(f"Making final move to {dest:.3f}")
+            self.services['hires']['XDRAW'].write(dest, wait=True)
+            sleep(1)
+        self.log.debug(f"Done.  XDRAW = {self.get_raw_xdang():.3f} steps")
+        return self.get_xdang()
+
+
+
+
     def set_cafraw(self, cafraw, wait=True):
         if self.services is None:
             return None
@@ -640,10 +700,13 @@ def PRV_afternoon_setup(check_iodine=True):
     h.iodine_start()
     # Open covers
     h.open_covers()
-    # --> Set filename root
+    # Set filename root
+    now = dt.utcnow()
+    fnroot = now.strftime('%Y%m%d_')
+    h.services['hiccd']['OUTFILE'].write(fnroot)
     # Set binning to 3x1
     h.set_binning('3x1')
-    # --> Set full frame
+    # --> Set full frame (not possible?)
     # Confirm gain=low
     assert h.get_gain() == 'low'
     # Confirm Speed = fast
@@ -655,6 +718,8 @@ def PRV_afternoon_setup(check_iodine=True):
     h.set_filters('clear', 'clear')
     # Confirm collimator = red
     assert h.get_collimator() == 'red'
+    # m cofraw = +70000
+    h.set_cofraw(70000)
     # m cafraw=0
     h.set_cafraw(0)
     # --> set ECHANG
