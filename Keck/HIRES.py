@@ -503,7 +503,7 @@ class HIRES(AbstractInstrument):
     def set_cofraw(self, cofraw, wait=True):
         if self.services is None:
             return None
-        self.services['hires']['cofraw'].write(cafraw, wait=wait)
+        self.services['hires']['cofraw'].write(cofraw, wait=wait)
 
     def set_tvfilter(self, tvf1name, wait=True):
         if self.services is None:
