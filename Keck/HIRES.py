@@ -158,7 +158,7 @@ class HIRES(AbstractInstrument):
         '''
         if self.services is None:
             self.log.warning('Not connected to instrument.')
-            return self.binning
+            return None
         self.log.debug('Getting binning status ...')
         keywordresult = self.services['hiccd']['BINNING'].read()
         binningmatch = re.match('\\n\\tXbinning (\d)\\n\\tYbinning (\d)',
@@ -178,7 +178,7 @@ class HIRES(AbstractInstrument):
         '''
         if self.services is None:
             self.log.warning('Not connected to instrument.')
-            return self.binning
+            return None
         self.log.debug('Getting gain ...')
         gain = self.services['hiccd']['CCDGAIN'].read()
         return gain
@@ -189,7 +189,7 @@ class HIRES(AbstractInstrument):
         '''
         if self.services is None:
             self.log.warning('Not connected to instrument.')
-            return self.binning
+            return None
         self.log.debug('Getting CCDSPEED ...')
         speed = self.services['hiccd']['CCDSPEED'].read()
         return speed
@@ -268,7 +268,7 @@ class HIRES(AbstractInstrument):
         120% as of mid 2018.
         '''
         if self.services is None:
-            return 999.
+            return None
         self.log.debug('Getting camera dewar level ...')
         DWRN2LV = float(self.services['hiccd']['DWRN2LV'].read())
         self.log.debug(f'  DWRN2LV = {DWRN2LV:.1f}')
@@ -294,7 +294,7 @@ class HIRES(AbstractInstrument):
         dewar fill takes roughly 10% of the reserve dewar.
         '''
         if self.services is None:
-            return 999.
+            return None
         self.log.debug('Getting reserve dewar level ...')
         RESN2LV = float(self.services['hiccd']['RESN2LV'].read())
         self.log.debug(f'  RESN2LV = {RESN2LV:.1f}')
@@ -487,14 +487,14 @@ class HIRES(AbstractInstrument):
 
     def get_obstype(self):
         if self.services is None:
-            return 'Object'
+            return None
         obstype = self.services['hiccd']['obstype'].read()
         assert obstype in self.obstypes
         return obstype
 
     def set_obstype(self, obstype):
         if self.services is None:
-            return obstype
+            return None
         if obstype in self.obstypes:
             self.services['hiccd']['obstype'].write(obstype)
             return self.get_obstype()
