@@ -772,53 +772,131 @@ def PRV_afternoon_setup(check_iodine=True):
 def PRV_calibrations():
     print('Running PRV afternoon calibrations.  Before running this, the '
           'instrument should already be configured for PRV observations.')
-    proceed = input('Continue? ')
-    if proceed.lower() not in ['y', 'yes', 'ok']:
+    proceed = input('Continue? [y]')
+    if proceed.lower() not in ['y', 'yes', 'ok', '']:
         print('Exiting calibrations script.')
         return False
 
+    h = HIRES()
+    # Check that lights are off in the HIRES enclosure
+    if h.lights_are_on() is True:
+        print('WARNING:  Lights in HIRES enclosure are on!')
+        print('WARNING:  Enclosure may be occupied, halting script.')
+        return False
+    # Check dewar level, if below threshold, fill
+    if h.get_DWRN2LV() < 30:
+        print(f'Dewar level at {h.getDWRN2LV():.1f} %. Initiating dewar fill.')
+        h.fill_dewar()
+
     # THORIUM Exposures w/ B5
     # - Exposure meter off
+    h.expo_off()
     # - ThAr2 on
+    h.set_lamp('ThAr2')
     # - lamp filter = ng3
+    h.set_lamp_filter('ng3')
     # - m deckname=B5
+    h.set_decker('B5')
     # - iodine out
+    h.iodine_out()
     # - texp=1 second
+    h.set_itime(1)
     # - two exposures
+    h.take_exposure(n=2)
 
     # THORIUM Exposure w/ B1
     # - Exposure meter off
     # - ThAr2 on
     # - lamp filter = ng3
     # - m deckname=B1
+    h.set_decker('B1')
     # - iodine out
     # - texp=3 second
+    h.set_itime(3)
     # - one exposure
+    h.take_exposure(n=1)
     # - -> check saturation: < 20,000 counts on middle chip?
     # - -> Check I2 line depth. In center of chip, it should be ~30%
+    print('IMPORTANT:')
+    print('Check saturation: < 20,000 counts on middle chip?')
+    print('Check I2 line depth. In center of chip, it should be ~30%')
+    print()
+    print('If you are not happy with the exposure, adjust the exposure time')
+    print('in the HIRES dashboard and take a new exposure.  Continute until')
+    print('you have an exposure which satisfies the above checks.')
+    print()
+    proceed = input('Continue? [y]')
+    if proceed.lower() not in ['y', 'yes', 'ok', '']:
+        print('Exiting calibrations script.')
+        return False
 
     # Iodine Cell Calibrations B5
     # - Make sure cell is fully warmed up before taking these
+    h.check_iodine_temps()
     # - Exposure meter off
     # - Quartz2 on
+    h.set_lamp('quartz2')
     # - Lamp filter=ng3
     # - m deckname=B5
+    h.set_decker('B5')
     # - iodine in
+    h.iodine_in()
     # - texp=2 second
+    h.set_itime(2)
     # - one exposure
+    h.take_exposure(n=1)
     # - -> check saturation: < 20,000 counts on middle chip?
     # - -> Check I2 line depth. In center of chip, it should be ~30%
+    print('IMPORTANT:')
+    print('Check saturation: < 20,000 counts on middle chip?')
+    print('Check I2 line depth. In center of chip, it should be ~30%')
+    print()
+    print('If you are not happy with the exposure, adjust the exposure time')
+    print('in the HIRES dashboard and take a new exposure.  Continute until')
+    print('you have an exposure which satisfies the above checks.')
+    print()
+    proceed = input('Continue? [y]')
+    if proceed.lower() not in ['y', 'yes', 'ok', '']:
+        print('Exiting calibrations script.')
+        return False
 
     # Wide Flat Fields
     # - Exposure meter off
     # - Quartz2 on
     # - Lamp filter=ng3
     # - m deckname=C1
+    h.set_decker('C1')
     # - iodine out
+    h.iodine_out()
     # - texp=1 second
+    h.set_itime(1)
     # - Take 1 exposures
+    h.take_exposure(n=1)
     # - -> Check one test exp for saturation (<20k counts)
+    print('IMPORTANT:')
+    print('Check saturation: middle chip should have 10,000 < counts < 20,000')
+    print()
+    print('If you are not happy with the exposure, adjust the exposure time')
+    print('in the HIRES dashboard and take a new exposure.  Continute until')
+    print('you have an exposure which satisfies the above checks.')
+    print()
+    proceed = input('Continue? [y]')
+    if proceed.lower() not in ['y', 'yes', 'ok', '']:
+        new_exp_time = input('New Exposure Time (s)? ')
+        try:
+            new_exp_time = int(new_exp_time)
+        except ValueError:
+            print('New exposure time must be an integer.')
+            new_exp_time = input('New Exposure Time (s)? ')
+            new_exp_time = int(new_exp_time)
+        h.set_itime(new_exp_time)
     # - Take 49 exposures
+    print('Taking 49 additional flats.  This will take some time ...')
+    h.take_exposure(n=49)
     # - m lampname=none
+    h.set_lamp('none')
     # - m deckname=C2
+    h.set_decker('C2')
     # - Check dewar level, if below threshold, fill
+    if h.estimate_dewar_time() < 12:
+        h.fill_dewar()
