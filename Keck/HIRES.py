@@ -662,6 +662,7 @@ class HIRES(AbstractInstrument):
         if self.services is None:
             return None
         lampname = self.services['hires']['LAMPNAME'].read()
+        return lampname
 
     def set_lamp(self, lampname, wait=True):
         if self.services is None:
