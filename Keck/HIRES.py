@@ -306,13 +306,16 @@ class HIRES(AbstractInstrument):
         DWRN2LV = self.get_DWRN2LV()
         self.log.debug('Estimating camera dewar hold time ...')
         if DWRN2LV > 70:
-            hold_time = '>12 hours'
+            hold_time = 12
+            hold_time_str = '>12 hours'
         elif DWRN2LV > 10:
-            hold_time = f"~{(DWRN2LV-10)/5:.1f} hours"
+            hold_time = (DWRN2LV-10)/5
+            hold_time_str = f"~{hold_time:.1f} hours"
         else:
             self.log.warning(f'Dewar at {DWRN2LV:.1f} %. Fill immediately!')
-            hold_time = 'WARNING!  Dewar level Low.  Fill immediately!'
-        self.log.debug(f'  hold time: {hold_time}')
+            hold_time = 0
+            hold_time_str = 'WARNING!  Dewar level Low.  Fill immediately!'
+        self.log.debug(f'  hold time: {hold_time_str}')
         return hold_time
 
     def get_RESN2LV(self):
