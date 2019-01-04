@@ -647,7 +647,7 @@ class HIRES(AbstractInstrument):
         OUTDIR = self.services['hiccd']['OUTDIR'].read()
         OUTFILE = self.services['hiccd']['OUTFILE'].read()
         LFRAMENO = int(self.services['hiccd']['LFRAMENO'].read())
-        lastfile = os.path.join(outdir, f"{OUTFILE}{LFRAMENO:04d}.fits"
+        lastfile = os.path.join(outdir, f"{OUTFILE}{LFRAMENO:04d}.fits")
         return lastfile
 
     def get_expo_status(self):
