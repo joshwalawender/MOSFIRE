@@ -695,7 +695,7 @@ class HIRES(AbstractInstrument):
 # -----------------------------------------------------------------------------
 # Afternoon Setup for PRV and Calibrations
 # -----------------------------------------------------------------------------
-def PRV_afternoon_setup(check_iodine=True):
+def PRV_afternoon_setup(check_iodine=True, fnroot=None):
     '''Configure the instrument for afternoon setup (PRV mode).
     '''
     h = HIRES()
@@ -714,7 +714,8 @@ def PRV_afternoon_setup(check_iodine=True):
     h.open_covers()
     # Set filename root
     now = dt.utcnow()
-    fnroot = now.strftime('%Y%m%d_')
+    if fnroot is None:
+        fnroot = now.strftime('%Y%m%d_')
     h.services['hiccd']['OUTFILE'].write(fnroot)
     # Set binning to 3x1
     h.set_binning('3x1')
