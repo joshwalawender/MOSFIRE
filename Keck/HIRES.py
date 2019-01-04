@@ -3,6 +3,7 @@ from datetime import datetime as dt
 from time import sleep
 import logging
 import numpy as np
+import subprocess
 
 # Wrap ktl import in try/except so that we can maintain test case or simulator
 # version of functions.
@@ -773,7 +774,26 @@ def PRV_afternoon_setup(check_iodine=True):
     # - texp = 10 seconds
     self.set_itime(10)
     # - expose
+    h.take_exposure(n=1)
+    lastfile = self.last_file()
+    
     # - -> run IDL focus routine and iterate as needed
+    i = [("You must now accurately position the echelle and cross disperser "
+          "angles to place particular arc lines on particular destination "
+          "pixels.  This is done via an IDL routine written by the CPS team. "
+          "This routine will launch momentarily in a new xterm."),
+         ("Begin by calling the foc script on your first file:")
+         (f"IDL> foc, inpfile='{lastfile}'"),
+         ("When a new image is called for by the foc script, just use the "
+          "HIRES dashboard GUI to take a new image."),
+         ("After a new image is taken, analyze it by calling the script "
+          "again using:"),
+         ("IDL> foc, inpfile='[insert path to new file here]'"),
+         ]
+    for paragraph in i:
+        print()
+        print(textwrap.fill(textwrap.dedent(paragraph).strip('\n'), width=78))
+    subprocess.call(['/home/hireseng/bin/focusPRV'])
 
 
 def PRV_calibrations():
