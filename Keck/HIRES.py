@@ -784,12 +784,17 @@ def PRV_afternoon_setup(check_iodine=True, fnroot=None):
           "pixels.  This is done via an IDL routine written by the CPS team. "
           "This routine will launch momentarily in a new xterm."),
          ("Begin by calling the foc script on your first file:")
-         (f"IDL> foc, inpfile='{lastfile}'"),
+         (f"IDL> foc, /plt, inpfile='{lastfile}'"),
          ("When a new image is called for by the foc script, just use the "
           "HIRES dashboard GUI to take a new image."),
          ("After a new image is taken, analyze it by calling the script "
           "again using:"),
-         ("IDL> foc, inpfile='[insert path to new file here]'"),
+         ("IDL> foc, /plt, inpfile='[insert path to new file here]'"),
+         ("If you would like more details on the IDL foc routine, you can "
+          "view the code and docstring on github: "
+          "https://github.com/Caltech-IPAC/hires-pipeline/blob/master/focus/foc.pro"),
+         ("For additional instructions, see: "
+          "https://caltech-ipac.github.io/hiresprv/setup.html#spectrograph-alignment-and-focus"),
          ]
     for paragraph in i:
         print()
