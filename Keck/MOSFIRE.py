@@ -1,4 +1,6 @@
+import os
 from datetime import datetime as dt
+import xml.etree.ElementTree as ET
 
 # Wrap ktl import in try/except so that we can maintain test case or simulator
 # version of functions.
@@ -113,7 +115,32 @@ class MOSFIRE(AbstractInstrument):
         log.debug(f"  Hatch is {state}")
         return isopen
 
-
+def read_maskfile(xml):
+    if os.path.exists(xml):
+        tree = ET.parse(xml)
+        root = tree.getroot()
+    else:
+        try:
+            root = ET.fromstring(xml)
+        except:
+            print(f'Could not parse {xml} as file or XML string')
+            raise
+    mask = {}
+    for child in root:
+        if child.tag == 'maskDescription':
+            mask['maskDescription'] = child.attrib
+        elif child.tag == 'mascgenArguments':
+            mask['mascgenArguments'] = {}
+            for el in child:
+                if el.attrib == {}:
+                    mask['mascgenArguments'][el.tag] = (el.text).strip()
+                else:
+                    print(el.tag, el.attrib)
+                    mask['mascgenArguments'][el.tag] = el.attrib
+        else:
+            mask[child.tag] = [el.attrib for el in child.getchildren()]
+    
+    
 
 calibration_config_comments = '''
 # Calibration script configuration file format. This is a YAML formatted file.
