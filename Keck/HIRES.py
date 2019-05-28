@@ -273,7 +273,7 @@ class HIRES(AbstractInstrument):
         images = []
         busy = bool(self.services['hiccd']['OBSERVIP'].read())
         if busy is True:
-            self.info('Waiting 5 minutes for current observation to finish')
+            self.info('Waiting up to 5 minutes for observation to finish')
             busy = not ktl.waitFor('($hiccd.OBSERVIP == false)', timeout=300)
 
 #         for i in range(0,n):
@@ -310,9 +310,9 @@ class HIRES(AbstractInstrument):
 #     return images
 
     def get_DWRN2LV(self):
-        '''Returns a float of the current camera dewar level, supposedly in
-        percentage, but as this is poorly calibrated, it maxes out at nearly
-        120% as of mid 2018.
+        '''Returns a float of the current camera dewar level.  Note this may
+        or may not be accurately calibrated.  As of May 2019, it is reasonably
+        close to 100 being full.
         '''
         if self.services is None:
             return None
