@@ -249,6 +249,26 @@ class HIRES(AbstractInstrument):
         else:
             self.log.warning('Not connected to instrument.')
 
+    def get_WCRATE(self):
+        response = self.services['hiccd']['WCRATE'].read()
+        if response == 'false':
+            return False
+        elif response == 'true':
+            return True
+        else:
+            self.log.error(f'Could not interpret WCRATE: {response}')
+            return None
+
+    def is_filling(self):
+        response = self.services['hiccd']['utbn2fil'].read()
+        if response == 'off':
+            return False
+        elif response == 'on':
+            return True
+        else:
+            self.log.error(f'Could not interpret utbn2fil: {response}')
+            return None
+
     def take_exposure(self, n=1):
         images = []
         busy = bool(self.services['hiccd']['OBSERVIP'].read())
@@ -302,20 +322,18 @@ class HIRES(AbstractInstrument):
         return DWRN2LV
 
     def estimate_dewar_time(self):
-        '''Estimate time remaining on the camera dewar.
+        '''Estimate time remaining on the camera dewar.  Updated May 2019 based
+        on recent calibration of dewar level sensor.
         '''
+        rate = 6 # 6 percent per hour
         DWRN2LV = self.get_DWRN2LV()
         self.log.debug('Estimating camera dewar hold time ...')
-        if DWRN2LV > 70:
-            hold_time = 12
-            hold_time_str = '>12 hours'
-        elif DWRN2LV > 10:
-            hold_time = (DWRN2LV-10)/5
-            hold_time_str = f"~{hold_time:.1f} hours"
+        if DWRN2LV > 10:
+            hold_time = (DWRN2LV-10)/rate
         else:
             self.log.warning(f'Dewar at {DWRN2LV:.1f} %. Fill immediately!')
             hold_time = 0
-            hold_time_str = 'WARNING!  Dewar level Low.  Fill immediately!'
+        hold_time_str = f"~{hold_time:.1f} hours"
         self.log.debug(f'  hold time: {hold_time_str}')
         return hold_time
 
@@ -336,13 +354,15 @@ class HIRES(AbstractInstrument):
         if self.services is None:
             return None
         self.log.debug('Initiating dewar fill ...')
-        if self.services['hiccd']['WCRATE'].read() is not False:
+        if self.get_WCRATE() is not False:
             self.log.warning('The CCD is currently reading out. '
                              'Try again when complete.')
             return None
         self.services['hiccd']['utbn2fil'].write('on')
-        while self.services['hiccd']['utbn2fil'].read() != 'off':
-            sleep(15)
+        while self.is_filling() is True:
+            DWRN2LV = self.get_DWRN2LV()
+            RESN2LV = self.get_RESN2LV()
+            sleep(30)
         self.log.debug('  HIRES Dewar Fill is Complete.')
         return True
 
