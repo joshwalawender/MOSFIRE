@@ -790,26 +790,26 @@ def PRV_afternoon_setup(check_iodine=True, fnroot=None):
     lastfile = self.last_file()
     
     # - -> run IDL focus routine and iterate as needed
-    i = [("You must now accurately position the echelle and cross disperser "
-          "angles to place particular arc lines on particular destination "
-          "pixels.  This is done via an IDL routine written by the CPS team. "
-          "This routine will launch momentarily in a new xterm."),
-         ("Begin by calling the foc script on your first file:")
-         (f"IDL> foc, /plt, inpfile='{lastfile}'"),
-         ("When a new image is called for by the foc script, just use the "
-          "HIRES dashboard GUI to take a new image."),
-         ("After a new image is taken, analyze it by calling the script "
-          "again using:"),
-         ("IDL> foc, /plt, inpfile='[insert path to new file here]'"),
-         ("If you would like more details on the IDL foc routine, you can "
-          "view the code and docstring on github: "
-          "https://github.com/Caltech-IPAC/hires-pipeline/blob/master/focus/foc.pro"),
-         ("For additional instructions, see: "
-          "https://caltech-ipac.github.io/hiresprv/setup.html#spectrograph-alignment-and-focus"),
-         ]
-    for paragraph in i:
-        print()
-        print(textwrap.fill(textwrap.dedent(paragraph).strip('\n'), width=78))
+    foc_instructions = f"""
+You must now accurately position the echelle and cross disperser angles to
+place particular arc lines on particular destination pixels.  This is done via
+an IDL routine written by the CPS team. This routine will launch momentarily in
+a new xterm.
+
+Begin by calling the foc script on your first file:
+    IDL> foc, /plt, inpfile='{lastfile}'
+When a new image is called for by the foc script, just use the HIRES dashboard
+GUI to take a new image.
+
+After a new image is taken, analyze it by calling the script again using:
+    IDL> foc, /plt, inpfile='[insert path to new file here]'
+If you would like more details on the IDL foc routine, you can view the code
+and docstring on github: 
+https://github.com/Caltech-IPAC/hires-pipeline/blob/master/focus/foc.pro
+For additional instructions, see: 
+https://caltech-ipac.github.io/hiresprv/setup.html#spectrograph-alignment-and-focus
+"""
+    print(foc_instructions)
     subprocess.call(['/home/hireseng/bin/focusPRV'])
 
 
