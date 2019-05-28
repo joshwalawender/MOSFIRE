@@ -53,7 +53,6 @@ class HIRES(AbstractInstrument):
                       'E5': (1.0, 0.8),
                       }
 
-
         #----------------------------------------------------------------------
         # Create logger object
         #----------------------------------------------------------------------
@@ -77,7 +76,6 @@ class HIRES(AbstractInstrument):
         # Connect to keyword services
         #----------------------------------------------------------------------
         self.connect()
-
 
     def get_collimator(self):
         '''Determine which collimator is in the beam.  Returns a string of
@@ -174,7 +172,6 @@ class HIRES(AbstractInstrument):
             self.log.error(f'Could not parse keyword value "{keywordresult}"')
             return None
 
-
     def get_window(self):
         '''
         '''
@@ -199,7 +196,6 @@ class HIRES(AbstractInstrument):
             self.log.error(f'Could not parse keyword value "{keywordresult}"')
             return None
 
-
     def get_gain(self):
         '''Return the gain as a string 'low' or 'high'.
         '''
@@ -210,7 +206,6 @@ class HIRES(AbstractInstrument):
         gain = self.services['hiccd']['CCDGAIN'].read()
         return gain
 
-
     def get_ccdspeed(self):
         '''Return the CCD readout speed as a string.
         '''
@@ -220,7 +215,6 @@ class HIRES(AbstractInstrument):
         self.log.debug('Getting CCDSPEED ...')
         speed = self.services['hiccd']['CCDSPEED'].read()
         return speed
-
 
     def _set_binning(self, binX, binY):
         '''Private method called by the set_binning method of the
@@ -576,9 +570,6 @@ class HIRES(AbstractInstrument):
         self.log.debug(f"Done.  XDRAW = {self.get_raw_xdang():.3f} steps")
         return self.get_xdang()
 
-
-
-
     def set_cafraw(self, cafraw, wait=True):
         if self.services is None:
             return None
@@ -713,7 +704,7 @@ class HIRES(AbstractInstrument):
         assert self.get_lamp_name() == lfilname
 
 # -----------------------------------------------------------------------------
-# Afternoon Setup for PRV and Calibrations
+# Afternoon Setup for PRV
 # -----------------------------------------------------------------------------
 def PRV_afternoon_setup(check_iodine=True, fnroot=None):
     '''Configure the instrument for afternoon setup (PRV mode).
@@ -822,6 +813,9 @@ def PRV_afternoon_setup(check_iodine=True, fnroot=None):
     subprocess.call(['/home/hireseng/bin/focusPRV'])
 
 
+# -----------------------------------------------------------------------------
+# PRV Calibrations
+# -----------------------------------------------------------------------------
 def PRV_calibrations():
     print('Running PRV afternoon calibrations.  Before running this, the '
           'instrument should already be configured for PRV observations.')
