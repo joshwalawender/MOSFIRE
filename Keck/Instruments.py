@@ -4,6 +4,7 @@ try:
     import ktl
     from ktl import Exceptions as ktlExceptions
 except ModuleNotFoundError:
+    print('Unable to import KTL.')
     ktl = None
 
 
