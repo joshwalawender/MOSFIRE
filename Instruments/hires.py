@@ -47,8 +47,8 @@ slits = {'B1': (3.5, 0.574),
 ## Parse Command Line Arguments
 ##-------------------------------------------------------------------------
 ## create a parser object for understanding command-line arguments
-p = argparse.ArgumentParser(description='''
-''')
+p = argparse.ArgumentParser(description="""
+""")
 ## add flags
 p.add_argument("-v", "--verbose", dest="verbose",
     default=False, action="store_true",
@@ -109,6 +109,9 @@ assert len(serviceNames) == len(services.keys())
 ## HIRES Functions
 ##-------------------------------------------------------------------------
 def get(service, keyword, mode=str):
+    """Generic function to get a keyword value.  Converts it to the specified
+    mode and does some simple parsing of true and false strings.
+    """
     log.debug(f'Querying {service} for {keyword}')
     if services == {}:
         return None
@@ -122,12 +125,12 @@ def get(service, keyword, mode=str):
             result = False
         elif kwresult.strip().lower() == 'true':
             result = True
-        log.debug(f'  Parsed to boolean: "{result}"')
+        log.debug(f'  Parsed to boolean: {result}')
         return result
     # Convert result to requested type
     try:
         result = mode(kwresult)
-        log.debug(f'  Parsed to {mode}: "{result}"')
+        log.debug(f'  Parsed to {mode}: {result}')
         return result
     except ValueError:
         log.warning(f'Failed to parse {kwresult} as {mode}, returning string')
@@ -135,6 +138,8 @@ def get(service, keyword, mode=str):
 
 
 def set(service, keyword, value, wait=True):
+    """Generic function to set a keyword value.
+    """
     log.debug(f'Setting {service}.{keyword} to "{value}" (wait={wait})')
     if services == {}:
         return None
@@ -143,10 +148,10 @@ def set(service, keyword, value, wait=True):
 
 
 def get_collimator():
-    '''Determine which collimator is in the beam.  Returns a string of
+    """Determine which collimator is in the beam.  Returns a string of
     'red' or 'blue' indicating which is in beam.  Returns None if it can
     not interpret the result.
-    '''
+    """
     log.info('Getting current collimator ...')
     collred = get('hires', 'COLLRED')
     collblue = get('hires', 'COLLBLUE')
@@ -161,8 +166,8 @@ def get_collimator():
 
 
 def lights_are_on():
-    '''Returns True if lights are on in the enclosure.
-    '''
+    """Returns True if lights are on in the enclosure.
+    """
     log.info('Getting status of enclosure lights ...')
     lights_str = get('hires', 'lights')
     log.info(f'  lights are {lights_str}')
@@ -171,18 +176,18 @@ def lights_are_on():
 
 
 def get_iodine_temps():
-    '''Returns the iodine cell temperatures (tempiod1, tempiod2) in units
+    """Returns the iodine cell temperatures (tempiod1, tempiod2) in units
     of degrees C.
-    '''
+    """
     tempiod1 = get('hires', 'tempiod1', mode=float)
     tempiod2 = get('hires', 'tempiod2', mode=float)
     return [tempiod1, tempiod2]
 
 
 def check_iodine_temps(target1=65, target2=50, range=0.1, wait=False):
-    '''Checks the iodine cell temperatures agains the given targets and
+    """Checks the iodine cell temperatures agains the given targets and
     range.  Default values are those used by the CPS team.
-    '''
+    """
     log.info('Checking whether iodine cell is at operating temp ...')
     tempiod1, tempiod2 = get_iodine_temps()
     tempiod1_diff = tempiod1 - target1
@@ -211,8 +216,8 @@ def check_iodine_temps(target1=65, target2=50, range=0.1, wait=False):
 
 
 def get_binning():
-    '''Return the binning value, a tuple of (binX, binY).
-    '''
+    """Return the binning value, a tuple of (binX, binY).
+    """
     binningkwstr = get('hiccd', 'BINNING')
     binningmatch = re.match('\\n\\tXbinning (\d)\\n\\tYbinning (\d)',
                             binningkwstr)
@@ -226,8 +231,8 @@ def get_binning():
 
 
 def get_windowing():
-    '''Return the windowing status.
-    '''
+    """Return the windowing status.
+    """
     keywordresult = get('hiccd', 'WINDOW')
     winmatch = re.match('\\n\\tchip number (\d)\\n\\txstart (\d+)\\n\\t'
                         'ystart (\d+)\\n\\txlen (\d+)\\n\\tylen (\d+)',
@@ -247,14 +252,14 @@ def get_windowing():
 
 
 def get_gain():
-    '''Return the gain as a string 'low' or 'high'.
-    '''
+    """Return the gain as a string 'low' or 'high'.
+    """
     return get('hiccd', 'CCDGAIN')
 
 
 def get_ccdspeed():
-    '''Return the CCD readout speed as a string.
-    '''
+    """Return the CCD readout speed as a string.
+    """
     return get('hiccd', 'CCDSPEED')
 
 
@@ -302,17 +307,17 @@ def is_filling():
 
 
 def get_DWRN2LV():
-    '''Returns a float of the current camera dewar level.  Note this may
+    """Returns a float of the current camera dewar level.  Note this may
     or may not be accurately calibrated.  As of May 2019, it is reasonably
     close to 100 being full.
-    '''
+    """
     return get('hiccd', 'DWRN2LV', mode=float)
 
 
 def estimate_dewar_time():
-    '''Estimate time remaining on the camera dewar.  Updated May 2019 based
+    """Estimate time remaining on the camera dewar.  Updated May 2019 based
     on recent calibration of dewar level sensor.
-    '''
+    """
     rate = 6 # 6 percent per hour
     DWRN2LV = get_DWRN2LV()
     log.info('Estimating camera dewar hold time ...')
@@ -327,15 +332,15 @@ def estimate_dewar_time():
 
 
 def get_RESN2LV():
-    '''Returns a float of the current reserve dewar level.  Each camera
+    """Returns a float of the current reserve dewar level.  Each camera
     dewar fill takes roughly 10% of the reserve dewar.
-    '''
+    """
     return get('hiccd', 'RESN2LV', mode=float)
 
 
 def fill_dewar():
-    '''Fill camera dewar using procedure in /local/home/hireseng/bin/filln2
-    '''
+    """Fill camera dewar using procedure in /local/home/hireseng/bin/filln2
+    """
     log.info('Initiating dewar fill ...')
     if get_WCRATE() is not False:
         log.warning('The CCD is reading out. Try again when complete.')
@@ -354,7 +359,7 @@ def fill_dewar():
 
 
 def set_covers(dest, wait=True):
-    '''Opens or closes all internal covers.
+    """Opens or closes all internal covers.
     
     Use same process as: /local/home/hires/bin/open.red and open.blue
 
@@ -367,7 +372,7 @@ def set_covers(dest, wait=True):
                     echcover = open   xdcover  = open \
                     co1cover = open   co2cover = open \
                     camcover = open   darkslid = open     wait
-    '''
+    """
     assert dest in ['open', 'closed']
     collimator = get_collimator()
     log.info(f'Setting {collimator} covers to {dest}')
@@ -410,14 +415,14 @@ def close_covers(wait=True):
 
 
 def iodine_start():
-    '''Starts the iodine cell heater.  Cell takes ~45 minutes to warm up.
+    """Starts the iodine cell heater.  Cell takes ~45 minutes to warm up.
     
     Use same process as in /local/home/hires/bin/iod_start
 
     modify -s hires moniodt=1
     modify -s hires setiodt=50.
     modify -s hires iodheat=on
-    '''
+    """
     log.info('Starting iodine heater')
     set('hires', 'moniodt', 1)
     set('hires', 'setiodt', 50)
@@ -425,13 +430,13 @@ def iodine_start():
 
 
 def iodine_stop():
-    '''Turns off the iodine cell heater.
+    """Turns off the iodine cell heater.
     
     Use same process as in /local/home/hires/bin/iod_stop
 
     modify -s hires moniodt=0
     modify -s hires iodheat=off
-    '''
+    """
     log.info('Stopping iodine heater')
     set('hires', 'moniodt', 0)
     set('hires', 'iodheat', 'off')
@@ -448,15 +453,15 @@ def iodine_out(wait=True):
 
 
 def open_slit(wait=True):
-    '''Open the slit jaws.
-    '''
+    """Open the slit jaws.
+    """
     set('hires', 'slitname', 'opened', wait=wait)
 
 
 def set_decker(deckname, wait=True):
-    '''Set the deckname keyword.  This method does not change any other
+    """Set the deckname keyword.  This method does not change any other
     configuration values.
-    '''
+    """
     assert deckname in slits.keys()
     slitdims = slits[deckname]
     log.info(f'Setting decker to {deckname} ({slitdims[0]} x {slitdims[1]})')
@@ -468,8 +473,8 @@ def set_slit(deckname, wait=True):
 
 
 def set_filters(fil1name, fil2name, wait=True):
-    '''Set the filter wheels.
-    '''
+    """Set the filter wheels.
+    """
     log.info(f'Setting filters to {fil1name}, {fil2name}')
     set('hires', 'fil1name', fil1name, wait=wait)
     set('hires', 'fil2name', fil2name, wait=wait)
@@ -569,9 +574,9 @@ def wait_for_observip(timeout=300):
 
 
 def take_exposure(obstype=None, exptime=None, nexp=1):
-    '''Takes one or more exposures of the given exposure time and type.
+    """Takes one or more exposures of the given exposure time and type.
     Modeled after goi script.
-    '''
+    """
     obstype = get_obstype()
     if obstype.lower() not in obstypes:
         log.warning(f'OBSTYPE "{obstype} not understood"')
@@ -664,8 +669,8 @@ def set_lamp_filter(self, lfilname, wait=True):
 # Afternoon Setup for PRV
 # -----------------------------------------------------------------------------
 def PRV_afternoon_setup(check_iodine=True, fnroot=None):
-    '''Configure the instrument for afternoon setup (PRV mode).
-    '''
+    """Configure the instrument for afternoon setup (PRV mode).
+    """
     # Check that lights are off in the HIRES enclosure
     if lights_are_on() is True:
         print('WARNING:  Lights in HIRES enclosure are on!')
