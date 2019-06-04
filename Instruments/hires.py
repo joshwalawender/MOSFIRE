@@ -673,12 +673,12 @@ def PRV_afternoon_setup(check_iodine=True, fnroot=None):
     """
     # Check that lights are off in the HIRES enclosure
     if lights_are_on() is True:
-        print('WARNING:  Lights in HIRES enclosure are on!')
-        print('WARNING:  Enclosure may be occupied, halting script.')
+        log.error('Lights in HIRES enclosure are on!')
+        log.error('Enclosure may be occupied, halting script.')
         return False
     # Check dewar level, if below threshold, fill
     if get_DWRN2LV() < 30:
-        print(f'Dewar level at {getDWRN2LV():.1f} %. Initiating dewar fill.')
+        log.info(f'Dewar level at {getDWRN2LV():.1f} %. Initiating dewar fill.')
         fill_dewar()
     # Start iodine cell
     iodine_start()
@@ -716,19 +716,19 @@ def PRV_afternoon_setup(check_iodine=True, fnroot=None):
     # Confirm tempiod1 and tempiod2
     if check_iodine is True:
         while check_iodine_temps() is not True:
-            print('Iodine cell not at temperature.')
+            log.info('Iodine cell not at temperature.')
             tempiod1, tempiod2 = get_iodine_temps()
-            print(f'  tempiod1 = {tempiod1:.1f} C')
-            print(f'  tempiod2 = {tempiod2:.1f} C')
-            print(f'  waiting 5 minutes before checking again (or CTRL-c to exit)')
+            log.info(f'  tempiod1 = {tempiod1:.1f} C')
+            log.info(f'  tempiod2 = {tempiod2:.1f} C')
+            log.info(f'  waiting 5 minutes before checking again (or CTRL-c to exit)')
             sleep(300)
     if check_iodine_temps() is True:
-        print('Iodine cell at temperature:')
+        log.info('Iodine cell at temperature:')
     else:
-        print('Iodine cell is not at recommended temperature:')
+        log.info('Iodine cell is not at recommended temperature:')
         tempiod1, tempiod2 = get_iodine_temps()
-        print(f'  tempiod1 = {tempiod1:.1f} C')
-        print(f'  tempiod2 = {tempiod2:.1f} C')
+        log.info(f'  tempiod1 = {tempiod1:.1f} C')
+        log.info(f'  tempiod2 = {tempiod2:.1f} C')
 
     # Obstype = object
     set_obstype('Object')
@@ -781,17 +781,17 @@ def PRV_calibrations():
           'instrument should already be configured for PRV observations.')
     proceed = input('Continue? [y]')
     if proceed.lower() not in ['y', 'yes', 'ok', '']:
-        print('Exiting calibrations script.')
+        log.info('Exiting calibrations script.')
         return False
 
     # Check that lights are off in the HIRES enclosure
     if lights_are_on() is True:
-        print('WARNING:  Lights in HIRES enclosure are on!')
-        print('WARNING:  Enclosure may be occupied, halting script.')
+        log.error('Lights in HIRES enclosure are on!')
+        log.error('Enclosure may be occupied, halting script.')
         return False
     # Check dewar level, if below threshold, fill
     if get_DWRN2LV() < 30:
-        print(f'Dewar level at {getDWRN2LV():.1f} %. Initiating dewar fill.')
+        log.info(f'Dewar level at {getDWRN2LV():.1f} %. Initiating dewar fill.')
         fill_dewar()
 
     # THORIUM Exposures w/ B5
@@ -833,7 +833,7 @@ def PRV_calibrations():
     print()
     proceed = input('Continue? [y]')
     if proceed.lower() not in ['y', 'yes', 'ok', '']:
-        print('Exiting calibrations script.')
+        log.error('Exiting calibrations script.')
         return False
 
     # Iodine Cell Calibrations B5
@@ -863,7 +863,7 @@ def PRV_calibrations():
     print()
     proceed = input('Continue? [y]')
     if proceed.lower() not in ['y', 'yes', 'ok', '']:
-        print('Exiting calibrations script.')
+        log.error('Exiting calibrations script.')
         return False
 
     # Wide Flat Fields
@@ -897,7 +897,7 @@ def PRV_calibrations():
             new_exp_time = int(new_exp_time)
         set_itime(new_exp_time)
     # - Take 49 exposures
-    print('Taking 49 additional flats.  This will take some time ...')
+    log.info('Taking 49 additional flats.  This will take some time ...')
     take_exposure(n=49)
     # - m lampname=none
     set_lamp('none')
