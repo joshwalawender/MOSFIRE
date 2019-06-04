@@ -727,20 +727,19 @@ def PRV_afternoon_setup(check_iodine=True, fnroot=None):
 
     # Focus
     # - Exposure meter off
-    self.expo_off()
+    expo_off()
     # - ThAr2 on
-    self.set_lamp('ThAr2')
+    set_lamp('ThAr2')
     # - Lamp filter=ng3
-    self.set_lamp_filter('ng3')
+    set_lamp_filter('ng3')
     # - m deckname=D5
-    self.set_decker('D5')
+    set_decker('D5')
     # - iodine out
-    self.iodine_out()
+    iodine_out()
     # - texp = 10 seconds
-    self.set_itime(10)
+    set_itime(10)
     # - expose
     take_exposure(n=1)
-    lastfile = self.last_file()
     
     # - -> run IDL focus routine and iterate as needed
     foc_instructions = f"""
@@ -777,7 +776,6 @@ def PRV_calibrations():
         print('Exiting calibrations script.')
         return False
 
-    h = HIRES()
     # Check that lights are off in the HIRES enclosure
     if lights_are_on() is True:
         print('WARNING:  Lights in HIRES enclosure are on!')
