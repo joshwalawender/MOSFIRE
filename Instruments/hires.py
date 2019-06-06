@@ -66,7 +66,7 @@ log = logging.getLogger('HIRES')
 log.setLevel(logging.DEBUG)
 ## Set up console output
 LogConsoleHandler = logging.StreamHandler()
-LogConsoleHandler.setLevel(logging.DEBUG)
+LogConsoleHandler.setLevel(logging.INFO)
 LogFormat = logging.Formatter('%(asctime)s %(levelname)8s: %(message)s',
                               datefmt='%Y-%m-%d %H:%M:%S')
 LogConsoleHandler.setFormatter(LogFormat)
@@ -257,6 +257,15 @@ def get_gain():
     return get('hiccd', 'CCDGAIN')
 
 
+def set_gain(gain):
+    """Set the gain as a string 'low' or 'high'.
+    """
+    if gain.lower() not in ['high', 'low']:
+        log.error(f"Gain {gain} not understood.  Gain not set.")
+        return None
+    set('hiccd', 'CCDGAIN', gain.lower())
+
+
 def get_ccdspeed():
     """Return the CCD readout speed as a string.
     """
@@ -287,8 +296,12 @@ def set_binning(input):
         log.error(f"  Available binnings: {binnings}")
 
 
-def set_itime(itime):
-    set('hiccd', 'TTIME', itime)
+def get_exptime():
+    get('hiccd', 'TTIME', mode=int)
+
+
+def set_exptime(exptime):
+    set('hiccd', 'TTIME', exptime)
 
 
 def is_writing():
@@ -511,7 +524,7 @@ def set_xdang(dest, simple=False, threshold=0.5, step=0.5):
     return XDANG
 
 
-def set_raw_xdang(dest, simple=False, threshold=2000, step=2000):
+def set_xdraw(dest, simple=False, threshold=2000, step=2000):
     log.info(f'Moving XDRAW to {dest:.3f} counts')
     if simple is True:
         log.debug(f"Making simple move to {dest:.3f}")
