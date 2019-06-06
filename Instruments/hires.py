@@ -921,6 +921,86 @@ def PRV_calibrations():
         fill_dewar()
 
 
+# -----------------------------------------------------------------------------
+# Calibrate Cross Disperser
+# -----------------------------------------------------------------------------
+def calibrate_cd():
+    mode = get_collimator()
+    print(f'Calibrating {mode} cross disperser.')
+    proceed = input('Continue? [y]')
+    if proceed.lower() not in ['y', 'yes', 'ok', '']:
+        return
+    
+    # modify -s hiccd outfile = $OUTFILE
+    outfile = {'red': 'rzero', 'blue': 'uvzero'}[mode]
+    set('hiccd', 'OUTFILE', outfile)
+    # modify -s hiccd todisk=f
+    set('hiccd', 'TODISK', 'false')
+    # modify -s hires lfilname=ng3 nowait
+    set_lamp_filter('ng3')
+    # modify -s hires lampname=quartz2 nowait
+    set_lamp('quartz2')
+    # modify -s hires deckname=D5 nowait
+    set_decker('D5')
+    # modify -s hires fil1name=clear nowait
+    # modify -s hires fil2name=clear nowait
+    set_filters('clear', 'clear')
+    # modify -s hires cofname=DR00mm nowait
+    cofname = {'red': 'DR00mm', 'blue': 'DB00mm'}[mode]
+    set('hires', 'COFNAME', cofname)
+    # modify -s hires echname=blaze nowait
+    set('hires', 'ECHNAME', 'blaze')
+    # modify -s hires slitname=opened nowait
+    open_slit(wait=False)
+    # modify -s hires xdname=0-order nowait
+    set('hires', 'XDNAME', '0-order')
+    # modify -s hiccd ttime = $TTIME
+    ttime = {'red': 8, 'blue': 1}[mode]
+    set_exptime(ttime)
+    # modify -s hiccd pane=2048,1968,2048,160
+    set('hires', 'pane', '2048,1968,2048,160')
+    # modify -s hiccd binning=1,1
+    set_binning('1x1')
+    # modify -s hiccd ampmode=single:B
+    set('hiccd', 'ampmode', 'single:B')
+    # modify -s hiccd postpix=80
+    set('hiccd', 'postpix', 80)
+    # modify -s hires lfilname=ng3 wait
+    # modify -s hires lampname=quartz2 wait
+    # modify -s hires deckname=D5 wait
+    # modify -s hires fil1name=clear wait
+    # modify -s hires fil2name=clear wait
+    # modify -s hires coll=red wait
+    # modify -s hires cofname=DR00mm wait
+    # modify -s hires echname=blaze wait
+    # modify -s hires slitname=opened wait
+    # modify -s hires xdraw = -10000
+    set_xdraw(-10000)
+    open_covers()
+    take_exposure()
+    
+    # modify -s hiccd ampmode=single:B
+    set('hiccd', 'ampmode', 'single:B')
+    # modify -s hiccd ccdgain = low
+    set_gain('low')
+    # modify -s hiccd postline=0
+    set('hiccd', 'postline', 0)
+    # modify -s hiccd postpix=80
+    set('hiccd', 'postpix', 80)
+    # modify -s hiccd preline=0
+    set('hiccd', 'preline', 00)
+    # modify -s hiccd pane=0,0,6144,4096
+    set('hires', 'pane', '0,0,6144,4096')
+    # modify -s hiccd binning=2,1
+    set_binning('2x1')
+    # modify -s hiccd outfile=hires
+    set('hiccd', 'OUTFILE', 'hires')
+
+    
+
+
+
+
 
 if __name__ == '__main__':
     pass
