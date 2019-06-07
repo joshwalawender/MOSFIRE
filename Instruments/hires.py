@@ -10,6 +10,9 @@ from time import sleep
 import numpy as np
 import subprocess
 
+from astropy.io import fits
+from astropy.modeling import models, fitting
+from matplotlib import pyplot as plt
 
 ##-------------------------------------------------------------------------
 ## HIRES Properties
@@ -530,13 +533,13 @@ def set_xdraw(dest, simple=False, threshold=2000, step=2000):
         log.debug(f"Making simple move to {dest:.3f}")
         set('hires', 'XDRAW', dest, wait=True)
     else:
-        delta = dest - get_raw_xdang()
+        delta = dest - get_xdraw()
         log.debug(f'Total move is {delta:.3f} counts')
         if abs(delta) > threshold:
             nsteps = int(np.floor(abs(delta) / step))
             log.debug(f"Will move in {nsteps+1} steps")
             for i in range(nsteps):
-                movedest = get_raw_xdang() + np.sign(delta)*step
+                movedest = get_xdraw() + np.sign(delta)*step
                 log.debug(f"Making intermediate move to {movedest:.3f}")
                 set('hires', 'XDRAW', movedest, wait=True)
                 sleep(1)
@@ -569,7 +572,7 @@ def get_obstype():
 
 
 def set_obstype(obstype):
-    log.info(f'Setting OBSTYPE to {obstype:.3f}')
+    log.info(f'Setting OBSTYPE to "{obstype}"')
     if obstype in obstypes:
         set('hiccd', 'obstype', obstype)
         return get_obstype()
@@ -581,17 +584,19 @@ def set_obstype(obstype):
 
 
 def wait_for_observip(timeout=300):
-    log.info('Waiting up to {timeout} seconds for observation to finish')
-    if not ktl.waitFor('($hiccd.OBSERVIP == False )', timeout=300):
-        raise Exception('Timed out waiting for OBSERVIP')
+    if get('hiccd', 'OBSERVIP', mode=bool) is True:
+        log.info(f'Waiting up to {timeout} seconds for observation to finish')
+        if not ktl.waitFor('($hiccd.OBSERVIP == False )', timeout=timeout):
+            raise Exception('Timed out waiting for OBSERVIP')
 
 
 def take_exposure(obstype=None, exptime=None, nexp=1):
     """Takes one or more exposures of the given exposure time and type.
     Modeled after goi script.
     """
-    obstype = get_obstype()
-    if obstype.lower() not in obstypes:
+    if obstype is None:
+        obstype = get_obstype()
+    if obstype not in obstypes:
         log.warning(f'OBSTYPE "{obstype} not understood"')
         return None
 
@@ -607,7 +612,7 @@ def take_exposure(obstype=None, exptime=None, nexp=1):
 
     for i in range(nexp):
         exptime = get('hiccd', 'TTIME', mode=int)
-        log.info(f"Taking exposure {i:d} of {nexp:d}")
+        log.info(f"Taking exposure {i+1:d} of {nexp:d}")
         log.info(f"  Exposure Time = {exptime:d} s")
         set('hiccd', 'EXPOSE', True)
         exposing = ktl.Expression("($hiccd.OBSERVIP == True) "
@@ -649,7 +654,7 @@ def expo_on():
     set('expo', 'EXM0MOD', 'On')
 
 
-def expo_off(self):
+def expo_off():
     log.info('Turning exposure meter off')
     set('expo', 'EXM0MOD', 'Off')
 
@@ -667,15 +672,15 @@ def set_lamp(lampname, wait=True):
     assert get_lamp() == lampname
 
 
-def get_lamp_filter(self):
-    lfilname = get('hires', 'LFILNAME')
+def get_lamp_filter():
+    return get('hires', 'LFILNAME')
 
 
-def set_lamp_filter(self, lfilname, wait=True):
+def set_lamp_filter(lfilname, wait=True):
     assert lfilname in ['bg12', 'bg13', 'bg14', 'bg38', 'clear', 'dt',
                         'etalon', 'gg495', 'ng3', 'ug1', 'ug5']
     set('hires', 'LFILNAME', lfilname, wait=wait)
-    assert get_lamp_name() == lfilname
+    assert get_lamp_filter() == lfilname
 
 
 # -----------------------------------------------------------------------------
@@ -930,6 +935,7 @@ def calibrate_cd():
     proceed = input('Continue? [y]')
     if proceed.lower() not in ['y', 'yes', 'ok', '']:
         return
+
     
     # modify -s hiccd outfile = $OUTFILE
     outfile = {'red': 'rzero', 'blue': 'uvzero'}[mode]
@@ -958,7 +964,7 @@ def calibrate_cd():
     ttime = {'red': 8, 'blue': 1}[mode]
     set_exptime(ttime)
     # modify -s hiccd pane=2048,1968,2048,160
-    set('hires', 'pane', '2048,1968,2048,160')
+    set('hiccd', 'pane', (2048,1968,2048,160))
     # modify -s hiccd binning=1,1
     set_binning('1x1')
     # modify -s hiccd ampmode=single:B
@@ -977,8 +983,41 @@ def calibrate_cd():
     # modify -s hires xdraw = -10000
     set_xdraw(-10000)
     open_covers()
+    set_obstype('IntFlat')
     take_exposure()
     
+    # Analyze Result
+    hdul = fits.open(Path(get('hiccd', 'outdir')).joinpath('backup.fits'))
+    assert hdul[0].data is None
+    assert hdul[1].data.shape == (160, 2140)
+    assert len(hdul) == 2
+    
+    row = 80
+    xpix = [x+1 for x in range(2140)]
+    y = list(hdul[1].data[row,:])
+    maxy = max(y[10:-10])
+    maxx = y.index(maxy)
+
+    g_init = models.Const1D(1000)\
+             + models.Gaussian1D(amplitude=6000, mean=maxx, stddev=2.)
+    g_init.amplitude_1
+    fit_g = fitting.LevMarLSQFitter()
+    g = fit_g(g_init, xpix, y)
+    print(g)
+    
+    plt.figure(figsize=(12,8))
+    plt.title(f"Position of Zero Order = {g.mean_1:.1f}")
+    plt.plot(xpix, y, 'bo')
+    plt.plot(xpix, g(xpix), 'r-', alpha=0.7)
+    plt.show()
+    
+    # Running xdchange
+    xdchangemode = {'red': 'red', 'blue': 'uv'}[mode]
+    cmd = ['xdchange', xdchangemode, f"{g.mean_1.value:.1f}", f"{get_xdraw():d}"]
+    print(cmd)
+    subprocess.call(cmd) # this needs to run on hiresserver
+    
+    ## Cleanup from oneamp.low
     # modify -s hiccd ampmode=single:B
     set('hiccd', 'ampmode', 'single:B')
     # modify -s hiccd ccdgain = low
@@ -993,6 +1032,7 @@ def calibrate_cd():
     set('hires', 'pane', '0,0,6144,4096')
     # modify -s hiccd binning=2,1
     set_binning('2x1')
+
     # modify -s hiccd outfile=hires
     set('hiccd', 'OUTFILE', 'hires')
 
