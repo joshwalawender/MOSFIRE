@@ -1,4 +1,4 @@
-#!/usr/env/python
+!/usr/env/python
 
 ## Import General Tools
 from pathlib import Path
@@ -561,7 +561,7 @@ def set_cofraw(cofraw, wait=True):
 
 
 def set_tvfilter(tvf1name, wait=True):
-    log.info(f'Setting TVF1NAME to {tvf1name:.3f}')
+    log.info(f'Setting TVF1NAME to {tvf1name}')
     set('hires', 'TVF1NAME', tvf1name, wait=wait)
 
 
@@ -713,7 +713,7 @@ def PRV_afternoon_setup(check_iodine=True, fnroot=None):
     # Confirm gain=low
     assert get_gain() == 'low'
     # Confirm Speed = fast
-    assert get_speed() == 'fast'
+    assert get_ccdspeed() == 'fast'
     # m slitname=opened
     open_slit()
     # m fil1name=clear
