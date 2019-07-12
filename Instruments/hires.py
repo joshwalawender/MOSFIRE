@@ -936,30 +936,31 @@ def calibrate_cd():
     if proceed.lower() not in ['y', 'yes', 'ok', '']:
         return
 
-    
+    # -------------------------------------------------------------------------
+    # prep for calibration images
     # modify -s hiccd outfile = $OUTFILE
     outfile = {'red': 'rzero', 'blue': 'uvzero'}[mode]
     set('hiccd', 'OUTFILE', outfile)
     # modify -s hiccd todisk=f
     set('hiccd', 'TODISK', 'false')
     # modify -s hires lfilname=ng3 nowait
-    set_lamp_filter('ng3')
+    set_lamp_filter('ng3', wait=False)
     # modify -s hires lampname=quartz2 nowait
-    set_lamp('quartz2')
+    set_lamp('quartz2', wait=False)
     # modify -s hires deckname=D5 nowait
-    set_decker('D5')
+    set_decker('D5', wait=False)
     # modify -s hires fil1name=clear nowait
     # modify -s hires fil2name=clear nowait
-    set_filters('clear', 'clear')
+    set_filters('clear', 'clear', wait=False)
     # modify -s hires cofname=DR00mm nowait
     cofname = {'red': 'DR00mm', 'blue': 'DB00mm'}[mode]
-    set('hires', 'COFNAME', cofname)
+    set('hires', 'COFNAME', cofname, wait=False)
     # modify -s hires echname=blaze nowait
-    set('hires', 'ECHNAME', 'blaze')
+    set('hires', 'ECHNAME', 'blaze', wait=False)
     # modify -s hires slitname=opened nowait
     open_slit(wait=False)
     # modify -s hires xdname=0-order nowait
-    set('hires', 'XDNAME', '0-order')
+    set('hires', 'XDNAME', '0-order', wait=False)
     # modify -s hiccd ttime = $TTIME
     ttime = {'red': 8, 'blue': 1}[mode]
     set_exptime(ttime)
@@ -971,51 +972,68 @@ def calibrate_cd():
     set('hiccd', 'ampmode', 'single:B')
     # modify -s hiccd postpix=80
     set('hiccd', 'postpix', 80)
+
     # modify -s hires lfilname=ng3 wait
+    set_lamp_filter('ng3')
     # modify -s hires lampname=quartz2 wait
+    set_lamp('quartz2')
     # modify -s hires deckname=D5 wait
+    set_decker('D5')
     # modify -s hires fil1name=clear wait
     # modify -s hires fil2name=clear wait
+    set_filters('clear', 'clear')
     # modify -s hires coll=red wait
     # modify -s hires cofname=DR00mm wait
+    cofname = {'red': 'DR00mm', 'blue': 'DB00mm'}[mode]
+    set('hires', 'COFNAME', cofname)
     # modify -s hires echname=blaze wait
+    set('hires', 'ECHNAME', 'blaze')
     # modify -s hires slitname=opened wait
+    open_slit()
+
     # modify -s hires xdraw = -10000
     set_xdraw(-10000)
     open_covers()
     set_obstype('IntFlat')
-    take_exposure()
-    
-    # Analyze Result
-    hdul = fits.open(Path(get('hiccd', 'outdir')).joinpath('backup.fits'))
-    assert hdul[0].data is None
-    assert hdul[1].data.shape == (160, 2140)
-    assert len(hdul) == 2
-    
-    row = 80
-    xpix = [x+1 for x in range(2140)]
-    y = list(hdul[1].data[row,:])
-    maxy = max(y[10:-10])
-    maxx = y.index(maxy)
 
-    g_init = models.Const1D(1000)\
-             + models.Gaussian1D(amplitude=6000, mean=maxx, stddev=2.)
-    g_init.amplitude_1
-    fit_g = fitting.LevMarLSQFitter()
-    g = fit_g(g_init, xpix, y)
-    print(g)
+    # -------------------------------------------------------------------------
+    # Loop until done
+    done = False
+    while not done:
+        take_exposure()
     
-    plt.figure(figsize=(12,8))
-    plt.title(f"Position of Zero Order = {g.mean_1:.1f}")
-    plt.plot(xpix, y, 'bo')
-    plt.plot(xpix, g(xpix), 'r-', alpha=0.7)
-    plt.show()
+        # Analyze Result
+        hdul = fits.open(Path(get('hiccd', 'outdir')).joinpath('backup.fits'))
+        assert hdul[0].data is None
+        assert hdul[1].data.shape == (160, 2140)
+        assert len(hdul) == 2
     
-    # Running xdchange
-    xdchangemode = {'red': 'red', 'blue': 'uv'}[mode]
-    cmd = ['xdchange', xdchangemode, f"{g.mean_1.value:.1f}", f"{get_xdraw():d}"]
-    print(cmd)
-    subprocess.call(cmd) # this needs to run on hiresserver
+        row = 80
+        xpix = [x+1 for x in range(2140)]
+        y = list(hdul[1].data[row,:])
+        maxy = max(y[10:-10])
+        maxx = y.index(maxy)
+
+        g_init = models.Const1D(1000)\
+                 + models.Gaussian1D(amplitude=6000, mean=maxx, stddev=2.)
+        g_init.amplitude_1
+        fit_g = fitting.LevMarLSQFitter()
+        g = fit_g(g_init, xpix, y)
+        print(g)
+    
+        plt.figure(figsize=(12,8))
+        plt.title(f"Position of Zero Order = {g.mean_1:.1f}")
+        plt.plot(xpix, y, 'bo')
+        plt.plot(xpix, g(xpix), 'r-', alpha=0.7)
+        plt.show()
+    
+        # Running xdchange
+        xdchangemode = {'red': 'red', 'blue': 'uv'}[mode]
+        ssh_cmd = ['ssh', 'hiresserver', 'xdchange', xdchangemode,
+                   f"{g.mean_1.value:.1f}", f"{get_xdraw():d}"]
+        print(f'Running: {" ".join(ssh_cmd)}')
+        sys.exit(0)
+        subprocess.call(ssh_cmd)
     
     ## Cleanup from oneamp.low
     # modify -s hiccd ampmode=single:B
