@@ -1067,6 +1067,7 @@ def calibrate_cd():
                 done = True
             elif proceed.lower() in ['y', 'yes', '']:
                 print('Taking new calibration image.')
+                proceed = 'y'
             else:
                 print(f'"{proceed}" not understood.')
 
