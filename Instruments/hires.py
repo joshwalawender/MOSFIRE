@@ -1084,14 +1084,14 @@ def calibrate_cd():
     # modify -s hiccd preline=0
     set('hiccd', 'preline', 00)
     # modify -s hiccd pane=0,0,6144,4096
-    set('hiccd', 'pane', '0,0,6144,4096')
+    set('hiccd', 'pane', (0,0,6144,4096))
     # modify -s hiccd binning=2,1
     set_binning('2x1')
 
     # modify -s hiccd outfile=hires
     set('hiccd', 'OUTFILE', 'hires')
 
-    
+    set_lamp('none')
 
 
 
