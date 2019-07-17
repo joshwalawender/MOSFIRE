@@ -1030,6 +1030,8 @@ def calibrate_cd():
         print(f"Background Level = {background:.1f} ADU")
         print(f"Peak Value = {peak:.1f} ADU")
         print(f"Width of zero order = {g.stddev_1.value:.1f} pix")
+        print()
+        print(f"Close plot window to proceed ...")
     
         plt.figure(figsize=(12,5))
         plt.subplot(1,2,1)
