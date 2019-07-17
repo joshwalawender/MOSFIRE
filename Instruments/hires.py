@@ -1,4 +1,4 @@
-!/usr/env/python
+#!/usr/env/python
 
 ## Import General Tools
 from pathlib import Path
@@ -669,7 +669,8 @@ def set_lamp(lampname, wait=True):
         log.error(f"Available lamps: {lampnames}")
     log.info(f'Setting lamp to {lampname}')
     set('hires', 'LAMPNAME', lampname, wait=wait)
-    assert get_lamp() == lampname
+    if wait is True:
+        assert get_lamp() == lampname
 
 
 def get_lamp_filter():
@@ -936,31 +937,11 @@ def calibrate_cd():
     if proceed.lower() not in ['y', 'yes', 'ok', '']:
         return
 
-    # -------------------------------------------------------------------------
-    # prep for calibration images
     # modify -s hiccd outfile = $OUTFILE
     outfile = {'red': 'rzero', 'blue': 'uvzero'}[mode]
     set('hiccd', 'OUTFILE', outfile)
     # modify -s hiccd todisk=f
     set('hiccd', 'TODISK', 'false')
-    # modify -s hires lfilname=ng3 nowait
-    set_lamp_filter('ng3', wait=False)
-    # modify -s hires lampname=quartz2 nowait
-    set_lamp('quartz2', wait=False)
-    # modify -s hires deckname=D5 nowait
-    set_decker('D5', wait=False)
-    # modify -s hires fil1name=clear nowait
-    # modify -s hires fil2name=clear nowait
-    set_filters('clear', 'clear', wait=False)
-    # modify -s hires cofname=DR00mm nowait
-    cofname = {'red': 'DR00mm', 'blue': 'DB00mm'}[mode]
-    set('hires', 'COFNAME', cofname, wait=False)
-    # modify -s hires echname=blaze nowait
-    set('hires', 'ECHNAME', 'blaze', wait=False)
-    # modify -s hires slitname=opened nowait
-    open_slit(wait=False)
-    # modify -s hires xdname=0-order nowait
-    set('hires', 'XDNAME', '0-order', wait=False)
     # modify -s hiccd ttime = $TTIME
     ttime = {'red': 8, 'blue': 1}[mode]
     set_exptime(ttime)
@@ -973,24 +954,6 @@ def calibrate_cd():
     # modify -s hiccd postpix=80
     set('hiccd', 'postpix', 80)
 
-    # modify -s hires lfilname=ng3 wait
-    set_lamp_filter('ng3')
-    # modify -s hires lampname=quartz2 wait
-    set_lamp('quartz2')
-    # modify -s hires deckname=D5 wait
-    set_decker('D5')
-    # modify -s hires fil1name=clear wait
-    # modify -s hires fil2name=clear wait
-    set_filters('clear', 'clear')
-    # modify -s hires coll=red wait
-    # modify -s hires cofname=DR00mm wait
-    cofname = {'red': 'DR00mm', 'blue': 'DB00mm'}[mode]
-    set('hires', 'COFNAME', cofname)
-    # modify -s hires echname=blaze wait
-    set('hires', 'ECHNAME', 'blaze')
-    # modify -s hires slitname=opened wait
-    open_slit()
-
     # modify -s hires xdraw = -10000
     set_xdraw(-10000)
     open_covers()
@@ -1000,6 +963,45 @@ def calibrate_cd():
     # Loop until done
     done = False
     while not done:
+        # -------------------------------------------------------------------------
+        # prep for calibration images
+        # modify -s hires lfilname=ng3 nowait
+        set_lamp_filter('ng3', wait=False)
+        # modify -s hires lampname=quartz2 nowait
+        set_lamp('quartz2', wait=False)
+        # modify -s hires deckname=D5 nowait
+        set_decker('D5', wait=False)
+        # modify -s hires fil1name=clear nowait
+        # modify -s hires fil2name=clear nowait
+        set_filters('clear', 'clear', wait=False)
+        # modify -s hires cofname=DR00mm nowait
+        cofname = {'red': 'DR00mm', 'blue': 'DB00mm'}[mode]
+        set('hires', 'COFNAME', cofname, wait=False)
+        # modify -s hires echname=blaze nowait
+        set('hires', 'ECHNAME', 'blaze', wait=False)
+        # modify -s hires slitname=opened nowait
+        open_slit(wait=False)
+        # modify -s hires xdname=0-order nowait
+        set('hires', 'XDNAME', '0-order', wait=False)
+
+        # modify -s hires lfilname=ng3 wait
+        set_lamp_filter('ng3')
+        # modify -s hires lampname=quartz2 wait
+        set_lamp('quartz2')
+        # modify -s hires deckname=D5 wait
+        set_decker('D5')
+        # modify -s hires fil1name=clear wait
+        # modify -s hires fil2name=clear wait
+        set_filters('clear', 'clear')
+        # modify -s hires coll=red wait
+        # modify -s hires cofname=DR00mm wait
+        set('hires', 'COFNAME', cofname)
+        # modify -s hires echname=blaze wait
+        set('hires', 'ECHNAME', 'blaze')
+        # modify -s hires slitname=opened wait
+        open_slit()
+
+        set_xdraw(-10000)
         take_exposure()
     
         # Analyze Result
@@ -1016,25 +1018,40 @@ def calibrate_cd():
 
         g_init = models.Const1D(1000)\
                  + models.Gaussian1D(amplitude=6000, mean=maxx, stddev=2.)
-        g_init.amplitude_1
+        g_init.amplitude_1.bounds = (0, None)
         fit_g = fitting.LevMarLSQFitter()
         g = fit_g(g_init, xpix, y)
+        print(f"Position of Zero Order = {g.mean_1.value:.1f}")
         print(g)
     
         plt.figure(figsize=(12,8))
-        plt.title(f"Position of Zero Order = {g.mean_1:.1f}")
+        plt.title(f"Position of Zero Order = {g.mean_1.value:.1f}")
         plt.plot(xpix, y, 'bo')
         plt.plot(xpix, g(xpix), 'r-', alpha=0.7)
         plt.show()
     
         # Running xdchange
         xdchangemode = {'red': 'red', 'blue': 'uv'}[mode]
-        ssh_cmd = ['ssh', 'hiresserver', 'xdchange', xdchangemode,
-                   f"{g.mean_1.value:.1f}", f"{get_xdraw():d}"]
-        print(f'Running: {" ".join(ssh_cmd)}')
-        sys.exit(0)
-        subprocess.call(ssh_cmd)
-    
+        xdchange_cmd = ['xdchange', xdchangemode, f"{g.mean_1.value:.1f}", 
+                        f"{get_xdraw():d}"]
+        print(f"Run: {' '.join(xdchange_cmd)}")
+        
+#         ssh_cmd = ['xterm', '-e', 'ssh', 'hiresserver', 
+#         print(f'Running: {" ".join(ssh_cmd)}')
+#         subprocess.call(ssh_cmd)
+
+        proceed = ''
+        while proceed.lower() in ['n', 'no', 'y', 'yes']:
+            proceed = input('Take another image? [y]')
+            if proceed.lower() in ['n', 'no']:
+                print('Done with calibration, proceeding with cleanup.')
+                done = True
+            elif proceed.lower() in ['y', 'yes', '']:
+                print('Taking new calibration image.')
+            else:
+                print(f'"{proceed}" not understood.')
+
+
     ## Cleanup from oneamp.low
     # modify -s hiccd ampmode=single:B
     set('hiccd', 'ampmode', 'single:B')
