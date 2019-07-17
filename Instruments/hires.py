@@ -1011,8 +1011,10 @@ def calibrate_cd():
         assert len(hdul) == 2
     
         row = 80
+        rng = 20
         xpix = [x+1 for x in range(2140)]
-        y = list(hdul[1].data[row,:])
+        fine_xpix = [(x+1)/10 for x in range(21400)]
+        y = list(np.mean(hdul[1].data[row-rng:row+rng,:], axis=0))
         maxy = max(y[10:-10])
         maxx = y.index(maxy)
 
@@ -1021,20 +1023,37 @@ def calibrate_cd():
         g_init.amplitude_1.bounds = (0, None)
         fit_g = fitting.LevMarLSQFitter()
         g = fit_g(g_init, xpix, y)
-        print(f"Position of Zero Order = {g.mean_1.value:.1f}")
-        print(g)
+        zero_pos = g.mean_1.value
+        background = g.amplitude_0.value
+        peak = g.amplitude_0.value+g.amplitude_1.value
+        print(f"Position of Zero Order = {zero_pos:.1f} pix")
+        print(f"Background Level = {background:.1f} ADU")
+        print(f"Peak Value = {peak:.1f} ADU")
+        print(f"Width of zero order = {g.stddev_1.value:.1f} pix")
     
-        plt.figure(figsize=(12,8))
-        plt.title(f"Position of Zero Order = {g.mean_1.value:.1f}")
-        plt.plot(xpix, y, 'bo')
-        plt.plot(xpix, g(xpix), 'r-', alpha=0.7)
+        plt.figure(figsize=(12,5))
+        plt.subplot(1,2,1)
+        plt.title(f"Position of Zero Order = {zero_pos:.1f}")
+        plt.plot(xpix, y, 'k-', drawstyle='steps-mid', alpha=0.7)
+        plt.plot(xpix, g(xpix), 'g-', alpha=0.7)
+        plt.ylim(background*0.7, peak*1.1)
+        plt.xlabel('X Pix')
+        plt.ylabel('Value (ADU)')
+        plt.subplot(1,2,2)
+        plt.title(f"Position of Zero Order = {zero_pos:.1f}")
+        plt.plot(xpix, y, 'k-', drawstyle='steps-mid', alpha=0.7)
+        plt.plot(fine_xpix, g(fine_xpix), 'g-', alpha=0.7)
+        plt.plot([zero_pos, zero_pos], [0,peak*1.1], 'g-', alpha=0.4)
+        plt.xlim(zero_pos-20,zero_pos+20)
+        plt.ylim(background*0.7, peak*1.1)
+        plt.xlabel('X Pix')
         plt.show()
     
         # Running xdchange
         xdchangemode = {'red': 'red', 'blue': 'uv'}[mode]
         xdchange_cmd = ['xdchange', xdchangemode, f"{g.mean_1.value:.1f}", 
                         f"{get_xdraw():d}"]
-        print(f"Run: {' '.join(xdchange_cmd)}")
+        print(f"Run on hiresserver: {' '.join(xdchange_cmd)}")
         
 #         ssh_cmd = ['xterm', '-e', 'ssh', 'hiresserver', 
 #         print(f'Running: {" ".join(ssh_cmd)}')
