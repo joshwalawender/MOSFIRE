@@ -1041,7 +1041,7 @@ def calibrate_cd():
 #         subprocess.call(ssh_cmd)
 
         proceed = ''
-        while proceed.lower() in ['n', 'no', 'y', 'yes']:
+        while proceed.lower() not in ['n', 'no', 'y', 'yes']:
             proceed = input('Take another image? [y]')
             if proceed.lower() in ['n', 'no']:
                 print('Done with calibration, proceeding with cleanup.')
