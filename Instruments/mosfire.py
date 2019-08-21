@@ -227,7 +227,7 @@ def physical_to_pixel(x):
 ## ------------------------------------------------------------------
 ##  Analyze Image to Determine Bar Positions
 ## ------------------------------------------------------------------
-def analyze_mask_image(filtersize=7):
+def analyze_mask_image(imagefile, filtersize=7):
     '''Loop over all slits in the image and using the affine transformation
     determined by `fit_transforms`, select the Y pixel range over which this
     slit should be found.  Take a median filtered version of that image and
@@ -241,7 +241,15 @@ def analyze_mask_image(filtersize=7):
     `pixel_to_physical` method and then call the `compare_to_csu_bar_state`
     method to determine the bar state.
     '''
-    ## Get image
+    ## Get image from file
+    imagefile = Path(imagefile).abspath
+    try:
+        hdul = fits.open(imagefile)
+        data = hdul[0].data
+    except Error as e:
+        log.error(e)
+        raise
+    ## Get image from ginga
 #     try:
 #         channel = self.fv.get_channel(self.chname)
 #         image = channel.get_current_image()
