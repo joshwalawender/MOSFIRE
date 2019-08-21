@@ -325,20 +325,38 @@ def find_bar_edges(self, horizontal_profile):
 
 
 ##-------------------------------------------------------------------------
-## MOSFIRE Checkout Light
+## MOSFIRE Quick Checkout
 ##-------------------------------------------------------------------------
-# Confirm the physical drive angle. It should not be within 10 degrees of a
-#     multiple of 180 degrees
-# Start the observing software as moseng or the numbered account for the night
-# Check that the dark filter is selected. If not select it
-# Check mechanism status: If any of the mechanisms have a big red X on it, you
-#     will need to home mechanisms. Note, if filter wheel is at the home
-#     position, Status will be "OK," position will be "HOME", target will be
-#     "unknown", and there will still be a big red X.
-# Acquire an exposure
-# Inspect the dark image: Values should be close to zero and look similar to
-# Create an 2.7x46 long slit and image it, verify bar positions
-# Create an 0.7x46 long slit and image it, verify bar positions
-# With the hatch closed change the observing mode to J-imaging
-# Quick Dark
-
+def checkout_quick(interactive=True):
+    '''
+    * Confirm the physical drive angle. It should not be within 10 degrees of a
+         multiple of 180 degrees
+    * Start the observing software as moseng or the account for the night
+    * Check that the dark filter is selected. If not select it
+    * Check mechanism status: If any of the mechanisms have a big red X on it,
+         you will need to home mechanisms. Note, if filter wheel is at the home
+         position, Status will be "OK," position will be "HOME", target will be
+         "unknown", and there will still be a big red X.
+    * Acquire an exposure
+    * Inspect the dark image
+    * Create an 2.7x46 long slit and image it, verify bar positions
+    * Create an 0.7x46 long slit and image it, verify bar positions
+    * With the hatch closed change the observing mode to J-imaging
+    * Quick Dark
+    '''
+    intromsg = 'This script will do a quick checkout of MOSFIRE.  It should '\
+               'take about ?? minutes to complete.  Please confirm that you '\
+               'have started the MOSFIRE software AND that the instrument '\
+               'rotator is not within 10 degrees of a multiple of 180 degrees.'
+    if interactive:
+        log.info(intromsg)
+        log.info()
+        print('Proceed? [y]')
+        proceed = input('Continue? [y]')
+        if proceed.lower() not in ['y', 'yes', 'ok', '']:
+            log.info('Exiting script.')
+            return False
+        log.info('Executing quick checkout script.')
+    
+    # Verify that the instrument is "dark"
+    
