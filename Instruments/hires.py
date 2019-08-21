@@ -14,6 +14,8 @@ from astropy.io import fits
 from astropy.modeling import models, fitting
 from matplotlib import pyplot as plt
 
+from Instruments import connect_to_ktl
+
 ##-------------------------------------------------------------------------
 ## HIRES Properties
 ##-------------------------------------------------------------------------
@@ -45,21 +47,7 @@ slits = {'B1': (3.5, 0.574),
          'E5': (1.0, 0.8),
          }
 
-
-##-------------------------------------------------------------------------
-## Parse Command Line Arguments
-##-------------------------------------------------------------------------
-## create a parser object for understanding command-line arguments
-p = argparse.ArgumentParser(description="""
-""")
-## add flags
-p.add_argument("-v", "--verbose", dest="verbose",
-    default=False, action="store_true",
-    help="Be verbose! (default = False)")
-p.add_argument("-n", "--noactions", dest="noactions",
-    default=False, action="store_true",
-    help="Run in test mode with no instrument control.")
-args = p.parse_args()
+services = connect_to_ktl(serviceNames)
 
 
 ##-------------------------------------------------------------------------
@@ -80,32 +68,6 @@ log.addHandler(LogConsoleHandler)
 # LogFileHandler.setLevel(logging.DEBUG)
 # LogFileHandler.setFormatter(LogFormat)
 # log.addHandler(LogFileHandler)
-
-
-##-------------------------------------------------------------------------
-## Import KTL python
-##-------------------------------------------------------------------------
-# Wrap ktl import in try/except so that we can maintain test case or
-# simulator version of functions on machines without KTL installed.
-if args.noactions is True:
-    ktl = None
-else:
-    try:
-        import ktl
-    except ModuleNotFoundError:
-        ktl = None
-
-
-# Connect to KTL Services
-services = {}
-if ktl is not None:
-    for service in serviceNames:
-        try:
-            services[service] = ktl.Service(service)
-        except ktl.Exceptions.ktlError:
-            log.error(f"Failed to connect to service {service}")
-
-assert len(serviceNames) == len(services.keys())
 
 
 ##-------------------------------------------------------------------------
