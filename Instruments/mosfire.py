@@ -8,6 +8,7 @@ from datetime import datetime as dt
 from time import sleep
 import numpy as np
 import subprocess
+import xml.etree.ElementTree as ET
 
 from astropy.io import fits
 
@@ -39,6 +40,10 @@ log.addHandler(LogConsoleHandler)
 ##-------------------------------------------------------------------------
 name = 'MOSFIRE'
 serviceNames = ['mosfire']
+modes = ['Dark Imaging', 'Dark Spectroscopy', 'Imaging', 'Spectroscopy']
+filters = ['Y', 'J', 'H', 'K', 'J2', 'J3', 'NB']
+allowed_sampmodes = [2, 3]
+
 services = connect_to_ktl(serviceNames)
 
 
@@ -87,8 +92,33 @@ def set(service, keyword, value, wait=True):
 ##-------------------------------------------------------------------------
 ## MOSFIRE Functions
 ##-------------------------------------------------------------------------
+def read_maskfile(xml):
+    xmlfile = Path(xml)
+    if xmlfile.exists()
+        tree = ET.parse(xmlfile)
+        root = tree.getroot()
+    else:
+        try:
+            root = ET.fromstring(xml)
+        except:
+            print(f'Could not parse {xml} as file or XML string')
+            raise
+    mask = {}
+    for child in root:
+        if child.tag == 'maskDescription':
+            mask['maskDescription'] = child.attrib
+        elif child.tag == 'mascgenArguments':
+            mask['mascgenArguments'] = {}
+            for el in child:
+                if el.attrib == {}:
+                    mask['mascgenArguments'][el.tag] = (el.text).strip()
+                else:
+                    print(el.tag, el.attrib)
+                    mask['mascgenArguments'][el.tag] = el.attrib
+        else:
+            mask[child.tag] = [el.attrib for el in child.getchildren()]
 
-
+    return mask
 
 
 if __name__ == '__main__':
