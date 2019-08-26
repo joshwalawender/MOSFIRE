@@ -16,24 +16,6 @@ from astropy.io import fits
 from Instruments import connect_to_ktl
 
 
-##-------------------------------------------------------------------------
-## Create logger object
-##-------------------------------------------------------------------------
-log = logging.getLogger('KeckInstrument')
-log.setLevel(logging.DEBUG)
-## Set up console output
-LogConsoleHandler = logging.StreamHandler()
-LogConsoleHandler.setLevel(logging.DEBUG)
-LogFormat = logging.Formatter('%(asctime)s %(levelname)8s: %(message)s',
-                              datefmt='%Y-%m-%d %H:%M:%S')
-LogConsoleHandler.setFormatter(LogFormat)
-log.addHandler(LogConsoleHandler)
-## Set up file output
-# LogFileName = None
-# LogFileHandler = logging.FileHandler(LogFileName)
-# LogFileHandler.setLevel(logging.DEBUG)
-# LogFileHandler.setFormatter(LogFormat)
-# log.addHandler(LogFileHandler)
 
 
 ##-------------------------------------------------------------------------
@@ -52,7 +34,8 @@ with open(filepath.joinpath('MOSFIRE_transforms.txt'), 'r') as FO:
 Aphysical_to_pixel = np.array(Aphysical_to_pixel)
 Apixel_to_physical = np.array(Apixel_to_physical)
 
-services = connect_to_ktl(serviceNames)
+log = create_log(name)
+services = connect_to_ktl(name, serviceNames)
 
 
 ##-------------------------------------------------------------------------
