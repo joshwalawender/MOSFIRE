@@ -41,7 +41,7 @@ log.addHandler(LogConsoleHandler)
 ##-------------------------------------------------------------------------
 name = 'MOSFIRE'
 serviceNames = ['mosfire']
-modes = ['Dark Imaging', 'Dark Spectroscopy', 'Imaging', 'Spectroscopy']
+modes = ['Dark-Imaging', 'Dark-Spectroscopy', 'Imaging', 'Spectroscopy']
 filters = ['Y', 'J', 'H', 'K', 'J2', 'J3', 'NB']
 allowed_sampmodes = [2, 3]
 
@@ -99,6 +99,42 @@ def set(service, keyword, value, wait=True):
 
 ##-------------------------------------------------------------------------
 ## MOSFIRE Functions
+##-------------------------------------------------------------------------
+def get_mode():
+    return get('mosfire', 'OBSMODE')
+
+
+def get_filter():
+    filter = get('mosfire', 'FILTER')
+    return filter
+
+
+def is_dark():
+    mode = get_mode()
+    filter = get_filter()
+    return current == f"{filter}-{mode}"
+
+
+def set_mode(filter, mode):
+    if not mode in modes:
+        log.ERROR(f"Mode: {mode} is unknown")
+    elif not filter in filters:
+        log.ERROR(f"Filter: {filter} is unknown")
+    else:
+        log.info(f"Setting mode to {filter} {mode}")
+    modestr = f"{filter}-{mode}"
+    set('mosfire', 'OBSMODE', modestr, wait=True)
+    if get_mode() != modestr:
+        log.error(f'Mode "{modestr}" not reached.  Current mode: {get_mode()}')
+
+
+def go_dark():
+    log.info('Going dark')
+    current = get_mode()
+
+
+##-------------------------------------------------------------------------
+## Read Mask Design Files
 ##-------------------------------------------------------------------------
 def read_maskfile(xml):
     xmlfile = Path(xml)
