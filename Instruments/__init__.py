@@ -46,8 +46,9 @@ def connect_to_ktl(instrumentName, serviceNames, noactions=False):
         for service in serviceNames:
             try:
                 services[service] = ktl.Service(service)
-            except ktlExceptions.ktlError:
-                print(f"ERROR: Failed to connect to service {service}")
+            except ktlExceptions.ktlError as e:
+                log.error(f"ERROR: Failed to connect to service {service}")
+                raise e
 
         assert len(serviceNames) == len(services.keys())
     return services

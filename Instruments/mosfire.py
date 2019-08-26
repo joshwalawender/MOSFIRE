@@ -13,7 +13,7 @@ import xml.etree.ElementTree as ET
 
 from astropy.io import fits
 
-from Instruments import connect_to_ktl
+from Instruments import connect_to_ktl, create_log
 
 
 
