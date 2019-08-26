@@ -47,7 +47,7 @@ allowed_sampmodes = [2, 3]
 
 # Load default CSU coordinate transformations
 filepath = Path(__file__).parent
-with open('MOSFIRE_transforms.txt', 'r') as FO:
+with open(filepath.joinpath('MOSFIRE_transforms.txt'), 'r') as FO:
     Aphysical_to_pixel, Apixel_to_physical = yaml.safe_load(FO.read())
 Aphysical_to_pixel = np.array(Aphysical_to_pixel)
 Apixel_to_physical = np.array(Apixel_to_physical)
