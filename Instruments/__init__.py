@@ -10,7 +10,7 @@ def connect_to_ktl(serviceNames, noactions=False):
     else:
         try:
             import ktl
-            import ktl.Exceptions
+            from ktl import Exceptions as ktlExceptions
         except ModuleNotFoundError:
             ktl = None
 
@@ -20,7 +20,7 @@ def connect_to_ktl(serviceNames, noactions=False):
         for service in serviceNames:
             try:
                 services[service] = ktl.Service(service)
-            except ktl.Exceptions.ktlError:
+            except ktlExceptions.ktlError:
                 log.error(f"Failed to connect to service {service}")
 
         assert len(serviceNames) == len(services.keys())
