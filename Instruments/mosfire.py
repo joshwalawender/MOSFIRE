@@ -84,7 +84,8 @@ def set(service, keyword, value, wait=True):
 ## MOSFIRE Functions
 ##-------------------------------------------------------------------------
 def get_mode():
-    return get('mosfire', 'OBSMODE')
+    obsmode = get('mosfire', 'OBSMODE')
+    return obsmode.split('-')
 
 
 def get_filter():
@@ -93,18 +94,17 @@ def get_filter():
 
 
 def is_dark():
-    mode = get_mode()
     filter = get_filter()
-    return current == f"{filter}-{mode}"
+    return filter == 'Dark'
 
 
 def set_mode(filter, mode):
     if not mode in modes:
-        log.ERROR(f"Mode: {mode} is unknown")
+        log.error(f"Mode: {mode} is unknown")
     elif not filter in filters:
-        log.ERROR(f"Filter: {filter} is unknown")
+        log.error(f"Filter: {filter} is unknown")
     else:
-        log.info(f"Setting mode to {filter} {mode}")
+        log.info(f"Setting mode to {filter}-{mode}")
     modestr = f"{filter}-{mode}"
     set('mosfire', 'OBSMODE', modestr, wait=True)
     if get_mode() != modestr:
@@ -112,8 +112,13 @@ def set_mode(filter, mode):
 
 
 def go_dark():
+    if is_dark():
+        log.info('Already Dark (mode = {get_mode()})')
+        return True
     log.info('Going dark')
     current = get_mode()
+    setmode('Dark', current[1])
+    return is_dark()
 
 
 ##-------------------------------------------------------------------------
@@ -378,4 +383,5 @@ def checkout_quick(interactive=True):
         log.info('Executing quick checkout script.')
     
     # Verify that the instrument is "dark"
-    
+    if not is_dark():
+        go_dark()
