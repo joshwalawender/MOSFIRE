@@ -10,6 +10,7 @@ def connect_to_ktl(serviceNames, noactions=False):
     else:
         try:
             import ktl
+            import ktl.Exceptions
         except ModuleNotFoundError:
             ktl = None
 
