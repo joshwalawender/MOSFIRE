@@ -124,35 +124,35 @@ def go_dark():
 
 
 def grating_shim_ok():
-    return get('mosfire', 'MGSSTAT') == 'OK':
+    return get('mosfire', 'MGSSTAT') == 'OK'
 
 
 def grating_turret_ok():
-    return get('mosfire', 'MGTSTAT') == 'OK':
+    return get('mosfire', 'MGTSTAT') == 'OK'
 
 
 def grating_ok():
-    return get('mosfire', 'GRATSTAT') == 'OK':
+    return get('mosfire', 'GRATSTAT') == 'OK'
 
 
 def filter1_ok():
-    return get('mosfire', 'MF1STAT') == 'OK':
+    return get('mosfire', 'MF1STAT') == 'OK'
 
 
 def filter2_ok():
-    return get('mosfire', 'MF2STAT') == 'OK':
+    return get('mosfire', 'MF2STAT') == 'OK'
 
 
 def filters_ok():
-    return get('mosfire', 'FILTSTAT') == 'OK':
+    return get('mosfire', 'FILTSTAT') == 'OK'
 
 
 def fcs_ok():
-    return get('mosfire', 'FCSSTAT') == 'OK':
+    return get('mosfire', 'FCSSTAT') == 'OK'
 
 
 def pupil_rotator_ok():
-    return get('mosfire', 'MPRSTAT') == 'OK':
+    return get('mosfire', 'MPRSTAT') == 'OK'
 
 
 def trapdoor_ok():
@@ -160,7 +160,7 @@ def trapdoor_ok():
 
 
 def dustcover_ok():
-    return get('mosfire', 'MDCSTAT') == 'OK':
+    return get('mosfire', 'MDCSTAT') == 'OK'
 
 
 def check_mechanisms():
