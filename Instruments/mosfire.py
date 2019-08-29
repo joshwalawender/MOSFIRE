@@ -11,6 +11,7 @@ from time import sleep
 import numpy as np
 import subprocess
 import xml.etree.ElementTree as ET
+from astropy.table import Table
 
 from astropy.io import fits
 
@@ -204,6 +205,22 @@ def read_maskfile(xml):
                     mask['mascgenArguments'][el.tag] = el.attrib
         else:
             mask[child.tag] = [el.attrib for el in child.getchildren()]
+
+    # Combine RA and DEC in to strings, then make table of alignment stars
+    for i,star in enumerate(mask.get('alignment')):
+        ra = f"{star['targetRaH']}:{star['targetRaM']}:{star['targetRaS']}"
+        dec = f"{star['targetDecD']}:{star['targetDecM']}:{star['targetDecS']}"
+        mask['alignment'][i]['RA'] = ra
+        mask['alignment'][i]['DEC'] = dec
+    mask['stars'] = Table(mask.get('alignment'))
+
+    # Combine RA and DEC in to strings, then make table of science targets
+    for i,targ in enumerate(mask.get('scienceSlitConfig')):
+        ra = f"{targ['targetRaH']}:{targ['targetRaM']}:{targ['targetRaS']}"
+        dec = f"{targ['targetDecD']}:{targ['targetDecM']}:{targ['targetDecS']}"
+        mask['scienceSlitConfig'][i]['RA'] = ra
+        mask['scienceSlitConfig'][i]['DEC'] = dec
+    mask['targets'] = Table(mask.get('scienceSlitConfig'))
 
     return mask
 
