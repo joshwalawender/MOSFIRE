@@ -39,6 +39,8 @@ def connect_to_ktl(instrumentName, serviceNames, noactions=False):
             from ktl import Exceptions as ktlExceptions
         except ModuleNotFoundError:
             ktl = None
+        except ktlExceptions.ktlError:
+            ktl = None
 
     # Connect to KTL Services
     services = {}
