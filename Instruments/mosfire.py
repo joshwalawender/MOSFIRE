@@ -121,15 +121,33 @@ def set_mode(filter, mode):
         log.error(f'Mode "{modestr}" not reached.  Current mode: {get_mode()}')
 
 
+def quick_dark(filter=None):
+    '''Modeled after darkeff script
+    '''
+    if filter not in filters:
+        log.error(f'Filter {filter} not in allowed filter list: {filters}')
+        filter = None
+    filter_combo = {'Y': ['H2', 'Y'],
+                    'J': ['NB1061', 'J'],
+                    'H': ['NB1061', 'H'],
+                    'Ks': ['NB1061', 'Ks'],
+                    'K': ['NB1061', 'K'],
+                    'J2': ['J2', 'K'],
+                    'J3': ['J3', 'K'],
+                    'H1': ['H1', 'K'],
+                    'H2': ['H2', 'K'],
+                    None: ['NB1061', 'Ks'],
+                    }
+    f1dest = filter_combo.get(filter)[0]
+    if get_filter1() != f1dest:
+        set('mmf1s', 'targname', f1dest)
+    f2dest = filter_combo.get(filter)[1]
+    if get_filter2() != f2dest:
+        set('mmf2s', 'targname', f2dest)
+
+
 def go_dark():
-    # See darkeff instead!!!
-    if is_dark():
-        log.info('Already Dark (mode = {get_mode()})')
-        return True
-    log.info('Going dark')
-    current = get_mode()
-    setmode('Dark', current[1])
-    return is_dark()
+    quick_dark()
 
 
 def grating_shim_ok():
