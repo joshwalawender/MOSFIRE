@@ -52,5 +52,5 @@ def connect_to_ktl(instrumentName, serviceNames, noactions=False):
                 log.error(f"ERROR: Failed to connect to service {service}")
                 log.error(e)
 
-        assert len(serviceNames) == len(services.keys())
+        log.info(f'Connected to {len(services)} out of {len(serviceNames)}')
     return services
