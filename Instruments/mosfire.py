@@ -7,6 +7,7 @@ import logging
 import yaml
 
 from datetime import datetime as dt
+from datetime import timedelta as tdelta
 from time import sleep
 import numpy as np
 import subprocess
@@ -231,6 +232,20 @@ def set_coadds(coadds):
     set('mosfire', 'COADDS', int(coadds))
 
 
+def waitfor_exposure(timeout=300):
+    done = get('mosfire', 'imagedone', type=bool)
+    endat = dt.utcnow() + tdelta(seconds=timeout)
+    while done is False and dt.utcnow() < endat:
+        sleep(1)
+        done = get('mosfire', 'imagedone', type=bool)
+    if done is False:
+        log.warning(f'Timeout exceeded on waitfor_exposure to finish')
+    return done
+
+
+def goi():
+    waitfor_exposure()
+    set('mosfire', 'go', 1)
 
 
 ##-------------------------------------------------------------------------
