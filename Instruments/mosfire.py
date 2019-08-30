@@ -60,7 +60,15 @@ def get(service, keyword, mode=str):
             result = False
         elif kwresult.strip().lower() == 'true':
             result = True
-        log.debug(f'  Parsed to boolean: {result}')
+        else:
+            try:
+                result = bool(int(kwresult))
+            except:
+                result = None
+        if result is not None:
+            log.debug(f'  Parsed to boolean: {result}')
+        else:
+            log.error(f'  Failed to parse "{kwresult}"')
         return result
     # Convert result to requested type
     try:
