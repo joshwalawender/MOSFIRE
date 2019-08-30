@@ -86,21 +86,29 @@ def set(service, keyword, value, wait=True):
 ## MOSFIRE Functions
 ##-------------------------------------------------------------------------
 def get_mode():
+    '''Get the observing mode and return a two element list: [filter, mode]
+    '''
     obsmode = get('mosfire', 'OBSMODE')
     return obsmode.split('-')
 
 
 def get_filter():
+    '''Return the current filter name
+    '''
     filter = get('mosfire', 'FILTER')
     return filter
 
 
 def is_dark():
+    '''Return True if the current observing mode is dark
+    '''
     filter = get_filter()
     return filter == 'Dark'
 
 
 def set_mode(filter, mode):
+    '''Set the current observing mode to the filter and mode specified.
+    '''
     if not mode in modes:
         log.error(f"Mode: {mode} is unknown")
     elif not filter in filters:
