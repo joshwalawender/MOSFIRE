@@ -99,6 +99,14 @@ def get_filter():
     return filter
 
 
+def get_filter1():
+    return get('mmf1s', 'posname')
+
+
+def get_filter2():
+    return get('mmf2s', 'posname')
+
+
 def is_dark():
     '''Return True if the current observing mode is dark
     '''
@@ -201,6 +209,20 @@ def check_mechanisms():
             log.error(f'Please address the problem, then re-run the checkout.')
             return False
     return True
+
+
+def set_exptime(exptime):
+    '''Set exposure time per coadd in seconds.  Note the ITIME keyword uses ms.
+    '''
+    set('mosfire', 'ITIME', int(exptime*1000))
+
+
+def set_coadds(coadds):
+    '''Set number of coadds
+    '''
+    set('mosfire', 'COADDS', int(coadds))
+
+
 
 
 ##-------------------------------------------------------------------------
