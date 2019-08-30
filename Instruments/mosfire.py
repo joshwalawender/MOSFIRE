@@ -81,7 +81,7 @@ def get(service, keyword, mode=str):
         return kwresult
 
 
-def set(service, keyword, value, wait=True):
+def set(keyword, service='mosfire', value, wait=True):
     """Generic function to set a keyword value.
     """
     log.debug(f'Setting {service}.{keyword} to "{value}" (wait={wait})')
@@ -133,7 +133,7 @@ def set_mode(filter, mode):
     else:
         log.info(f"Setting mode to {filter}-{mode}")
     modestr = f"{filter}-{mode}"
-    set('mosfire', 'OBSMODE', modestr, wait=True)
+    set('OBSMODE', modestr, wait=True)
     if get_mode() != modestr:
         log.error(f'Mode "{modestr}" not reached.  Current mode: {get_mode()}')
 
@@ -157,10 +157,10 @@ def quick_dark(filter=None):
                     }
     f1dest = filter_combo.get(filter)[0]
     if get_filter1() != f1dest:
-        set('mmf1s', 'targname', f1dest)
+        set('targname', service='mmf1s', f1dest)
     f2dest = filter_combo.get(filter)[1]
     if get_filter2() != f2dest:
-        set('mmf2s', 'targname', f2dest)
+        set('targname', service='mmf2s', f2dest)
 
 
 def go_dark():
@@ -223,13 +223,13 @@ def check_mechanisms():
 def set_exptime(exptime):
     '''Set exposure time per coadd in seconds.  Note the ITIME keyword uses ms.
     '''
-    set('mosfire', 'ITIME', int(exptime*1000))
+    set('ITIME', int(exptime*1000))
 
 
 def set_coadds(coadds):
     '''Set number of coadds
     '''
-    set('mosfire', 'COADDS', int(coadds))
+    set('COADDS', int(coadds))
 
 
 def waitfor_exposure(timeout=300):
