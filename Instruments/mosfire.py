@@ -25,10 +25,12 @@ from Instruments import connect_to_ktl, create_log
 ## MOSFIRE Properties
 ##-------------------------------------------------------------------------
 name = 'MOSFIRE'
-serviceNames = ['mosfire']
+serviceNames = ['mosfire', 'mmf1s', 'mmf2s']
 modes = ['Dark-Imaging', 'Dark-Spectroscopy', 'Imaging', 'Spectroscopy']
 filters = ['Y', 'J', 'H', 'K', 'J2', 'J3', 'NB']
+
 allowed_sampmodes = [2, 3]
+sampmode_names = {'CDS': (2, None), 'MCDS': (3, None), 'MCDS16': (3, 16)}
 
 # Load default CSU coordinate transformations
 filepath = Path(__file__).parent
@@ -232,6 +234,27 @@ def set_coadds(coadds):
     set('COADDS', int(coadds))
 
 
+def parse_sampmode(input):
+    if type(input) is int:
+        sampmode = input
+        numreads = None
+    if type(input) is str:
+        sampmode, numreads = sampmode_names.get(sampmode)
+    return (sampmode, numreads)
+
+
+def set_sampmode(input):
+    sampmode, numreads = parse_sampmode(input)
+    if sampmode in allowed_sampmodes:
+        log.info(f'Setting Sampling Mode: {sampmode}')
+        set('sampmode', sampmode)
+        if numreads is not None:
+            log.info(f'Setting Number of Reads: {numreads}')
+            set('numreads', numreads)
+    else:
+        log.error(f'Sampling mode {sampmode} is not supported')
+
+
 def waitfor_exposure(timeout=300):
     done = get('mosfire', 'imagedone', type=bool)
     endat = dt.utcnow() + tdelta(seconds=timeout)
@@ -243,9 +266,15 @@ def waitfor_exposure(timeout=300):
     return done
 
 
-def goi():
+def goi(exptime=None, coadds=None, sampmode=None):
     waitfor_exposure()
-    set('mosfire', 'go', 1)
+    if exptime is not None:
+        set_exptime(exptime)
+    if coadds is not None:
+        set_coadds(coadds)
+    if sampmode is not None:
+        set_sampmode(sampmode)
+    set('go', 1)
 
 
 ##-------------------------------------------------------------------------
