@@ -277,6 +277,10 @@ def goi(exptime=None, coadds=None, sampmode=None):
     set('go', 1)
 
 
+def take_exposure(**kwargs):
+    goi(**kwargs)
+
+
 ##-------------------------------------------------------------------------
 ## Read Mask Design Files
 ##-------------------------------------------------------------------------
