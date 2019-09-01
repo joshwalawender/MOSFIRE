@@ -287,7 +287,12 @@ def filename():
 
 def lastfile():
     lastfile = Path(get('LASTFILE'))
-    assert lastfile.exists()
+    if not lastfile.exists():
+        trypath = Path('/s')
+        for part in lastfile.parts[1:]:
+            trypath = trypath.joinpath(part)
+    if not trypath.exists():
+        log.warning(f'Could not find last file on disk: {lastfile}')
     return lastfile
 
 
