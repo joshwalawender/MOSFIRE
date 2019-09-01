@@ -46,7 +46,7 @@ services = connect_to_ktl(name, serviceNames)
 ##-------------------------------------------------------------------------
 ## Define Common Functions
 ##-------------------------------------------------------------------------
-def get(service, keyword, mode=str):
+def get(keyword, service='mosfire', mode=str):
     """Generic function to get a keyword value.  Converts it to the specified
     mode and does some simple parsing of true and false strings.
     """
@@ -99,23 +99,23 @@ def set(keyword, value, service='mosfire', wait=True):
 def get_mode():
     '''Get the observing mode and return a two element list: [filter, mode]
     '''
-    obsmode = get('mosfire', 'OBSMODE')
+    obsmode = get('OBSMODE')
     return obsmode.split('-')
 
 
 def get_filter():
     '''Return the current filter name
     '''
-    filter = get('mosfire', 'FILTER')
+    filter = get('FILTER')
     return filter
 
 
 def get_filter1():
-    return get('mmf1s', 'posname')
+    return get('posname', service='mmf1s')
 
 
 def get_filter2():
-    return get('mmf2s', 'posname')
+    return get('posname', service='mmf2s')
 
 
 def is_dark():
@@ -170,35 +170,35 @@ def go_dark():
 
 
 def grating_shim_ok():
-    return get('mosfire', 'MGSSTAT') == 'OK'
+    return get('MGSSTAT') == 'OK'
 
 
 def grating_turret_ok():
-    return get('mosfire', 'MGTSTAT') == 'OK'
+    return get('MGTSTAT') == 'OK'
 
 
 def grating_ok():
-    return get('mosfire', 'GRATSTAT') == 'OK'
+    return get('GRATSTAT') == 'OK'
 
 
 def filter1_ok():
-    return get('mosfire', 'MF1STAT') == 'OK'
+    return get('MF1STAT') == 'OK'
 
 
 def filter2_ok():
-    return get('mosfire', 'MF2STAT') == 'OK'
+    return get('MF2STAT') == 'OK'
 
 
 def filters_ok():
-    return get('mosfire', 'FILTSTAT') == 'OK'
+    return get('FILTSTAT') == 'OK'
 
 
 def fcs_ok():
-    return get('mosfire', 'FCSSTAT') == 'OK'
+    return get('FCSSTAT') == 'OK'
 
 
 def pupil_rotator_ok():
-    return get('mosfire', 'MPRSTAT') == 'OK'
+    return get('MPRSTAT') == 'OK'
 
 
 def trapdoor_ok():
@@ -206,7 +206,7 @@ def trapdoor_ok():
 
 
 def dustcover_ok():
-    return get('mosfire', 'MDCSTAT') == 'OK'
+    return get('MDCSTAT') == 'OK'
 
 
 def check_mechanisms():
@@ -256,11 +256,11 @@ def set_sampmode(input):
 
 
 def waitfor_exposure(timeout=300):
-    done = get('mosfire', 'imagedone', type=bool)
+    done = get('imagedone', type=bool)
     endat = dt.utcnow() + tdelta(seconds=timeout)
     while done is False and dt.utcnow() < endat:
         sleep(1)
-        done = get('mosfire', 'imagedone', type=bool)
+        done = get('imagedone', type=bool)
     if done is False:
         log.warning(f'Timeout exceeded on waitfor_exposure to finish')
     return done
