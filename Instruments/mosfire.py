@@ -159,10 +159,10 @@ def quick_dark(filter=None):
                     }
     f1dest = filter_combo.get(filter)[0]
     if get_filter1() != f1dest:
-        set('targname', service='mmf1s', f1dest)
+        set('targname', f1dest, service='mmf1s')
     f2dest = filter_combo.get(filter)[1]
     if get_filter2() != f2dest:
-        set('targname', service='mmf2s', f2dest)
+        set('targname', f2dest, service='mmf2s')
 
 
 def go_dark():
