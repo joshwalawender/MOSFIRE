@@ -83,7 +83,7 @@ def get(service, keyword, mode=str):
         return kwresult
 
 
-def set(keyword, service='mosfire', value, wait=True):
+def set(keyword, value, service='mosfire', wait=True):
     """Generic function to set a keyword value.
     """
     log.debug(f'Setting {service}.{keyword} to "{value}" (wait={wait})')
