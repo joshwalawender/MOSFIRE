@@ -281,6 +281,16 @@ def take_exposure(**kwargs):
     goi(**kwargs)
 
 
+def filename():
+    return Path(get('FILENAME'))
+
+
+def lastfile():
+    lastfile = Path(get('LASTFILE'))
+    assert lastfile.exists()
+    return lastfile
+
+
 ##-------------------------------------------------------------------------
 ## Read Mask Design Files
 ##-------------------------------------------------------------------------
@@ -564,6 +574,16 @@ def checkout_quick(interactive=True):
         go_dark()
     check_mechanisms()
     # Verify Dark Image
+    set_exptime(1)
+    set_coadds(1)
+    set_sampmode('CDS')
+    waitfor_exposure() # in case exposure is already in progress
+    goi()
+    waitfor_exposure()
+    hdul = fits.open(lastfile())
+    # tests on dark file
+
+
     # Create an 2.7x46 long slit and image it, verify bar positions
     # Create an 0.7x46 long slit and image it, verify bar positions
     # Change the observing mode to J-imaging, verify mechanisms
