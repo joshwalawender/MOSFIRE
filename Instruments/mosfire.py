@@ -170,10 +170,10 @@ def quick_dark(filter=None):
         set('targname', f2dest, service='mmf2s')
 
 
-def go_dark():
+def go_dark(filter=None):
     '''Alias for quick_dark
     '''
-    quick_dark()
+    quick_dark(filter=filter)
 
 
 ##-------------------------------------------------------------------------
@@ -208,7 +208,7 @@ def fcs_ok():
 
 
 def pupil_rotator_ok():
-    return get('MPRSTAT') == 'OK'
+    return get('MPRSTAT') in ['OK', 'TRACKING']
 
 
 def trapdoor_ok():
@@ -269,11 +269,11 @@ def set_sampmode(input):
 
 
 def waitfor_exposure(timeout=300):
-    done = get('imagedone', type=bool)
+    done = get('imagedone', mode=bool)
     endat = dt.utcnow() + tdelta(seconds=timeout)
     while done is False and dt.utcnow() < endat:
         sleep(1)
-        done = get('imagedone', type=bool)
+        done = get('imagedone', mode=bool)
     if done is False:
         log.warning(f'Timeout exceeded on waitfor_exposure to finish')
     return done
@@ -314,7 +314,7 @@ def lastfile():
 
 
 ##-------------------------------------------------------------------------
-## Read Mask Design Files
+## CSU Controls
 ##-------------------------------------------------------------------------
 def setup_open_mask():
     '''Setup an open mask
