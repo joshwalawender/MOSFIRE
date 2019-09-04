@@ -349,6 +349,19 @@ def execute_mask():
     set('CSUGO', 1)
 
 
+def waitfor_CSU(timeout=480):
+    '''Wait for a CSU move to be complete.
+    '''
+    done = get('CSUREADY') == 'Ready for Move'
+    endat = dt.utcnow() + tdelta(seconds=timeout)
+    while done is False and dt.utcnow() < endat:
+        sleep(2)
+        done = get('CSUREADY') == 'Ready for Move'
+    if done is False:
+        log.warning(f'Timeout exceeded on waitfor_CSU to finish')
+    return done
+
+
 def read_maskfile(xml):
     '''Read an XML mask file in to a python dictionary and add a few additional
     entries with processed information:
