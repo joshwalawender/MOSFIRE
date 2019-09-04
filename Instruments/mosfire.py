@@ -235,16 +235,27 @@ def check_mechanisms():
 ##-------------------------------------------------------------------------
 ## MOSFIRE Exposure Control Functions
 ##-------------------------------------------------------------------------
+def get_exptime():
+    return get('EXPTIME', mode=int)/1000
+
 def set_exptime(exptime):
     '''Set exposure time per coadd in seconds.  Note the ITIME keyword uses ms.
     '''
     set('ITIME', int(exptime*1000))
 
 
+def get_coadds():
+    return get('COADDS', mode=int)
+
+
 def set_coadds(coadds):
     '''Set number of coadds
     '''
     set('COADDS', int(coadds))
+
+
+def get_sampmode():
+    return get('SAMPMODE', mode=int)
 
 
 def parse_sampmode(input):
