@@ -94,35 +94,13 @@ def set(keyword, value, service='mosfire', wait=True):
 
 
 ##-------------------------------------------------------------------------
-## MOSFIRE Functions
+## MOSFIRE Mode and Filter Functions
 ##-------------------------------------------------------------------------
 def get_mode():
     '''Get the observing mode and return a two element list: [filter, mode]
     '''
     obsmode = get('OBSMODE')
     return obsmode.split('-')
-
-
-def get_filter():
-    '''Return the current filter name
-    '''
-    filter = get('FILTER')
-    return filter
-
-
-def get_filter1():
-    return get('posname', service='mmf1s')
-
-
-def get_filter2():
-    return get('posname', service='mmf2s')
-
-
-def is_dark():
-    '''Return True if the current observing mode is dark
-    '''
-    filter = get_filter()
-    return filter == 'Dark'
 
 
 def set_mode(filter, mode):
@@ -140,8 +118,35 @@ def set_mode(filter, mode):
         log.error(f'Mode "{modestr}" not reached.  Current mode: {get_mode()}')
 
 
+def get_filter():
+    '''Return the current filter name
+    '''
+    filter = get('FILTER')
+    return filter
+
+
+def get_filter1():
+    '''Return the current filter name for filter wheel 1
+    '''
+    return get('posname', service='mmf1s')
+
+
+def get_filter2():
+    '''Return the current filter name for filter wheel 2
+    '''
+    return get('posname', service='mmf2s')
+
+
+def is_dark():
+    '''Return True if the current observing mode is dark
+    '''
+    filter = get_filter()
+    return filter == 'Dark'
+
+
 def quick_dark(filter=None):
-    '''Modeled after darkeff script
+    '''Set the instrument to a dark mode which is close to the specified filter.
+    Modeled after darkeff script.
     '''
     if filter not in filters:
         log.error(f'Filter {filter} not in allowed filter list: {filters}')
@@ -166,9 +171,14 @@ def quick_dark(filter=None):
 
 
 def go_dark():
+    '''Alias for quick_dark
+    '''
     quick_dark()
 
 
+##-------------------------------------------------------------------------
+## MOSFIRE Status Check Functions
+##-------------------------------------------------------------------------
 def grating_shim_ok():
     return get('MGSSTAT') == 'OK'
 
@@ -222,6 +232,9 @@ def check_mechanisms():
     return True
 
 
+##-------------------------------------------------------------------------
+## MOSFIRE Exposure Control Functions
+##-------------------------------------------------------------------------
 def set_exptime(exptime):
     '''Set exposure time per coadd in seconds.  Note the ITIME keyword uses ms.
     '''
@@ -290,6 +303,7 @@ def lastfile():
     if lastfile.exists():
         return lastfile
     else:
+        # Check and see if we need a /s prepended on the path for this machine
         trypath = Path('/s')
         for part in lastfile.parts[1:]:
             trypath = trypath.joinpath(part)
@@ -303,6 +317,16 @@ def lastfile():
 ## Read Mask Design Files
 ##-------------------------------------------------------------------------
 def read_maskfile(xml):
+    '''Read an XML mask file in to a python dictionary and add a few additional
+    entries with processed information:
+    
+    The 'stars' key contains an astropy Table with info on the alignment stars
+    which contains an hh:mm:ss dd:mm:ss formatted string for the coordinates
+    (rather than) having each unit separately.
+    
+    The 'targets' key contains an astropy Table with info on the science targets
+    in the mask design similar to the alignment stars above.
+    '''
     xmlfile = Path(xml)
     if xmlfile.exists():
         tree = ET.parse(xmlfile)
