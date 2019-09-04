@@ -321,7 +321,7 @@ def setup_open_mask():
     '''
     bars = Table.read(filepath.joinpath('MOSFIRE_open_mask.txt'))
     assert len(bars) == 92
-    log.info('Setting bar target position keywords')
+    log.info('Setting bar target position keywords for OPEN mask')
     for bar in bars:
         log.debug(f"  Setting B{bar['bar']:02d}TARG = {bar['pos']}")
         set(f"B{bar['bar']:02d}TARG", bar['pos'])
@@ -334,7 +334,7 @@ def setup_standard_longslit():
     '''
     bars = Table.read(filepath.joinpath('MOSFIRE_longslit_0.7x46.txt'))
     assert len(bars) == 92
-    log.info('Setting bar target position keywords')
+    log.info('Setting bar target position keywords for 0.7x46 long slit')
     for bar in bars:
         log.debug(f"  Setting B{bar['bar']:02d}TARG = {bar['pos']}")
         set(f"B{bar['bar']:02d}TARG", bar['pos'])
@@ -620,9 +620,9 @@ def find_bar_edges(self, horizontal_profile):
 
 
 ##-------------------------------------------------------------------------
-## MOSFIRE Quick Checkout
+## MOSFIRE Checkout
 ##-------------------------------------------------------------------------
-def checkout_quick(interactive=True):
+def checkout(quick=False):
     '''
     * Confirm the physical drive angle. It should not be within 10 degrees of a
          multiple of 180 degrees
@@ -634,42 +634,71 @@ def checkout_quick(interactive=True):
          "unknown", and there will still be a big red X.
     * Acquire an exposure
     * Inspect the dark image
-    * Create an 2.7x46 long slit and image it, verify bar positions
-    * Create an 0.7x46 long slit and image it, verify bar positions
+    * If normal checkout:
+        * Open mask
+        * Image and confirm
+        * Initialize CSU: modify -s mosfire csuinitbar=0
+        * Image and confirm
+        * Form 0.7x46 long slit
+        * Image and confirm
+    * If quick checkout
+        * Form an 2.7x46 long slit
+        * Image and confirm
+        * Form an 0.7x46 long slit
+        * Image and confirm
     * With the hatch closed change the observing mode to J-imaging, verify
          mechanisms are ok
     * Quick Dark
+    * Message user to verify sidecar logging
     '''
     intromsg = 'This script will do a quick checkout of MOSFIRE.  It should '\
                'take about ?? minutes to complete.  Please confirm that you '\
                'have started the MOSFIRE software AND that the instrument '\
                'rotator is not within 10 degrees of a multiple of 180 degrees.'
-    if interactive:
-        log.info(intromsg)
-        log.info()
-        print('Proceed? [y]')
-        proceed = input('Continue? [y]')
-        if proceed.lower() not in ['y', 'yes', 'ok', '']:
-            log.info('Exiting script.')
-            return False
-        log.info('Executing quick checkout script.')
+    log.info(intromsg)
+    log.info()
+    proceed = input('Continue? [y]')
+    if proceed.lower() not in ['y', 'yes', 'ok', '']:
+        log.info('Exiting script.')
+        return False
+    log.info(f'Executing checkout script.')
     
-    # Verify that the instrument is "dark"
+    log.info('Checking that instrument is dark')
     if not is_dark():
         go_dark()
-    check_mechanisms()
-    # Verify Dark Image
+    if not is_dark():
+        log.error('Could not make instrument dark')
+        return False
+    log.info('Instrument is dark')
+
+    log.info('Checking mechanisms')
+    if check_mechanisms() is True:
+        log.info('  Mechanisms ok')
+    else:
+        log.error('  Mechanism check failed')
+        return False
+
+    log.info('Taking dark image')
     set_exptime(1)
     set_coadds(1)
     set_sampmode('CDS')
     waitfor_exposure() # in case exposure is already in progress
+    lastfile1 = lastfile()
     goi()
     waitfor_exposure()
-    hdul = fits.open(lastfile())
-    # tests on dark file
+    lastfile2 = lastfile()
+    if lastfile2 == lastfile1:
+        log.error('  LASTFILE did not increment')
+        return False
+    log.info('Please verify that dark image looks normal')
+    proceed = input('Continue? [y]')
+    if proceed.lower() not in ['y', 'yes', 'ok', '']:
+        log.info('Exiting script.')
+        return False
 
+    # Normal (long) checkout
+    if quick is False:
+        log.info('Setting OPEN mask')
+        setup_open_mask()
+        execute_mask()
 
-    # Create an 2.7x46 long slit and image it, verify bar positions
-    # Create an 0.7x46 long slit and image it, verify bar positions
-    # Change the observing mode to J-imaging, verify mechanisms
-    # Quick Dark
