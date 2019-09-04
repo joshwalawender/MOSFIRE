@@ -316,6 +316,39 @@ def lastfile():
 ##-------------------------------------------------------------------------
 ## Read Mask Design Files
 ##-------------------------------------------------------------------------
+def setup_open_mask():
+    '''Setup an open mask
+    '''
+    bars = Table.read(filepath.joinpath('MOSFIRE_open_mask.txt'))
+    assert len(bars) == 92
+    log.info('Setting bar target position keywords')
+    for bar in bars:
+        log.debug(f"  Setting B{bar['bar']:02d}TARG = {bar['pos']}")
+        set(f"B{bar['bar']:02d}TARG", bar['pos'])
+    lof.info('Setup mask')
+    set('CSUSETUP', 1)
+
+
+def setup_standard_longslit():
+    '''Setup a standard 0.7x46 long slit mask
+    '''
+    bars = Table.read(filepath.joinpath('MOSFIRE_longslit_0.7x46.txt'))
+    assert len(bars) == 92
+    log.info('Setting bar target position keywords')
+    for bar in bars:
+        log.debug(f"  Setting B{bar['bar']:02d}TARG = {bar['pos']}")
+        set(f"B{bar['bar']:02d}TARG", bar['pos'])
+    lof.info('Setup mask')
+    set('CSUSETUP', 1)
+
+
+def execute_mask():
+    '''Execute a mask which has already been set up.
+    '''
+    log.info('Executing CSU move')
+    set('CSUGO', 1)
+
+
 def read_maskfile(xml):
     '''Read an XML mask file in to a python dictionary and add a few additional
     entries with processed information:
@@ -369,6 +402,26 @@ def read_maskfile(xml):
     mask['targets'] = Table(mask.get('scienceSlitConfig'))
 
     return mask
+
+
+def setup_mask(input):
+    '''Setup the input mask.  Accepts either an XML filename or a mask dict
+    which has already been read in by read_maskfile.
+    '''
+    if type(input) in [str, Path]:
+        mask = read_maskfile(input)
+    elif type(input) == dict:
+        # assume this is a mask dict
+        mask = input
+    # Now setup the mask
+    log.info('Setting bar target position keywords')
+    for bar in mask['mechanicalSlitConfig']:
+        log.debug(f"  Setting B{bar['rightBarNumber']:02d}TARG = {bar['rightBarPositionMM']}")
+        set(f"B{bar['rightBarNumber']:02d}TARG", bar['rightBarPositionMM'])
+        log.debug(f"  Setting B{bar['leftBarNumber']:02d}TARG = {bar['leftBarPositionMM']}")
+        set(f"B{bar['leftBarNumber']:02d}TARG", bar['leftBarPositionMM'])
+    lof.info('Setup mask')
+    set('CSUSETUP', 1)
 
 
 ## ------------------------------------------------------------------
