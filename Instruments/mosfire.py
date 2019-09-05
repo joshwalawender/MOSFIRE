@@ -12,9 +12,11 @@ from time import sleep
 import numpy as np
 import subprocess
 import xml.etree.ElementTree as ET
-from astropy.table import Table
 
+from astropy.table import Table, Column
 from astropy.io import fits
+from astropy.coordinates import SkyCoord
+from astropy import units as u
 
 from Instruments import connect_to_ktl, create_log
 
@@ -41,6 +43,82 @@ Apixel_to_physical = np.array(Apixel_to_physical)
 
 log = create_log(name)
 services = connect_to_ktl(name, serviceNames)
+
+
+##-------------------------------------------------------------------------
+## Define Mask Object
+##-------------------------------------------------------------------------
+class Mask(object):
+    def __init__(self):
+        self.slitpos = None
+        self.alignmentStars = None
+        self.scienceTargets = None
+        self.xmlroot = None
+        # from maskDescription
+        self.name = None
+        self.priority = None
+        self.center_str = None
+        self.center = None
+        self.PA = None
+        self.mascgenArguments = None
+
+
+    def read_xml(self, xml):
+        xmlfile = Path(xml)
+        if xmlfile.exists():
+            tree = ET.parse(xmlfile)
+            self.xmlroot = tree.getroot()
+        else:
+            try:
+                self.xmlroot = ET.fromstring(xml)
+            except:
+                log.error(f'Could not parse {xml} as file or XML string')
+                raise
+        # Parse XML root
+        for child in self.xmlroot:
+            if child.tag == 'maskDescription':
+                self.name = child.attrib.get('maskName')
+                self.priority = float(child.attrib.get('totalPriority'))
+                self.PA = float(child.attrib.get('maskPA'))
+                self.center_str = f"{child.attrib.get('centerRaH')}:"\
+                                  f"{child.attrib.get('centerRaM')}:"\
+                                  f"{child.attrib.get('centerRaS')} "\
+                                  f"{child.attrib.get('centerDecD')}:"\
+                                  f"{child.attrib.get('centerDecM')}:"\
+                                  f"{child.attrib.get('centerDecS')}"
+                self.center = SkyCoord(self.center_str, unit=(u.hourangle, u.deg))
+            elif child.tag == 'mascgenArguments':
+                self.mascgenArguments = {}
+                for el in child:
+                    if el.attrib == {}:
+                        self.mascgenArguments[el.tag] = (el.text).strip()
+                    else:
+                        self.mascgenArguments[el.tag] = el.attrib
+            elif child.tag == 'mechanicalSlitConfig':
+                data = [el.attrib for el in child.getchildren()]
+                self.slitpos = Table(data)
+            elif child.tag == 'scienceSlitConfig':
+                data = [el.attrib for el in child.getchildren()]
+                self.scienceTargets = Table(data)
+                ra = [f"{star['targetRaH']}:{star['targetRaM']}:{star['targetRaS']}"
+                      for star in self.scienceTargets]
+                dec = [f"{star['targetDecD']}:{star['targetDecM']}:{star['targetDecS']}"
+                       for star in self.scienceTargets]
+                self.scienceTargets.add_columns([Column(ra, name='RA'),
+                                                 Column(dec, name='DEC')])
+            elif child.tag == 'alignment':
+                data = [el.attrib for el in child.getchildren()]
+                self.alignmentStars = Table(data)
+                ra = [f"{star['targetRaH']}:{star['targetRaM']}:{star['targetRaS']}"
+                      for star in self.alignmentStars]
+                dec = [f"{star['targetDecD']}:{star['targetDecM']}:{star['targetDecS']}"
+                       for star in self.alignmentStars]
+                self.alignmentStars.add_columns([Column(ra, name='RA'),
+                                                 Column(dec, name='DEC')])
+            else:
+                mask[child.tag] = [el.attrib for el in child.getchildren()]
+
+
 
 
 ##-------------------------------------------------------------------------
