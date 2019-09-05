@@ -451,78 +451,20 @@ def waitfor_CSU(timeout=480):
     return done
 
 
-def read_maskfile(xml):
-    '''Read an XML mask file in to a python dictionary and add a few additional
-    entries with processed information:
-    
-    The 'stars' key contains an astropy Table with info on the alignment stars
-    which contains an hh:mm:ss dd:mm:ss formatted string for the coordinates
-    (rather than) having each unit separately.
-    
-    The 'targets' key contains an astropy Table with info on the science targets
-    in the mask design similar to the alignment stars above.
+def setup_mask(mask):
+    '''Setup the given mask.  Accepts a Mask object.
     '''
-    xmlfile = Path(xml)
-    if xmlfile.exists():
-        tree = ET.parse(xmlfile)
-        root = tree.getroot()
-    else:
-        try:
-            root = ET.fromstring(xml)
-        except:
-            print(f'Could not parse {xml} as file or XML string')
-            raise
-    mask = {}
-    for child in root:
-        if child.tag == 'maskDescription':
-            mask['maskDescription'] = child.attrib
-        elif child.tag == 'mascgenArguments':
-            mask['mascgenArguments'] = {}
-            for el in child:
-                if el.attrib == {}:
-                    mask['mascgenArguments'][el.tag] = (el.text).strip()
-                else:
-                    print(el.tag, el.attrib)
-                    mask['mascgenArguments'][el.tag] = el.attrib
-        else:
-            mask[child.tag] = [el.attrib for el in child.getchildren()]
-
-    # Combine RA and DEC in to strings, then make table of alignment stars
-    for i,star in enumerate(mask.get('alignment')):
-        ra = f"{star['targetRaH']}:{star['targetRaM']}:{star['targetRaS']}"
-        dec = f"{star['targetDecD']}:{star['targetDecM']}:{star['targetDecS']}"
-        mask['alignment'][i]['RA'] = ra
-        mask['alignment'][i]['DEC'] = dec
-    mask['stars'] = Table(mask.get('alignment'))
-
-    # Combine RA and DEC in to strings, then make table of science targets
-    for i,targ in enumerate(mask.get('scienceSlitConfig')):
-        ra = f"{targ['targetRaH']}:{targ['targetRaM']}:{targ['targetRaS']}"
-        dec = f"{targ['targetDecD']}:{targ['targetDecM']}:{targ['targetDecS']}"
-        mask['scienceSlitConfig'][i]['RA'] = ra
-        mask['scienceSlitConfig'][i]['DEC'] = dec
-    mask['targets'] = Table(mask.get('scienceSlitConfig'))
-
-    return mask
-
-
-def setup_mask(input):
-    '''Setup the input mask.  Accepts either an XML filename or a mask dict
-    which has already been read in by read_maskfile.
-    '''
-    if type(input) in [str, Path]:
-        mask = read_maskfile(input)
-    elif type(input) == dict:
-        # assume this is a mask dict
-        mask = input
+    if type(mask) != Mask:
+        log.error(f"Input {mask} is not a Mask object")
+        return False
     # Now setup the mask
     log.info('Setting bar target position keywords')
-    for bar in mask['mechanicalSlitConfig']:
-        log.debug(f"  Setting B{bar['rightBarNumber']:02d}TARG = {bar['rightBarPositionMM']}")
-        set(f"B{bar['rightBarNumber']:02d}TARG", bar['rightBarPositionMM'])
-        log.debug(f"  Setting B{bar['leftBarNumber']:02d}TARG = {bar['leftBarPositionMM']}")
-        set(f"B{bar['leftBarNumber']:02d}TARG", bar['leftBarPositionMM'])
-    lof.info('Setup mask')
+    for slit in mask.slitpos:
+        log.debug(f"  Setting B{slit['rightBarNumber']:02d}TARG = {slit['rightBarPositionMM']}")
+        set(f"B{slit['rightBarNumber']:02d}TARG", slit['rightBarPositionMM'])
+        log.debug(f"  Setting B{slit['leftBarNumber']:02d}TARG = {slit['leftBarPositionMM']}")
+        set(f"B{slit['leftBarNumber']:02d}TARG", slit['leftBarPositionMM'])
+    log.info('Invoke SETUP process on CSU')
     set('CSUSETUP', 1)
 
 
