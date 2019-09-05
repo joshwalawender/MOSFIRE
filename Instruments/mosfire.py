@@ -132,7 +132,7 @@ class Mask(object):
                 mask[child.tag] = [el.attrib for el in child.getchildren()]
 
 
-    def build_longslit(input):
+    def build_longslit(self, input):
         '''Build a longslit mask
         '''
         # parse input string assuming format similar to 0.7x46
