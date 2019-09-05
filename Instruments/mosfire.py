@@ -49,7 +49,7 @@ services = connect_to_ktl(name, serviceNames)
 ## Define Mask Object
 ##-------------------------------------------------------------------------
 class Mask(object):
-    def __init__(self):
+    def __init__(self, input):
         self.slitpos = None
         self.alignmentStars = None
         self.scienceTargets = None
@@ -61,7 +61,20 @@ class Mask(object):
         self.center = None
         self.PA = None
         self.mascgenArguments = None
-
+        # parse input and build or read mask
+        xmlfile = Path(input)
+        if xmlfile.exists():
+            self.read_xml(xmlfile)
+        else:
+            try:
+                width, length = input.split('x')
+                width = float(width)
+                length = int(length)
+                assert length <= 46
+                assert width > 0
+            except:
+                log.error(f'Unable to parse input: {input}')
+            self.build_longslit(input)
 
     def read_xml(self, xml):
         xmlfile = Path(xml)
@@ -119,6 +132,16 @@ class Mask(object):
                 mask[child.tag] = [el.attrib for el in child.getchildren()]
 
 
+    def build_longslit(input):
+        '''Build a longslit mask
+        '''
+        # parse input string assuming format similar to 0.7x46
+        width, length = input.split('x')
+        width = float(width)
+        length = int(length)
+        assert length <= 46
+        self.name = input
+        raise NotImplementedError('Longslit mask design tool is incomplete')
 
 
 ##-------------------------------------------------------------------------
