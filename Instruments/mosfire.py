@@ -61,10 +61,17 @@ class Mask(object):
         self.center = None
         self.PA = None
         self.mascgenArguments = None
-        # parse input and build or read mask
+
         xmlfile = Path(input)
-        if xmlfile.exists():
+        # Is the input OPEN mask
+        if input.upper() in ['OPEN', 'OPEN MASK']:
+            log.debug(f'"{input}" interpreted as OPEN')
+            self.build_open_mask()
+        # try top open as XML mask design file
+        elif xmlfile.exists():
+            log.debug(f'"{input}" exists as file on disk')
             self.read_xml(xmlfile)
+        # Try to parse input as long slit specification
         else:
             try:
                 width, length = input.split('x')
@@ -72,9 +79,12 @@ class Mask(object):
                 length = int(length)
                 assert length <= 46
                 assert width > 0
+                self.build_longslit(input)
             except:
-                log.error(f'Unable to parse input: {input}')
-            self.build_longslit(input)
+                log.debug(f'Unable to parse "{input}" as long slit')
+                log.error(f'Unable to parse "{input}"')
+                raise ValueError(f'Unable to parse "{input}"')
+
 
     def read_xml(self, xml):
         xmlfile = Path(xml)
@@ -179,6 +189,28 @@ class Mask(object):
                    }
         self.alignmentStars = Table([as_dict])
 
+
+    def build_open_mask(self):
+        '''Build OPEN mask
+        '''
+        self.name = 'OPEN'
+        for i in range(46):
+            slitno = i+1
+            leftbar = slitno*2
+            leftmm = 270.400
+            rightbar = slitno*2-1
+            rightmm = 4.000
+            slitcent = 0
+            width  = (leftmm-rightmm) * 0.7/0.507
+            slits_list.append( {'centerPositionArcsec': slitcent,
+                                'leftBarNumber': leftbar,
+                                'leftBarPositionMM': leftmm,
+                                'rightBarNumber': rightbar,
+                                'rightBarPositionMM': rightmm,
+                                'slitNumber': slitno,
+                                'slitWidthArcsec': width,
+                                'target': ''} )
+        self.slitpos = Table(slits_list)
 
 
 ##-------------------------------------------------------------------------
