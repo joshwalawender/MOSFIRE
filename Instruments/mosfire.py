@@ -497,32 +497,6 @@ def lastfile():
 ##-------------------------------------------------------------------------
 ## CSU Controls
 ##-------------------------------------------------------------------------
-def setup_open_mask():
-    '''Setup an open mask
-    '''
-    bars = Table.read(filepath.joinpath('MOSFIRE_open_mask.txt'))
-    assert len(bars) == 92
-    log.info('Setting bar target position keywords for OPEN mask')
-    for bar in bars:
-        log.debug(f"  Setting B{bar['bar']:02d}TARG = {bar['pos']}")
-        set(f"B{bar['bar']:02d}TARG", bar['pos'])
-    lof.info('Setup mask')
-    set('CSUSETUP', 1)
-
-
-def setup_standard_longslit():
-    '''Setup a standard 0.7x46 long slit mask
-    '''
-    bars = Table.read(filepath.joinpath('MOSFIRE_longslit_0.7x46.txt'))
-    assert len(bars) == 92
-    log.info('Setting bar target position keywords for 0.7x46 long slit')
-    for bar in bars:
-        log.debug(f"  Setting B{bar['bar']:02d}TARG = {bar['pos']}")
-        set(f"B{bar['bar']:02d}TARG", bar['pos'])
-    lof.info('Setup mask')
-    set('CSUSETUP', 1)
-
-
 def execute_mask():
     '''Execute a mask which has already been set up.
     '''
@@ -550,6 +524,7 @@ def setup_mask(mask):
         log.error(f"Input {mask} is not a Mask object")
         return False
     # Now setup the mask
+    log.info(f'Setting up mask: {mask.name}')
     log.info('Setting bar target position keywords')
     for slit in mask.slitpos:
         log.debug(f"  Setting B{slit['rightBarNumber']:02d}TARG = {slit['rightBarPositionMM']}")
