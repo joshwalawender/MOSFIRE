@@ -164,6 +164,22 @@ class Mask(object):
                                 'target': ''} )
         self.slitpos = Table(slits_list)
 
+        # Alignment Box
+        slit23 = self.slitpos[self.slitpos['slitNumber'] == 23][0]
+        leftmm = slit23['leftBarPositionMM'] - 1.65*0.507/0.7
+        rightmm = slit23['rightBarPositionMM'] + 1.65*0.507/0.7
+        as_dict = {'centerPositionArcsec': 0.0,
+                   'leftBarNumber': 46,
+                   'leftBarPositionMM': leftmm,
+                   'mechSlitNumber': 23,
+                   'rightBarNumber': 45,
+                   'rightBarPositionMM': rightmm,
+                   'slitWidthArcsec': 4.0,
+                   'targetCenterDistance': 0,
+                   }
+        self.alignmentStars = Table([as_dict])
+
+
 
 ##-------------------------------------------------------------------------
 ## Define Common Functions
