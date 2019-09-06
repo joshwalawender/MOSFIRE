@@ -141,7 +141,28 @@ class Mask(object):
         length = int(length)
         assert length <= 46
         self.name = input
-        raise NotImplementedError('Longslit mask design tool is incomplete')
+        slits_list = []
+        # []
+        # scale = 0.7 arcsec / 0.507 mm
+        for i in range(length):
+            # Convert index iteration to slit number
+            # Start with slit number 23 (middle of CSU) and grow it by adding
+            # a bar first on one side, then the other
+            slitno = int( {0: -1, -1:1}[-1*(i%2)] * (i+(i+1)%2)/2 + 24 )
+            leftbar = slitno*2
+            leftmm = 145.82707536231888 + -0.17768476719087264*leftbar
+            rightbar = slitno*2-1
+            rightmm = leftmm - width*0.507/0.7
+            slitcent = (slitno-23) * .490454545
+            slits_list.append( {'centerPositionArcsec': slitcent,
+                                'leftBarNumber': leftbar,
+                                'leftBarPositionMM': leftmm,
+                                'rightBarNumber': rightbar,
+                                'rightBarPositionMM': rightmm,
+                                'slitNumber': slitno,
+                                'slitWidthArcsec': width,
+                                'target': ''} )
+        self.slitpos = Table(slits_list)
 
 
 ##-------------------------------------------------------------------------
