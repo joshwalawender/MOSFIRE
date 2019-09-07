@@ -3,14 +3,16 @@ import logging
 ##-------------------------------------------------------------------------
 ## Create logger object
 ##-------------------------------------------------------------------------
-def create_log(name='KeckInstrument'):
+def create_log(name='KeckInstrument', loglevel=logging.INFO):
+    if type(loglevel) == str:
+        loglevel = getattr(logging, loglevel)
     log = logging.getLogger(name)
     log.setLevel(logging.DEBUG)
     ## Set up console output
     LogConsoleHandler = logging.StreamHandler()
-    LogConsoleHandler.setLevel(logging.DEBUG)
+    LogConsoleHandler.setLevel(loglevel)
     LogFormat = logging.Formatter('%(asctime)s %(levelname)8s: %(message)s',
-                                  datefmt='%Y-%m-%d %H:%M:%S')
+                                  datefmt='%Y-%m-%d %H:%M:%S.%f')
     LogConsoleHandler.setFormatter(LogFormat)
     log.addHandler(LogConsoleHandler)
     ## Set up file output

@@ -41,7 +41,7 @@ with open(filepath.joinpath('MOSFIRE_transforms.txt'), 'r') as FO:
 Aphysical_to_pixel = np.array(Aphysical_to_pixel)
 Apixel_to_physical = np.array(Apixel_to_physical)
 
-log = create_log(name)
+log = create_log(name, loglevel='DEBUG')
 services = connect_to_ktl(name, serviceNames)
 
 
