@@ -585,8 +585,7 @@ def execute_mask():
     '''
     log.info('Executing CSU move')
     set('CSUGO', 1)
-#     setupname = get('SETUPNAME', service='mcsus')
-#     set('MASKNAME', setupname, service='mcsus')
+    sleep(3) # shim needed because CSUREADY keyword doesn't update fast enough
 
 
 def waitfor_CSU(timeout=480, noshim=False):
