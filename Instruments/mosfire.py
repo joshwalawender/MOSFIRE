@@ -501,11 +501,11 @@ def goi(exptime=None, coadds=None, sampmode=None):
         set_coadds(coadds)
     if sampmode is not None:
         set_sampmode(sampmode)
-    set('go', 1)
+    set('go', '1')
 
 
-def take_exposure(**kwargs):
-    goi(**kwargs)
+def take_exposure(exptime=None, coadds=None, sampmode=None):
+    goi(exptime=exptime, coadds=coadds, sampmode=sampmode)
 
 
 def filename():
@@ -856,7 +856,7 @@ def checkout(quick=False):
                'have started the MOSFIRE software AND that the instrument '\
                'rotator is not within 10 degrees of a multiple of 180 degrees.'
     log.info(intromsg)
-    log.info()
+    print()
     proceed = input('Continue? [y]')
     if proceed.lower() not in ['y', 'yes', 'ok', '']:
         log.info('Exiting script.')
