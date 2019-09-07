@@ -884,6 +884,7 @@ def checkout(quick=False):
     log.info('Checking that instrument is dark')
     if not is_dark():
         go_dark()
+        waitfor_dark()
     if not is_dark():
         log.error('Could not make instrument dark')
         return False
