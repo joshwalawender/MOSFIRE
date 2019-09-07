@@ -277,14 +277,14 @@ def get_mode():
 def set_mode(filter, mode):
     '''Set the current observing mode to the filter and mode specified.
     '''
-    if not mode in modes:
+    modestr = f"{filter}-{mode}"
+    if not modestr in modes:
         log.error(f"Mode: {mode} is unknown")
     elif not filter in filters:
         log.error(f"Filter: {filter} is unknown")
     else:
         log.info(f"Setting mode to {filter}-{mode}")
-    modestr = f"{filter}-{mode}"
-    set('OBSMODE', modestr, wait=True)
+    set('SETOBSMODE', modestr, wait=True)
     if get_mode() != modestr:
         log.error(f'Mode "{modestr}" not reached.  Current mode: {get_mode()}')
 
@@ -379,7 +379,7 @@ def fcs_ok():
 
 
 def pupil_rotator_ok():
-    return get('MPRSTAT') in ['OK', 'TRACKING']
+    return get('MPRSTAT') in ['OK', 'Tracking']
 
 
 def trapdoor_ok():
