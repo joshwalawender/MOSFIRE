@@ -150,7 +150,7 @@ class Mask(object):
         width = float(width)
         length = int(length)
         assert length <= 46
-        self.name = input
+        self.name = f'LONGSLIT-{input}'
         slits_list = []
         # []
         # scale = 0.7 arcsec / 0.507 mm
@@ -160,7 +160,7 @@ class Mask(object):
             # a bar first on one side, then the other
             slitno = int( {0: -1, -1:1}[-1*(i%2)] * (i+(i+1)%2)/2 + 24 )
             leftbar = slitno*2
-            leftmm = 145.82707536231888 + -0.17768476719087264*leftbar
+            leftmm = 145.82707536231888 + -0.17768476719087264*leftbar + (width-0.7)/2*0.507/0.7
             rightbar = slitno*2-1
             rightmm = leftmm - width*0.507/0.7
             slitcent = (slitno-23) * .490454545
@@ -194,6 +194,7 @@ class Mask(object):
         '''Build OPEN mask
         '''
         self.name = 'OPEN'
+        slits_list = []
         for i in range(46):
             slitno = i+1
             leftbar = slitno*2
