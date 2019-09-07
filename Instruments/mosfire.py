@@ -41,7 +41,7 @@ with open(filepath.joinpath('MOSFIRE_transforms.txt'), 'r') as FO:
 Aphysical_to_pixel = np.array(Aphysical_to_pixel)
 Apixel_to_physical = np.array(Apixel_to_physical)
 
-log = create_log(name, loglevel='DEBUG')
+log = create_log(name, loglevel='INFO')
 services = connect_to_ktl(name, serviceNames)
 
 
@@ -358,10 +358,12 @@ def quick_dark(filter=None):
         set('targname', f2dest, service='mmf2s')
 
 
-def go_dark(filter=None):
+def go_dark(filter=None, wait=True):
     '''Alias for quick_dark
     '''
     quick_dark(filter=filter)
+    if wait is True:
+        waitfor_dark()
 
 
 def waitfor_dark(timeout=300, noshim=False):
