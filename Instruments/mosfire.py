@@ -361,10 +361,11 @@ def go_dark(filter=None):
     quick_dark(filter=filter)
 
 
-def waitfor_dark(timeout=300):
+def waitfor_dark(timeout=300, noshim=False):
     log.debug('Waiting for dark')
     endat = dt.utcnow() + tdelta(seconds=timeout)
-    sleep(1)
+    if noshim is False:
+        sleep(1)
     while is_dark() is False and dt.utcnow() < endat:
         sleep(1)
     if is_dark() is False:
@@ -480,9 +481,10 @@ def set_sampmode(input):
         log.error(f'Sampling mode {sampmode} is not supported')
 
 
-def waitfor_exposure(timeout=300):
+def waitfor_exposure(timeout=300, noshim=False):
     log.debug('Waiting for exposure to finish')
-    sleep(1)
+    if noshim is False:
+        sleep(1)
     done = get('imagedone', mode=bool)
     endat = dt.utcnow() + tdelta(seconds=timeout)
     while done is False and dt.utcnow() < endat:
@@ -493,14 +495,14 @@ def waitfor_exposure(timeout=300):
     return done
 
 
-def wfgo(timeout=300):
+def wfgo(timeout=300, noshim=False):
     '''Alias waitfor_exposure to wfgo
     '''
-    waitfor_exposure(timeout=timeout)
+    waitfor_exposure(timeout=timeout, noshim=noshim)
 
 
 def goi(exptime=None, coadds=None, sampmode=None):
-    waitfor_exposure()
+    waitfor_exposure(noshim=True)
     if exptime is not None:
         set_exptime(exptime)
     if coadds is not None:
@@ -534,11 +536,12 @@ def lastfile():
             return trypath
 
 
-def waitfor_FCS(timeout=60, PAthreshold=0.1, ELthreshold=0.1):
+def waitfor_FCS(timeout=60, PAthreshold=0.1, ELthreshold=0.1, noshim=False):
     '''Wait for FCS to get close to actual PA and EL.
     '''
     log.debug('Waiting for FCS to reach destination')
-    sleep(1)
+    if noshim is False:
+        sleep(1)
     telPA = get('PA', service='mfcs', mode=float)
     telEL = get('EL', service='mfcs', mode=float)
     fcsPA, fcsEL = get('PA_EL', service='mfcs', mode=str).split()
@@ -583,11 +586,12 @@ def execute_mask():
 #     set('MASKNAME', setupname, service='mcsus')
 
 
-def waitfor_CSU(timeout=480):
+def waitfor_CSU(timeout=480, noshim=False):
     '''Wait for a CSU move to be complete.
     '''
     log.debug('Waiting for CSU to be ready')
-    sleep(1)
+    if noshim is False:
+        sleep(1)
     done = CSUready() == 2 # 2 is 'Ready for Move'
     endat = dt.utcnow() + tdelta(seconds=timeout)
     while done is False and dt.utcnow() < endat:
@@ -895,7 +899,6 @@ def checkout(quick=False):
     set_coadds(1)
     set_sampmode('CDS')
     lastfile1 = lastfile()
-    sleep(1)
     take_exposure()
     waitfor_exposure()
     lastfile2 = lastfile()
