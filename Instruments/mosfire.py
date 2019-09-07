@@ -282,7 +282,7 @@ def get_mode():
     return obsmode.split('-')
 
 
-def set_mode(filter, mode):
+def set_mode(filter, mode, wait=True, timeout=60):
     '''Set the current observing mode to the filter and mode specified.
     '''
     modestr = f"{filter}-{mode}"
@@ -293,8 +293,15 @@ def set_mode(filter, mode):
     else:
         log.info(f"Setting mode to {filter}-{mode}")
     set('SETOBSMODE', modestr, wait=True)
-    if get_mode() != modestr:
-        log.error(f'Mode "{modestr}" not reached.  Current mode: {get_mode()}')
+    if wait is True:
+        endat = dt.utcnow() + tdelta(seconds=timeout)
+        done = (get_mode() == [filter, mode])
+        while not done and dt.utcnow() < endat:
+            sleep(1)
+            done = (get_mode() == [filter, mode])
+            print(done, get_mode(), [filter, mode])
+        if not done:
+            log.warning(f'Timeout exceeded on waiting for mode {modestr}')
 
 
 def get_filter():
@@ -425,6 +432,7 @@ def check_mechanisms():
 ##-------------------------------------------------------------------------
 def get_exptime():
     return get('EXPTIME', mode=int)/1000
+
 
 def set_exptime(exptime):
     '''Set exposure time per coadd in seconds.  Note the ITIME keyword uses ms.
