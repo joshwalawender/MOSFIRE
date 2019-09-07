@@ -882,9 +882,9 @@ def checkout(quick=False):
     set_exptime(1)
     set_coadds(1)
     set_sampmode('CDS')
-    waitfor_exposure() # in case exposure is already in progress
     lastfile1 = lastfile()
-    goi()
+    sleep(1)
+    take_exposure()
     waitfor_exposure()
     lastfile2 = lastfile()
     if lastfile2 == lastfile1:
@@ -896,9 +896,38 @@ def checkout(quick=False):
         log.info('Exiting script.')
         return False
 
+    # Quick checkout
+    if quick is True:
+        log.info('Setup 2.7x46 long slit mask')
+        setup_mask(Mask('2.7x46'))
+        waitfor_CSU()
+        log.info('Execute mask')
+        execute_mask()
+        waitfor_CSU()
+        set_mode('K', 'imaging', wait=True)
+        take_exposure()
+        waitfor_exposure()
+        wideSlitFile = lastfile()
+        go_dark()
+
+        log.info('Setup 0.7x46 long slit mask')
+        setup_mask(Mask('0.7x46'))
+        waitfor_CSU()
+        log.info('Execute mask')
+        execute_mask()
+        waitfor_CSU()
+        set_mode('K', 'imaging', wait=True)
+        take_exposure()
+        waitfor_exposure()
+        wideSlitFile = lastfile()
+        go_dark()
+
+
     # Normal (long) checkout
     if quick is False:
-        log.info('Setting OPEN mask')
-        setup_open_mask()
+        log.info('Setup OPEN mask')
+        setup_mask(Mask('OPEN'))
+        waitfor_CSU()
         execute_mask()
+        waitfor_CSU()
 
