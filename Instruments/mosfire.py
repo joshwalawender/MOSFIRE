@@ -458,7 +458,7 @@ def parse_sampmode(input):
         sampmode = input
         numreads = None
     if type(input) is str:
-        sampmode, numreads = sampmode_names.get(sampmode)
+        sampmode, numreads = sampmode_names.get(input)
     return (sampmode, numreads)
 
 
