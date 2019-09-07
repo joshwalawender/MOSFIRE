@@ -28,7 +28,7 @@ from Instruments import connect_to_ktl, create_log
 ##-------------------------------------------------------------------------
 name = 'MOSFIRE'
 serviceNames = ['mosfire', 'mmf1s', 'mmf2s', 'mcsus', 'mfcs', 'mds']
-modes = ['Dark-Imaging', 'Dark-Spectroscopy', 'Imaging', 'Spectroscopy']
+modes = ['dark-imaging', 'dark-spectroscopy', 'imaging', 'spectroscopy']
 filters = ['Y', 'J', 'H', 'K', 'J2', 'J3', 'NB']
 
 allowed_sampmodes = [2, 3]
@@ -275,30 +275,33 @@ def set(keyword, value, service='mosfire', wait=True):
 ##-------------------------------------------------------------------------
 ## MOSFIRE Mode and Filter Functions
 ##-------------------------------------------------------------------------
-def get_mode():
+def get_obsmode():
     '''Get the observing mode and return a two element list: [filter, mode]
     '''
     obsmode = get('OBSMODE')
-    return obsmode.split('-')
+    return obsmode
 
 
-def set_mode(filter, mode, wait=True, timeout=60):
+def set_obsmode(obsmode, wait=True, timeout=60):
     '''Set the current observing mode to the filter and mode specified.
     '''
-    modestr = f"{filter}-{mode}"
-    log.info(f"Setting mode to {modestr}")
-    if not modestr in modes:
+    filter, mode = obsmode.split('-')
+    mode = mode.lower()
+    log.info(f"Setting mode to {obsmode}")
+    if not mode in modes:
         log.error(f"Mode: {mode} is unknown")
     elif not filter in filters:
         log.error(f"Filter: {filter} is unknown")
     else:
-        set('SETOBSMODE', modestr, wait=True)
+        set('SETOBSMODE', obsmode, wait=True)
         if wait is True:
             endat = dt.utcnow() + tdelta(seconds=timeout)
-            done = (get_mode() == [filter, mode])
+            done = (get_obsmode().lower() == obsmode.lower())
+#             done = (get_mode() == [filter, mode])
             while not done and dt.utcnow() < endat:
                 sleep(1)
-                done = (get_mode() == [filter, mode])
+                done = (get_obsmode().lower() == obsmode.lower())
+#                 done = (get_mode() == [filter, mode])
             if not done:
                 log.warning(f'Timeout exceeded on waiting for mode {modestr}')
 
@@ -895,20 +898,17 @@ def checkout(quick=False):
         return False
 
     log.info('Taking dark image')
-    set_exptime(1)
+    set_exptime(2)
     set_coadds(1)
     set_sampmode('CDS')
-    lastfile1 = lastfile()
+    sleep(5)
     take_exposure()
     waitfor_exposure()
-    lastfile2 = lastfile()
-    if lastfile2 == lastfile1:
-        log.error('  LASTFILE did not increment')
-        return False
-    log.info('Please verify that dark image looks normal')
+
+    log.info(f'Please verify that {lastfile()} looks normal for a dark image')
     proceed = input('Continue? [y]')
     if proceed.lower() not in ['y', 'yes', 'ok', '']:
-        log.info('Exiting script.')
+        log.critical('Exiting script.')
         return False
 
     # Quick checkout
@@ -919,7 +919,7 @@ def checkout(quick=False):
         log.info('Execute mask')
         execute_mask()
         waitfor_CSU()
-        set_mode('K', 'imaging', wait=True)
+        set_obsmode('K-imaging', wait=True)
         take_exposure()
         waitfor_exposure()
         wideSlitFile = lastfile()
@@ -931,7 +931,7 @@ def checkout(quick=False):
         log.info('Execute mask')
         execute_mask()
         waitfor_CSU()
-        set_mode('K', 'imaging', wait=True)
+        set_obsmode('K-imaging', wait=True)
         take_exposure()
         waitfor_exposure()
         wideSlitFile = lastfile()
