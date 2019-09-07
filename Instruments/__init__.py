@@ -5,7 +5,7 @@ import logging
 ##-------------------------------------------------------------------------
 def create_log(name='KeckInstrument', loglevel=logging.INFO):
     if type(loglevel) == str:
-        loglevel = getattr(logging, loglevel)
+        loglevel = getattr(logging, loglevel.upper())
     log = logging.getLogger(name)
     log.setLevel(logging.DEBUG)
     ## Set up console output
