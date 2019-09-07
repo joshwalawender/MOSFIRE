@@ -363,6 +363,7 @@ def go_dark(filter=None):
 
 def waitfor_dark(timeout=300):
     endat = dt.utcnow() + tdelta(seconds=timeout)
+    sleep(1)
     while is_dark() is False and dt.utcnow() < endat:
         sleep(1)
     if is_dark() is False:
@@ -475,6 +476,7 @@ def set_sampmode(input):
 
 
 def waitfor_exposure(timeout=300):
+    sleep(1)
     done = get('imagedone', mode=bool)
     endat = dt.utcnow() + tdelta(seconds=timeout)
     while done is False and dt.utcnow() < endat:
@@ -528,6 +530,7 @@ def lastfile():
 def waitfor_FCS(timeout=60, PAthreshold=0.1, ELthreshold=0.1):
     '''Wait for FCS to get close to actual PA and EL.
     '''
+    sleep(1)
     telPA = get('PA', service='mfcs', mode=float)
     telEL = get('EL', service='mfcs', mode=float)
     fcsPA, fcsEL = get('PA_EL', service='mfcs', mode=str).split()
@@ -575,6 +578,7 @@ def execute_mask():
 def waitfor_CSU(timeout=480):
     '''Wait for a CSU move to be complete.
     '''
+    sleep(1)
     done = CSUready() == 2 # 2 is 'Ready for Move'
     endat = dt.utcnow() + tdelta(seconds=timeout)
     while done is False and dt.utcnow() < endat:
