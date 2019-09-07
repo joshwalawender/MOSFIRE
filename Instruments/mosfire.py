@@ -27,7 +27,7 @@ from Instruments import connect_to_ktl, create_log
 ## MOSFIRE Properties
 ##-------------------------------------------------------------------------
 name = 'MOSFIRE'
-serviceNames = ['mosfire', 'mmf1s', 'mmf2s']
+serviceNames = ['mosfire', 'mmf1s', 'mmf2s', 'mcsus']
 modes = ['Dark-Imaging', 'Dark-Spectroscopy', 'Imaging', 'Spectroscopy']
 filters = ['Y', 'J', 'H', 'K', 'J2', 'J3', 'NB']
 
@@ -43,6 +43,14 @@ Apixel_to_physical = np.array(Apixel_to_physical)
 
 log = create_log(name)
 services = connect_to_ktl(name, serviceNames)
+
+
+##-------------------------------------------------------------------------
+## MOSFIRE Exceptions
+##-------------------------------------------------------------------------
+class CSUFatalError(Exception):
+    def __init__(self, *args):
+        self.args = ('CSU has experienced a Fatal Error.', args)
 
 
 ##-------------------------------------------------------------------------
@@ -498,21 +506,38 @@ def lastfile():
 ##-------------------------------------------------------------------------
 ## CSU Controls
 ##-------------------------------------------------------------------------
+def CSUready():
+    ready = get('CSUREADY', mode=int)
+    translation = {0: 'Unknown',
+                   1: 'System Started',
+                   2: 'Ready for Move',
+                   3: 'Moving',
+                   4: 'Configuring',
+                   -1: 'Error',
+                   -2: 'System Stopped'}
+    log.debug(f'  CSU state: {ready}, {translation[ready]}')
+    if ready == -1:
+        raise CSUFatalError
+    return ready
+
+
 def execute_mask():
     '''Execute a mask which has already been set up.
     '''
     log.info('Executing CSU move')
     set('CSUGO', 1)
+#     setupname = get('SETUPNAME', service='mcsus')
+#     set('MASKNAME', setupname, service='mcsus')
 
 
 def waitfor_CSU(timeout=480):
     '''Wait for a CSU move to be complete.
     '''
-    done = get('CSUREADY') == 'Ready for Move'
+    done = CSUready() == 2 # 2 is 'Ready for Move'
     endat = dt.utcnow() + tdelta(seconds=timeout)
     while done is False and dt.utcnow() < endat:
         sleep(2)
-        done = get('CSUREADY') == 'Ready for Move'
+        done = CSUready() == 2 # 2 is 'Ready for Move'
     if done is False:
         log.warning(f'Timeout exceeded on waitfor_CSU to finish')
     return done
@@ -534,6 +559,23 @@ def setup_mask(mask):
         set(f"B{slit['leftBarNumber']:02d}TARG", slit['leftBarPositionMM'])
     log.info('Invoke SETUP process on CSU')
     set('CSUSETUP', 1)
+    set('SETUPNAME', mask.name, service='mcsus')
+
+
+def initialise_bars(bars=None):
+    if bars is None:
+        set('CSUINITBAR', 0)
+    else:
+        if type(bars) == int:
+            assert bar >= 0
+            assert bar <= 46
+            set('CSUINITBAR', bar)
+        else:
+            for bar in bars:
+                assert type(bar) == int
+                assert bar >= 0
+                assert bar <= 46
+                set('CSUINITBAR', bar)
 
 
 ## ------------------------------------------------------------------
