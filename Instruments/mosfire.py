@@ -299,7 +299,6 @@ def set_mode(filter, mode, wait=True, timeout=60):
         while not done and dt.utcnow() < endat:
             sleep(1)
             done = (get_mode() == [filter, mode])
-            print(done, get_mode(), [filter, mode])
         if not done:
             log.warning(f'Timeout exceeded on waiting for mode {modestr}')
 
