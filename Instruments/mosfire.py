@@ -486,6 +486,12 @@ def waitfor_exposure(timeout=300):
     return done
 
 
+def wfgo(timeout=300):
+    '''Alias waitfor_exposure to wfgo
+    '''
+    waitfor_exposure(timeout=timeout)
+
+
 def goi(exptime=None, coadds=None, sampmode=None):
     waitfor_exposure()
     if exptime is not None:
