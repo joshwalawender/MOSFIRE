@@ -27,7 +27,7 @@ from Instruments import connect_to_ktl, create_log
 ## MOSFIRE Properties
 ##-------------------------------------------------------------------------
 name = 'MOSFIRE'
-serviceNames = ['mosfire', 'mmf1s', 'mmf2s', 'mcsus', 'mfcs']
+serviceNames = ['mosfire', 'mmf1s', 'mmf2s', 'mcsus', 'mfcs', 'mds']
 modes = ['Dark-Imaging', 'Dark-Spectroscopy', 'Imaging', 'Spectroscopy']
 filters = ['Y', 'J', 'H', 'K', 'J2', 'J3', 'NB']
 
@@ -485,11 +485,11 @@ def waitfor_exposure(timeout=300, noshim=False):
     log.debug('Waiting for exposure to finish')
     if noshim is False:
         sleep(1)
-    done = get('imagedone', mode=bool)
+    done = get('imagedone', mode=bool) and get('ready', service='mds', mode=bool)
     endat = dt.utcnow() + tdelta(seconds=timeout)
     while done is False and dt.utcnow() < endat:
         sleep(1)
-        done = get('imagedone', mode=bool)
+        done = get('imagedone', mode=bool) and get('ready', service='mds', mode=bool)
     if done is False:
         log.warning(f'Timeout exceeded on waitfor_exposure to finish')
     return done
