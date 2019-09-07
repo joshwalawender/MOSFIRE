@@ -355,6 +355,15 @@ def go_dark(filter=None):
     quick_dark(filter=filter)
 
 
+def waitfor_dark(timeout=300):
+    endat = dt.utcnow() + tdelta(seconds=timeout)
+    while is_dark() is False and dt.utcnow() < endat:
+        sleep(1)
+    if is_dark() is False:
+        log.warning(f'Timeout exceeded on waitfor_dark to finish')
+    return is_dark()
+
+
 ##-------------------------------------------------------------------------
 ## MOSFIRE Status Check Functions
 ##-------------------------------------------------------------------------
