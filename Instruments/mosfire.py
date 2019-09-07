@@ -286,21 +286,21 @@ def set_mode(filter, mode, wait=True, timeout=60):
     '''Set the current observing mode to the filter and mode specified.
     '''
     modestr = f"{filter}-{mode}"
+    log.info(f"Setting mode to {modestr}")
     if not modestr in modes:
         log.error(f"Mode: {mode} is unknown")
     elif not filter in filters:
         log.error(f"Filter: {filter} is unknown")
     else:
-        log.info(f"Setting mode to {filter}-{mode}")
-    set('SETOBSMODE', modestr, wait=True)
-    if wait is True:
-        endat = dt.utcnow() + tdelta(seconds=timeout)
-        done = (get_mode() == [filter, mode])
-        while not done and dt.utcnow() < endat:
-            sleep(1)
+        set('SETOBSMODE', modestr, wait=True)
+        if wait is True:
+            endat = dt.utcnow() + tdelta(seconds=timeout)
             done = (get_mode() == [filter, mode])
-        if not done:
-            log.warning(f'Timeout exceeded on waiting for mode {modestr}')
+            while not done and dt.utcnow() < endat:
+                sleep(1)
+                done = (get_mode() == [filter, mode])
+            if not done:
+                log.warning(f'Timeout exceeded on waiting for mode {modestr}')
 
 
 def get_filter():
@@ -333,6 +333,7 @@ def quick_dark(filter=None):
     '''Set the instrument to a dark mode which is close to the specified filter.
     Modeled after darkeff script.
     '''
+    log.info('Setting quick dark')
     if filter not in filters:
         log.error(f'Filter {filter} not in allowed filter list: {filters}')
         filter = None
@@ -347,10 +348,9 @@ def quick_dark(filter=None):
                     'H2': ['H2', 'K'],
                     None: ['NB1061', 'Ks'],
                     }
-    f1dest = filter_combo.get(filter)[0]
+    f1dest, f2dest = filter_combo.get(filter)
     if get_filter1() != f1dest:
         set('targname', f1dest, service='mmf1s')
-    f2dest = filter_combo.get(filter)[1]
     if get_filter2() != f2dest:
         set('targname', f2dest, service='mmf2s')
 
@@ -362,6 +362,7 @@ def go_dark(filter=None):
 
 
 def waitfor_dark(timeout=300):
+    log.debug('Waiting for dark')
     endat = dt.utcnow() + tdelta(seconds=timeout)
     sleep(1)
     while is_dark() is False and dt.utcnow() < endat:
@@ -415,6 +416,7 @@ def dustcover_ok():
 
 
 def check_mechanisms():
+    log.info('Checking mechanisms')
     mechs = ['filter1', 'filter2', 'fcs', 'grating_shim', 'grating_turret',
              'pupil_rotator', 'trapdoor']
     for mech in mechs:
@@ -437,6 +439,7 @@ def get_exptime():
 def set_exptime(exptime):
     '''Set exposure time per coadd in seconds.  Note the ITIME keyword uses ms.
     '''
+    log.info(f'Setting exposure time to {int(exptime*1000)} ms')
     set('ITIME', int(exptime*1000))
 
 
@@ -447,6 +450,7 @@ def get_coadds():
 def set_coadds(coadds):
     '''Set number of coadds
     '''
+    log.info(f'Setting number of coadds to {int(coadds)}')
     set('COADDS', int(coadds))
 
 
@@ -464,18 +468,20 @@ def parse_sampmode(input):
 
 
 def set_sampmode(input):
+    log.info(f'Setting Sampling Mode to {input}')
     sampmode, numreads = parse_sampmode(input)
     if sampmode in allowed_sampmodes:
-        log.info(f'Setting Sampling Mode: {sampmode}')
+        log.debug(f'Setting Sampling Mode to: {sampmode}')
         set('sampmode', sampmode)
         if numreads is not None:
-            log.info(f'Setting Number of Reads: {numreads}')
+            log.debug(f'Setting Number of Reads: {numreads}')
             set('numreads', numreads)
     else:
         log.error(f'Sampling mode {sampmode} is not supported')
 
 
 def waitfor_exposure(timeout=300):
+    log.debug('Waiting for exposure to finish')
     sleep(1)
     done = get('imagedone', mode=bool)
     endat = dt.utcnow() + tdelta(seconds=timeout)
@@ -501,6 +507,7 @@ def goi(exptime=None, coadds=None, sampmode=None):
         set_coadds(coadds)
     if sampmode is not None:
         set_sampmode(sampmode)
+    log.info('Taking exposure')
     set('go', '1')
 
 
@@ -530,6 +537,7 @@ def lastfile():
 def waitfor_FCS(timeout=60, PAthreshold=0.1, ELthreshold=0.1):
     '''Wait for FCS to get close to actual PA and EL.
     '''
+    log.debug('Waiting for FCS to reach destination')
     sleep(1)
     telPA = get('PA', service='mfcs', mode=float)
     telEL = get('EL', service='mfcs', mode=float)
@@ -578,6 +586,7 @@ def execute_mask():
 def waitfor_CSU(timeout=480):
     '''Wait for a CSU move to be complete.
     '''
+    log.debug('Waiting for CSU to be ready')
     sleep(1)
     done = CSUready() == 2 # 2 is 'Ready for Move'
     endat = dt.utcnow() + tdelta(seconds=timeout)
@@ -597,30 +606,33 @@ def setup_mask(mask):
         return False
     # Now setup the mask
     log.info(f'Setting up mask: {mask.name}')
-    log.info('Setting bar target position keywords')
+    log.debug('Setting bar target position keywords')
     for slit in mask.slitpos:
         log.debug(f"  Setting B{slit['rightBarNumber']:02d}TARG = {slit['rightBarPositionMM']}")
         set(f"B{slit['rightBarNumber']:02d}TARG", slit['rightBarPositionMM'])
         log.debug(f"  Setting B{slit['leftBarNumber']:02d}TARG = {slit['leftBarPositionMM']}")
         set(f"B{slit['leftBarNumber']:02d}TARG", slit['leftBarPositionMM'])
-    log.info('Invoke SETUP process on CSU')
+    log.debug('Invoke SETUP process on CSU')
     set('CSUSETUP', 1)
     set('SETUPNAME', mask.name, service='mcsus')
 
 
 def initialise_bars(bars=None):
     if bars is None:
+        log.info('Initializing all bars')
         set('CSUINITBAR', 0)
     else:
         if type(bars) == int:
             assert bar >= 0
             assert bar <= 46
+            log.info('Initializing bar {bar}')
             set('CSUINITBAR', bar)
         else:
             for bar in bars:
                 assert type(bar) == int
                 assert bar >= 0
                 assert bar <= 46
+                log.info('Initializing bar {bar}')
                 set('CSUINITBAR', bar)
 
 
