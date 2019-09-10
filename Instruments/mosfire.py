@@ -281,7 +281,7 @@ def set(keyword, value, service='mosfire', wait=True):
 ##-------------------------------------------------------------------------
 ## MOSFIRE Mode and Filter Functions
 ##-------------------------------------------------------------------------
-def get_obsmode():
+def obsmode():
     '''Get the observing mode and return a two element list: [filter, mode]
     '''
     obsmode = get('OBSMODE')
@@ -302,30 +302,28 @@ def set_obsmode(obsmode, wait=True, timeout=60):
         set('SETOBSMODE', obsmode, wait=True)
         if wait is True:
             endat = dt.utcnow() + tdelta(seconds=timeout)
-            done = (get_obsmode().lower() == obsmode.lower())
-#             done = (get_mode() == [filter, mode])
+            done = (obsmode().lower() == obsmode.lower())
             while not done and dt.utcnow() < endat:
                 sleep(1)
-                done = (get_obsmode().lower() == obsmode.lower())
-#                 done = (get_mode() == [filter, mode])
+                done = (obsmode().lower() == obsmode.lower())
             if not done:
                 log.warning(f'Timeout exceeded on waiting for mode {modestr}')
 
 
-def get_filter():
+def filter():
     '''Return the current filter name
     '''
     filter = get('FILTER')
     return filter
 
 
-def get_filter1():
+def filter1():
     '''Return the current filter name for filter wheel 1
     '''
     return get('posname', service='mmf1s')
 
 
-def get_filter2():
+def filter2():
     '''Return the current filter name for filter wheel 2
     '''
     return get('posname', service='mmf2s')
@@ -334,7 +332,7 @@ def get_filter2():
 def is_dark():
     '''Return True if the current observing mode is dark
     '''
-    filter = get_filter()
+    filter = filter()
     return filter == 'Dark'
 
 
@@ -358,9 +356,9 @@ def quick_dark(filter=None):
                     None: ['NB1061', 'Ks'],
                     }
     f1dest, f2dest = filter_combo.get(filter)
-    if get_filter1() != f1dest:
+    if filter1() != f1dest:
         set('targname', f1dest, service='mmf1s')
-    if get_filter2() != f2dest:
+    if filter2() != f2dest:
         set('targname', f2dest, service='mmf2s')
 
 
@@ -444,7 +442,7 @@ def check_mechanisms():
 ##-------------------------------------------------------------------------
 ## MOSFIRE Exposure Control Functions
 ##-------------------------------------------------------------------------
-def get_exptime():
+def exptime():
     return get('EXPTIME', mode=int)/1000
 
 
@@ -455,7 +453,7 @@ def set_exptime(exptime):
     set('ITIME', int(exptime*1000))
 
 
-def get_coadds():
+def coadds():
     return get('COADDS', mode=int)
 
 
@@ -466,7 +464,7 @@ def set_coadds(coadds):
     set('COADDS', int(coadds))
 
 
-def get_sampmode():
+def sampmode():
     return get('SAMPMODE', mode=int)
 
 
