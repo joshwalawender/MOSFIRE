@@ -780,8 +780,8 @@ def analyze_mask_image(imagefile, filtersize=7, plot=False):
         ## Determine y pixel range
         y1 = int(np.ceil((physical_to_pixel(np.array([(4.0, slit+0.5)])))[0][1]))
         y2 = int(np.floor((physical_to_pixel(np.array([(270.4, slit-0.5)])))[0][1]))
-        ypos[b1] = (y1+y2)/2
-        ypos[b2] = (y1+y2)/2
+        ypos[b1] = [y1, y2]
+        ypos[b2] = [y1, y2]
         gradx = np.gradient(medimage[y1:y2,:], axis=1)
         horizontal_profile = np.sum(gradx, axis=0)
         bars[b1], bars[b2] = find_bar_edges(horizontal_profile)
@@ -790,12 +790,14 @@ def analyze_mask_image(imagefile, filtersize=7, plot=False):
     if plot is True:
         plotfile = imagefile.with_name(f"{imagefile.name}.png")
         if plotfile.exists(): plotfile.unlink()
-        plt.figure(figsize=(12,12))
+        plt.figure(figsize=(16,16))
         norm = viz.ImageNormalize(data, interval=viz.PercentileInterval(99),
                                   stretch=viz.LinearStretch())
         plt.imshow(data, norm=norm, origin='lower', cmap='Greys')
         for bar in bars.keys():
-            plt.plot(bars[bar], ypos[bar], 'rx', alpha=0.5)
+            plt.plot([0,2048], [ypos[bar][0], ypos[bar][0]], 'r-', alpha=0.1)
+            plt.plot([0,2048], [ypos[bar][1], ypos[bar][1]], 'r-', alpha=0.1)
+            plt.plot(bars[bar], np.mean(ypos[bar]), 'rx', alpha=0.5)
         plt.savefig(str(plotfile))
 
     return bars
