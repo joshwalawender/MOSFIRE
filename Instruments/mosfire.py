@@ -17,6 +17,8 @@ from astropy.table import Table, Column
 from astropy.io import fits
 from astropy.coordinates import SkyCoord
 from astropy import units as u
+from astropy.modeling import models, fitting
+from scipy import ndimage
 
 from Instruments import connect_to_ktl, create_log
 
@@ -757,27 +759,17 @@ def analyze_mask_image(imagefile, filtersize=7):
     method to determine the bar state.
     '''
     ## Get image from file
-    imagefile = Path(imagefile).abspath
+    imagefile = Path(imagefile).absolute()
     try:
         hdul = fits.open(imagefile)
         data = hdul[0].data
     except Error as e:
         log.error(e)
         raise
-    ## Get image from ginga
-#     try:
-#         channel = self.fv.get_channel(self.chname)
-#         image = channel.get_current_image()
-#         data = image._get_data()
-#     except:
-#         print('Failed to load image data')
-#         return
-
     # median X pixels only (preserve Y structure)
     medimage = ndimage.median_filter(data, size=(1, filtersize))
     
-    bars_analysis = {}
-    state_analysis = {}
+    bars = {}
     for slit in range(1,47):
         b1, b2 = slit_to_bars(slit)
         ## Determine y pixel range
@@ -785,27 +777,11 @@ def analyze_mask_image(imagefile, filtersize=7):
         y2 = int(np.floor((physical_to_pixel(np.array([(270.4, slit-0.5)])))[0][1]))
         gradx = np.gradient(medimage[y1:y2,:], axis=1)
         horizontal_profile = np.sum(gradx, axis=0)
-        x1, x2 = self.find_bar_edges(horizontal_profile)
-        if x1 is None:
-            self.bars_analysis[b1] = None
-            self.state_analysis[b1] = 'UNKNOWN'
-        else:
-            mm1 = (self.pixel_to_physical(np.array([(x1, (y1+y2)/2.)])))[0][0]
-            self.bars_analysis[b1] = mm1
-            self.state_analysis[b1] = 'ANALYZED'
-        if x2 is None:
-            self.bars_analysis[b2] = None
-            self.state_analysis[b2] = 'UNKNOWN'
-        else:
-            mm2 = (self.pixel_to_physical(np.array([(x2, (y1+y2)/2.)])))[0][0]
-            self.bars_analysis[b2] = mm2
-            self.state_analysis[b2] = 'ANALYZED'
-        testx1 = self.physical_to_pixel([[mm2, slit]])
-        print(slit, x2, x1, x1-x2, mm2, mm1, testx1)
-#         self.compare_to_csu_bar_state()
+        bars[b1], bars[b2] = find_bar_edges(horizontal_profile)
+    return bars
 
 
-def find_bar_edges(self, horizontal_profile):
+def find_bar_edges(horizontal_profile):
     '''Given a 1D profile, dertermime the X position of each bar that forms
     a single slit.  The slit edges are found by fitting one positive and
     one negative gaussian function to the profile.
