@@ -22,7 +22,11 @@ from scipy import ndimage
 
 from Instruments import connect_to_ktl, create_log
 
-
+import matplotlib as mpl
+mpl.use('Agg')
+from matplotlib import pyplot as plt
+from astropy import visualization as viz
+plt.ioff()
 
 
 ##-------------------------------------------------------------------------
@@ -744,7 +748,7 @@ def physical_to_pixel(x):
 ## ------------------------------------------------------------------
 ##  Analyze Image to Determine Bar Positions
 ## ------------------------------------------------------------------
-def analyze_mask_image(imagefile, filtersize=7):
+def analyze_mask_image(imagefile, filtersize=7, plot=False):
     '''Loop over all slits in the image and using the affine transformation
     determined by `fit_transforms`, select the Y pixel range over which this
     slit should be found.  Take a median filtered version of that image and
@@ -770,14 +774,30 @@ def analyze_mask_image(imagefile, filtersize=7):
     medimage = ndimage.median_filter(data, size=(1, filtersize))
     
     bars = {}
+    ypos = {}
     for slit in range(1,47):
         b1, b2 = slit_to_bars(slit)
         ## Determine y pixel range
         y1 = int(np.ceil((physical_to_pixel(np.array([(4.0, slit+0.5)])))[0][1]))
         y2 = int(np.floor((physical_to_pixel(np.array([(270.4, slit-0.5)])))[0][1]))
+        ypos[b1] = (y1+y2)/2
+        ypos[b2] = (y1+y2)/2
         gradx = np.gradient(medimage[y1:y2,:], axis=1)
         horizontal_profile = np.sum(gradx, axis=0)
         bars[b1], bars[b2] = find_bar_edges(horizontal_profile)
+
+    # Generate plot if called for
+    if plot is True:
+        plotfile = imagefile.with_name(f"{imagefile.name}.png")
+        if plotfile.exists(): plotfile.unlink()
+        plt.figure(figsize=(12,12))
+        norm = viz.ImageNormalize(data, interval=viz.PercentileInterval(99),
+                                  stretch=viz.LinearStretch())
+        plt.imshow(data, norm=norm, origin='lower', cmap='Greys')
+        for bar in bars.keys():
+            plt.plot(bars[bar], ypos[bar], 'rx', alpha=0.5)
+        plt.savefig(str(plotfile))
+
     return bars
 
 
