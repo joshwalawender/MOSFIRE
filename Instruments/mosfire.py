@@ -5,6 +5,8 @@ import sys
 from pathlib import Path
 import logging
 import yaml
+import random
+import re
 
 from datetime import datetime as dt
 from datetime import timedelta as tdelta
@@ -47,7 +49,7 @@ with open(filepath.joinpath('MOSFIRE_transforms.txt'), 'r') as FO:
 Aphysical_to_pixel = np.array(Aphysical_to_pixel)
 Apixel_to_physical = np.array(Apixel_to_physical)
 
-log = create_log(name, loglevel='INFO')
+log = create_log(name, loglevel='DEBUG')
 services = connect_to_ktl(name, serviceNames)
 
 
@@ -81,6 +83,9 @@ class Mask(object):
         if input.upper() in ['OPEN', 'OPEN MASK']:
             log.debug(f'"{input}" interpreted as OPEN')
             self.build_open_mask()
+        elif input.upper() in ['RAND', 'RANDOM']:
+            log.debug(f'"{input}" interpreted as RANDOM')
+            self.build_random_mask()
         # try top open as XML mask design file
         elif xmlfile.exists():
             log.debug(f'"{input}" exists as file on disk')
@@ -226,6 +231,35 @@ class Mask(object):
                                 'slitWidthArcsec': width,
                                 'target': ''} )
         self.slitpos = Table(slits_list)
+
+
+    def build_random_mask(self, slitwidth=0.7):
+        '''Build a Mask with randomly placed, non contiguous slits
+        '''
+        self.name = 'RANDOM'
+        slits_list = []
+        for i in range(46):
+            slitno = i+1
+            cent = random.randrange(54,220)
+            # check if it is the same as the previous slit
+            if i > 0:
+                while cent == slits_list[i-1]['centerPositionArcsec']:
+                    cent = random.randrange(54,220)
+            leftbar = slitno*2
+            leftmm = cent + slitwidth*0.507/0.7
+            rightbar = slitno*2-1
+            rightmm = cent - slitwidth*0.507/0.7
+            width  = (leftmm-rightmm) * 0.7/0.507
+            slits_list.append( {'centerPositionArcsec': cent,
+                                'leftBarNumber': leftbar,
+                                'leftBarPositionMM': leftmm,
+                                'rightBarNumber': rightbar,
+                                'rightBarPositionMM': rightmm,
+                                'slitNumber': slitno,
+                                'slitWidthArcsec': width,
+                                'target': ''} )
+        self.slitpos = Table(slits_list)
+        
 
 
 ##-------------------------------------------------------------------------
@@ -627,6 +661,11 @@ def setup_mask(mask):
     log.debug('Invoke SETUP process on CSU')
     set('CSUSETUP', 1)
     set('SETUPNAME', mask.name, service='mcsus')
+    while get('CSUSTAT', service='mcsus') == 'Creating Group.':
+        sleep(1)
+    csustatus = get('CSUSTAT', service='mcsus')
+    if re.search('Setup aborted.  Collision detected at row (\d+)', csustatus):
+        log.error(csustatus)
 
 
 def initialise_bars(bars=None):
