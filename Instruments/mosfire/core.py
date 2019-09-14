@@ -13,7 +13,6 @@ from datetime import timedelta as tdelta
 from time import sleep
 import numpy as np
 import subprocess
-import xml.etree.ElementTree as ET
 
 from astropy.table import Table, Column
 from astropy.io import fits

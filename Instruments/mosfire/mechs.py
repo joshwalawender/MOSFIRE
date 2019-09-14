@@ -1,7 +1,7 @@
 from .core import *
 
 ##-------------------------------------------------------------------------
-## MOSFIRE Mode and Filter Functions
+## MOSFIRE Mode and Filter Functions (Mechanisms)
 ##-------------------------------------------------------------------------
 def obsmode():
     '''Get the observing mode and return a two element list: [filter, mode]
@@ -35,8 +35,7 @@ def set_obsmode(obsmode, wait=True, timeout=60):
 def filter():
     '''Return the current filter name
     '''
-    filter = get('FILTER')
-    return filter
+    return get('FILTER')
 
 
 def filter1():
@@ -54,8 +53,7 @@ def filter2():
 def is_dark():
     '''Return True if the current observing mode is dark
     '''
-    filter = filter()
-    return filter == 'Dark'
+    return filter() == 'Dark'
 
 
 def quick_dark(filter=None):

@@ -1,8 +1,13 @@
 ## Import General Tools
 from .core import log
 from pathlib import Path
+import random
+
+import xml.etree.ElementTree as ET
 
 from astropy.table import Table, Column
+from astropy.coordinates import SkyCoord
+from astropy import units as u
 
 
 ##-------------------------------------------------------------------------
@@ -23,17 +28,19 @@ class Mask(object):
         self.mascgenArguments = None
 
         xmlfile = Path(input)
-        # Is the input OPEN mask
-        if input.upper() in ['OPEN', 'OPEN MASK']:
-            log.debug(f'"{input}" interpreted as OPEN')
-            self.build_open_mask()
-        elif input.upper() in ['RAND', 'RANDOM']:
-            log.debug(f'"{input}" interpreted as RANDOM')
-            self.build_random_mask()
-        # try top open as XML mask design file
+        if type(input) == Path:
+            self.read_xml(input)
         elif xmlfile.exists():
             log.debug(f'"{input}" exists as file on disk')
             self.read_xml(xmlfile)
+        # Is the input OPEN mask
+        elif input.upper() in ['OPEN', 'OPEN MASK']:
+            log.debug(f'"{input}" interpreted as OPEN')
+            self.build_open_mask()
+        # Is the input asking for a random mask
+        elif input.upper() in ['RAND', 'RANDOM']:
+            log.debug(f'"{input}" interpreted as RANDOM')
+            self.build_random_mask()
         # Try to parse input as long slit specification
         else:
             try:
