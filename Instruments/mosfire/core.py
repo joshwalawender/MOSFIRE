@@ -34,7 +34,7 @@ plt.ioff()
 ## MOSFIRE Properties
 ##-------------------------------------------------------------------------
 name = 'MOSFIRE'
-serviceNames = ['mosfire', 'mmf1s', 'mmf2s', 'mcsus', 'mfcs', 'mds']
+serviceNames = ['mosfire', 'mmf1s', 'mmf2s', 'mcsus', 'mfcs', 'mds', 'dcs']
 modes = ['dark-imaging', 'dark-spectroscopy', 'imaging', 'spectroscopy']
 filters = ['Y', 'J', 'H', 'K', 'J2', 'J3', 'NB']
 
@@ -48,7 +48,7 @@ with open(filepath.joinpath('MOSFIRE_transforms.txt'), 'r') as FO:
 Aphysical_to_pixel = np.array(Aphysical_to_pixel)
 Apixel_to_physical = np.array(Apixel_to_physical)
 
-log = create_log(name, loglevel='DEBUG')
+log = create_log(name, loglevel='INFO')
 services = connect_to_ktl(name, serviceNames)
 
 
