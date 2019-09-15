@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from .core import *
 from .mechs import *
 
@@ -72,7 +74,7 @@ def wfgo(timeout=300, noshim=False):
     waitfor_exposure(timeout=timeout, noshim=noshim)
 
 
-def goi(exptime=None, coadds=None, sampmode=None):
+def goi(exptime=None, coadds=None, sampmode=None, wait=True):
     waitfor_exposure(noshim=True)
     if exptime is not None:
         set_exptime(exptime)
@@ -82,10 +84,17 @@ def goi(exptime=None, coadds=None, sampmode=None):
         set_sampmode(sampmode)
     log.info('Taking exposure')
     set('go', '1')
+    if wait is True:
+        waitfor_exposure()
+        imagefile = Path(lastfile())
+        if imagefile.exists():
+            log.info(f'  Found last file {imagefile.name}')
+        else:
+            log.warning(f'Did not find file: {imagefile}')
 
 
-def take_exposure(exptime=None, coadds=None, sampmode=None):
-    goi(exptime=exptime, coadds=coadds, sampmode=sampmode)
+def take_exposure(exptime=None, coadds=None, sampmode=None, wait=True):
+    goi(exptime=exptime, coadds=coadds, sampmode=sampmode, wait=wait)
 
 
 def filename():
