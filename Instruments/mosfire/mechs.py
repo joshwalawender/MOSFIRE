@@ -10,24 +10,24 @@ def obsmode():
     return obsmode
 
 
-def set_obsmode(obsmode, wait=True, timeout=60):
+def set_obsmode(destination, wait=True, timeout=60):
     '''Set the current observing mode to the filter and mode specified.
     '''
-    filter, mode = obsmode.split('-')
+    filter, mode = destination.split('-')
     mode = mode.lower()
-    log.info(f"Setting mode to {obsmode}")
+    log.info(f"Setting mode to {destination}")
     if not mode in modes:
         log.error(f"Mode: {mode} is unknown")
     elif not filter in filters:
         log.error(f"Filter: {filter} is unknown")
     else:
-        set('SETOBSMODE', obsmode, wait=True)
+        set('SETOBSMODE', destination, wait=True)
         if wait is True:
             endat = dt.utcnow() + tdelta(seconds=timeout)
-            done = (obsmode().lower() == obsmode.lower())
+            done = (obsmode().lower() == destination.lower())
             while not done and dt.utcnow() < endat:
                 sleep(1)
-                done = (obsmode().lower() == obsmode.lower())
+                done = (obsmode().lower() == destination.lower())
             if not done:
                 log.warning(f'Timeout exceeded on waiting for mode {modestr}')
 
@@ -61,7 +61,7 @@ def quick_dark(filter=None):
     Modeled after darkeff script.
     '''
     log.info('Setting quick dark')
-    if filter not in filters:
+    if filter not in filters and filter is not None:
         log.error(f'Filter {filter} not in allowed filter list: {filters}')
         filter = None
     filter_combo = {'Y': ['H2', 'Y'],
