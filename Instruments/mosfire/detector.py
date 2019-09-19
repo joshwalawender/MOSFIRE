@@ -7,6 +7,7 @@ from .mechs import *
 ## MOSFIRE Exposure Control Functions
 ##-------------------------------------------------------------------------
 def exptime():
+    '''Returns the exposure time per coadd in seconds.'''
     return get('EXPTIME', mode=int)/1000
 
 
@@ -18,6 +19,7 @@ def set_exptime(exptime):
 
 
 def coadds():
+    '''Returns the number of coadds.'''
     return get('COADDS', mode=int)
 
 
@@ -29,6 +31,7 @@ def set_coadds(coadds):
 
 
 def sampmode():
+    '''Returns the sampling mode as an integer.'''
     return get('SAMPMODE', mode=int)
 
 
@@ -42,6 +45,14 @@ def parse_sampmode(input):
 
 
 def set_sampmode(input):
+    '''Set sampling mode.
+    
+    Input can be either an integer corresponding to the keyword value or it
+    can be a string ('CDS', 'MCDS', 'MCDS16') which will be interpreted.
+    
+    If the 'MCDS16' string input is used, this will set *both* the sampling
+    mode and the number of reads.
+    '''
     log.info(f'Setting Sampling Mode to {input}')
     sampmode, numreads = parse_sampmode(input)
     if sampmode in allowed_sampmodes:
@@ -55,6 +66,8 @@ def set_sampmode(input):
 
 
 def waitfor_exposure(timeout=300, noshim=False):
+    '''Block and wait for the current exposure to be complete.
+    '''
     log.debug('Waiting for exposure to finish')
     if noshim is False:
         sleep(1)
@@ -75,6 +88,11 @@ def wfgo(timeout=300, noshim=False):
 
 
 def goi(exptime=None, coadds=None, sampmode=None, wait=True):
+    '''Take an exposure.
+    
+    If the exptime, coadds, sampmode inputs are specified, those parameters for
+    the exposure will be set prior to triggering the exposure.
+    '''
     waitfor_exposure(noshim=True)
     if exptime is not None:
         set_exptime(exptime)
@@ -94,14 +112,23 @@ def goi(exptime=None, coadds=None, sampmode=None, wait=True):
 
 
 def take_exposure(exptime=None, coadds=None, sampmode=None, wait=True):
+    '''Alias take_exposure to goi
+    '''
     goi(exptime=exptime, coadds=coadds, sampmode=sampmode, wait=wait)
 
 
 def filename():
+    '''Return the current filename value as a `pathlib.Path` object.
+    '''
     return Path(get('FILENAME'))
 
 
 def lastfile():
+    '''Return the last filename value as a `pathlib.Path` object.
+    
+    This also checks that the file exists.  If it does not, it checks a
+    similar path with /s prepended.  This handles the vm-mosfire machine case.
+    '''
     lastfile = Path(get('LASTFILE'))
     if lastfile.exists():
         return lastfile
