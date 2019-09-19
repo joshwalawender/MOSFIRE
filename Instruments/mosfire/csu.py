@@ -11,6 +11,8 @@ class CSUFatalError(Exception):
 ## CSU Controls
 ##-------------------------------------------------------------------------
 def CSUready():
+    '''Is the CSU in the ready state?
+    '''
     ready = get('CSUREADY', mode=int)
     translation = {0: 'Unknown',
                    1: 'System Started',
@@ -74,6 +76,8 @@ def setup_mask(mask):
 
 
 def initialise_bars(bars=None):
+    '''Initialize one or more CSU bars.
+    '''
     if bars is None:
         log.info('Initializing all bars')
         set('CSUINITBAR', 0)
