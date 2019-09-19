@@ -3,31 +3,6 @@ from .mechs import *
 from .detector import *
 from time import sleep
 
-from ktl import Exceptions as ktlExceptions
-
-
-def set_rotpposn_no_retry(rotpposn):
-    log.info(f'Setting ROTPPOSN to {rotpposn:.1f}')
-    set('rotdest', rotpposn, service='dcs')
-    sleep(1)
-    set('rotmode', 'stationary', service='dcs')
-    sleep(1)
-    done = get('rotstat', service='dcs') == 'in position'
-    while done is False:
-        sleep(1)
-        done = get('rotstat', service='dcs') == 'in position'
-
-
-def set_rotpposn(rotpposn):
-    try:
-        set_rotpposn_no_retry(rotpposn)
-    except ktlExceptions.ktlError as e:
-        log.warning(f"Failed to set rotator")
-        log.warning(e)
-        sleep(2)
-        log.info('Trying again ...')
-        set_rotpposn(rotpposn)
-
 
 def measure_FCS_flexure(rotpposn):
     set_rotpposn(rotpposn)

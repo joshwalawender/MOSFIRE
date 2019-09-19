@@ -23,6 +23,8 @@ from scipy import ndimage
 
 from Instruments import connect_to_ktl, create_log
 
+from ktl import Exceptions as ktlExceptions
+
 import matplotlib as mpl
 mpl.use('Agg')
 from matplotlib import pyplot as plt
@@ -100,3 +102,29 @@ def set(keyword, value, service='mosfire', wait=True):
         return None
     services[service][keyword].write(value, wait=wait)
     log.debug(f'  Done.')
+
+
+##-------------------------------------------------------------------------
+## Rotator Control
+##-------------------------------------------------------------------------
+def _set_rotpposn(rotpposn):
+    log.info(f'Setting ROTPPOSN to {rotpposn:.1f}')
+    set('rotdest', rotpposn, service='dcs')
+    sleep(1)
+    set('rotmode', 'stationary', service='dcs')
+    sleep(1)
+    done = get('rotstat', service='dcs') == 'in position'
+    while done is False:
+        sleep(1)
+        done = get('rotstat', service='dcs') == 'in position'
+
+
+def set_rotpposn(rotpposn):
+    try:
+        _set_rotpposn(rotpposn)
+    except ktlExceptions.ktlError as e:
+        log.warning(f"Failed to set rotator")
+        log.warning(e)
+        sleep(2)
+        log.info('Trying again ...')
+        set_rotpposn(rotpposn)
