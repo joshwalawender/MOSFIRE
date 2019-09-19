@@ -1,5 +1,7 @@
 from .core import *
 
+import numpy as np
+
 ##-------------------------------------------------------------------------
 ## MOSFIRE Mode and Filter Functions (Mechanisms)
 ##-------------------------------------------------------------------------
@@ -157,3 +159,41 @@ def check_mechanisms():
             log.error(f'Please address the problem, then re-run the checkout.')
             return False
     return True
+
+
+##-------------------------------------------------------------------------
+## MOSFIRE FCS
+##-------------------------------------------------------------------------
+def FCS_ok():
+    active = get('ACTIVE', service='mfcs', mode=bool)
+    enabled = get('ENABLE', service='mfcs', mode=bool)
+    return (active is True) and (enabled is True)
+
+
+def check_FCS(PAthreshold=0.1, ELthreshold=0.1):
+    '''Check status of FCS.  Returns True if system appears ok.
+    '''
+    FCPA_EL = get('PA_EL', serice='mfcs', mode=str)
+    FCSPA = float(FCPA_EL.split()[0])
+    FCSEL = float(FCPA_EL.split()[1])
+    ROTPPOSN = get('ROTPPOSN', service='dcs', mode=float)
+    EL = get('EL', service='dcs', mode=float)
+    done = np.isclose(FCSPA, ROTPPOSN, atol=PAthreshold)\
+           and np.isclose(FCSEL, EL, atol=ELthreshold)
+    return done
+
+
+def waitfor_FCS(timeout=60, PAthreshold=0.1, ELthreshold=0.1, noshim=False):
+    '''Wait for FCS to get close to actual PA and EL.
+    '''
+    log.debug('Waiting for FCS to reach destination')
+    if noshim is False:
+        sleep(1)
+    done = check_FCS(PAthreshold=PAthreshold, ELthreshold=ELthreshold)
+    endat = dt.utcnow() + tdelta(seconds=timeout)
+    while done is False and dt.utcnow() < endat:
+        sleep(1)
+        done = check_FCS(PAthreshold=PAthreshold, ELthreshold=ELthreshold)
+    if done is False:
+        log.warning(f'Timeout exceeded on waitfor_FCS to finish')
+    return done

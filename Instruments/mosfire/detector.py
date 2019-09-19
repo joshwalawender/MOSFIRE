@@ -141,26 +141,3 @@ def lastfile():
             log.warning(f'Could not find last file on disk: {lastfile}')
         else:
             return trypath
-
-
-def waitfor_FCS(timeout=60, PAthreshold=0.1, ELthreshold=0.1, noshim=False):
-    '''Wait for FCS to get close to actual PA and EL.
-    '''
-    log.debug('Waiting for FCS to reach destination')
-    if noshim is False:
-        sleep(1)
-    telPA = get('PA', service='mfcs', mode=float)
-    telEL = get('EL', service='mfcs', mode=float)
-    fcsPA, fcsEL = get('PA_EL', service='mfcs', mode=str).split()
-    fcsPA = float(fcsPA)
-    fcsEL = float(fcsEL)
-    PAdiff = abs(fcsPA - telPA)
-    ELdiff = abs(fcsEL - telEL)
-    done = (PAdiff < PAthreshold) and (ELdiff < ELthreshold)
-    endat = dt.utcnow() + tdelta(seconds=timeout)
-    while done is False and dt.utcnow() < endat:
-        sleep(1)
-        done = (PAdiff < PAthreshold) and (ELdiff < ELthreshold)
-    if done is False:
-        log.warning(f'Timeout exceeded on waitfor_FCS to finish')
-    return done
