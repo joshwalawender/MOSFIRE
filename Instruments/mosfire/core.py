@@ -108,6 +108,11 @@ def set(keyword, value, service='mosfire', wait=True):
 ## Rotator Control
 ##-------------------------------------------------------------------------
 def _set_rotpposn(rotpposn):
+    '''Set the rotator position in stationary mode.
+    
+    This only tries tose the position once, use `set_rotpposn` in practice
+    as it makes multiple attempts which seems to be more reliable.
+    '''
     log.info(f'Setting ROTPPOSN to {rotpposn:.1f}')
     set('rotdest', rotpposn, service='dcs')
     sleep(1)
@@ -120,6 +125,8 @@ def _set_rotpposn(rotpposn):
 
 
 def set_rotpposn(rotpposn):
+    '''Set the rotator position in stationary mode.
+    '''
     try:
         _set_rotpposn(rotpposn)
     except ktlExceptions.ktlError as e:
