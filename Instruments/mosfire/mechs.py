@@ -150,7 +150,7 @@ def dustcover_ok():
 def check_mechanisms():
     log.info('Checking mechanisms')
     mechs = ['filter1', 'filter2', 'fcs', 'grating_shim', 'grating_turret',
-             'pupil_rotator', 'trapdoor']
+             'pupil_rotator', 'trapdoor', 'FCS']
     for mech in mechs:
         statusfn = getattr(sys.modules[__name__], f'{mech}_ok')
         ok = statusfn()
