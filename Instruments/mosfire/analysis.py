@@ -1,4 +1,5 @@
 from .core import *
+from .csu import *
 
 
 ## ------------------------------------------------------------------
@@ -44,7 +45,7 @@ def analyze_mask_image(imagefile, filtersize=7, plot=False):
 
     # Generate plot if called for
     if plot is True:
-        plotfile = imagefile.with_name(f"{imagefile.name}.png")
+        plotfile = imagefile.with_name(f"{imagefile.stem}.png")
         if plotfile.exists(): plotfile.unlink()
         plt.figure(figsize=(16,16))
         norm = viz.ImageNormalize(data, interval=viz.PercentileInterval(99),
