@@ -16,6 +16,30 @@ def get_binning():
         return None
 
 
+def set_binning(input):
+    if type(input) is str:
+        try:
+            binX, binY = input.lower().split('x')
+            binX = int(binX)
+            binY = int(binY)
+        except AttributeError:
+            log.warning(f"Could not interpret {input} as a binning setting.")
+    elif type(input) in [list, tuple]:
+        try:
+            binX, binY = input
+        except TypeError:
+            log.warning(f"Could not interpret {input} as a binning setting.")
+    else:
+        log.warning(f"Could not interpret {type(input)} {input} as a binning.")
+
+    if f"{binX:d}x{binY:d}" in binnings:
+        log.info(f'Setting binning to {(binX, binY)}')
+        set('hiccd', 'binning', (binX, binY))
+    else:
+        log.error(f"{binX:d}x{binY:d} is not an available binning")
+        log.error(f"  Available binnings: {binnings}")
+
+
 def get_windowing():
     """Return the windowing status.
     """
@@ -56,30 +80,6 @@ def get_ccdspeed():
     """Return the CCD readout speed as a string.
     """
     return get('hiccd', 'CCDSPEED')
-
-
-def set_binning(input):
-    if type(input) is str:
-        try:
-            binX, binY = input.lower().split('x')
-            binX = int(binX)
-            binY = int(binY)
-        except AttributeError:
-            log.warning(f"Could not interpret {input} as a binning setting.")
-    elif type(input) in [list, tuple]:
-        try:
-            binX, binY = input
-        except TypeError:
-            log.warning(f"Could not interpret {input} as a binning setting.")
-    else:
-        log.warning(f"Could not interpret {type(input)} {input} as a binning.")
-
-    if f"{binX:d}x{binY:d}" in binnings:
-        log.info(f'Setting binning to {(binX, binY)}')
-        set('hiccd', 'binning', (binX, binY))
-    else:
-        log.error(f"{binX:d}x{binY:d} is not an available binning")
-        log.error(f"  Available binnings: {binnings}")
 
 
 def get_exptime():
@@ -161,6 +161,7 @@ def take_exposure(obstype=None, exptime=None, nexp=1):
         if not obsdone.wait(timeout=90):
             raise Exception('Timed out waiting for READING to finish')
         log.info('Done')
+
 
 def goi(obstype=None, exptime=None, nexp=1):
     take_exposure(obstype=obstype, exptime=exptime, nexp=nexp)

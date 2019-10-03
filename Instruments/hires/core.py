@@ -9,6 +9,7 @@ from Instruments import connect_to_ktl, create_log
 
 from ktl import Exceptions as ktlExceptions
 
+
 ##-------------------------------------------------------------------------
 ## HIRES Properties
 ##-------------------------------------------------------------------------
@@ -42,6 +43,7 @@ slits = {'B1': (3.5, 0.574),
 
 log = create_log(name, loglevel='INFO')
 services = connect_to_ktl(name, serviceNames)
+
 
 ##-------------------------------------------------------------------------
 ## Define Common Functions
