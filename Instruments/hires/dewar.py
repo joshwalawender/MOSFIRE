@@ -25,12 +25,12 @@ def estimate_dewar_time():
     on recent calibration of dewar level sensor.
     """
     rate = 6 # 6 percent per hour
-    DWRN2LV = DWRN2LV()
+    dewar_level = DWRN2LV()
     log.info('Estimating camera dewar hold time ...')
-    if DWRN2LV > 10:
-        hold_time = (DWRN2LV-10)/rate
+    if dewar_level > 10:
+        hold_time = (dewar_level-10)/rate
     else:
-        log.warning(f'Dewar at {DWRN2LV:.1f} %. Fill immediately!')
+        log.warning(f'Dewar at {dewar_level:.1f} %. Fill immediately!')
         hold_time = 0
     hold_time_str = f"~{hold_time:.1f} hours"
     log.info(f'  hold time: {hold_time_str}')
@@ -53,12 +53,10 @@ def fill_dewar():
         return None
     set('hiccd', 'UTBN2FIL', 'on')
     while is_filling() is True:
-        DWRN2LV = DWRN2LV()
-        RESN2LV = RESN2LV()
+        dewar_level = DWRN2LV()
+        reserve_level = RESN2LV()
         sleep(30)
     log.info('  HIRES Dewar Fill is Complete.')
-    DWRN2LV = DWRN2LV()
-    RESN2LV = RESN2LV()
-    log.info('  CCD Dewar: {DWRN2LV:.1f} % full')
-    log.info('  Reserve Dewar: {RESN2LV:.1f} % full')
+    log.info('  CCD Dewar: {DWRN2LV():.1f} % full')
+    log.info('  Reserve Dewar: {RESN2LV():.1f} % full')
     return True

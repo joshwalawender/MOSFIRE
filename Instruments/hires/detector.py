@@ -8,9 +8,9 @@ def binning():
     binningmatch = re.match('\\n\\tXbinning (\d)\\n\\tYbinning (\d)',
                             binningkwstr)
     if binningmatch is not None:
-        binning = (int(binningmatch.group(1)), int(binningmatch.group(2)))
-        log.debug(f'binning = {binning}')
-        return binning
+        binningval = (int(binningmatch.group(1)), int(binningmatch.group(2)))
+        log.debug(f'binning = {binningval}')
+        return binningval
     else:
         log.error(f'Could not parse keyword value "{binningkwstr}"')
         return None
@@ -67,13 +67,13 @@ def gain():
     return get('hiccd', 'CCDGAIN')
 
 
-def set_gain(gain):
+def set_gain(input):
     """Set the gain as a string 'low' or 'high'.
     """
-    if gain.lower() not in ['high', 'low']:
-        log.error(f"Gain {gain} not understood.  Gain not set.")
+    if input.lower() not in ['high', 'low']:
+        log.error(f"Gain {input} not understood.  Gain not set.")
         return None
-    set('hiccd', 'CCDGAIN', gain.lower())
+    set('hiccd', 'CCDGAIN', input.lower())
 
 
 def ccdspeed():
@@ -95,18 +95,18 @@ def is_writing():
 
 
 def obstype():
-    obstype = get('hiccd', 'obstype')
-    assert obstype in obstypes
-    return obstype
+    result = get('hiccd', 'obstype')
+    assert result in obstypes
+    return result
 
 
-def set_obstype(obstype):
-    log.info(f'Setting OBSTYPE to "{obstype}"')
-    if obstype in obstypes:
-        set('hiccd', 'obstype', obstype)
+def set_obstype(myobstype):
+    log.info(f'Setting OBSTYPE to "{myobstype}"')
+    if myobstype in obstypes:
+        set('hiccd', 'obstype', myobstype)
         return obstype()
     else:
-        log.error(f'OBSTYPE {obstype} not recognized.')
+        log.error(f'OBSTYPE {myobstype} not recognized.')
         log.error(f'Allowed obstypes:')
         for otype in obstypes:
             log.error(f'  {otype}')
@@ -119,14 +119,14 @@ def wait_for_observip(timeout=300):
             raise Exception('Timed out waiting for OBSERVIP')
 
 
-def take_exposure(obstype=None, exptime=None, nexp=1):
+def take_exposure(type=None, exptime=None, nexp=1):
     """Takes one or more exposures of the given exposure time and type.
     Modeled after goi script.
     """
-    if obstype is None:
-        obstype = obstype()
-    if obstype not in obstypes:
-        log.warning(f'OBSTYPE "{obstype} not understood"')
+    if type is None:
+        type = obstype()
+    if type not in obstypes:
+        log.warning(f'OBSTYPE "{type} not understood"')
         return None
 
     wait_for_observip()
@@ -134,7 +134,7 @@ def take_exposure(obstype=None, exptime=None, nexp=1):
     if exptime is not None:
         set_itime(int(exptime))
 
-    if obstype.lower() in ["dark", "bias", "zero"]:
+    if type.lower() in ["dark", "bias", "zero"]:
         set('hiccd', 'AUTOSHUT', False)
     else:
         set('hiccd', 'AUTOSHUT', True)
@@ -163,13 +163,13 @@ def take_exposure(obstype=None, exptime=None, nexp=1):
         log.info('Done')
 
 
-def goi(obstype=None, exptime=None, nexp=1):
-    take_exposure(obstype=obstype, exptime=exptime, nexp=nexp)
+def goi(type=None, exptime=None, nexp=1):
+    take_exposure(type=type, exptime=exptime, nexp=nexp)
 
 
-def last_file():
+def lastfile():
     OUTDIR = get('hiccd', 'OUTDIR')
     OUTFILE = get('hiccd', 'OUTFILE')
     LFRAMENO = get('hiccd', 'LFRAMENO', mode=int)
-    lastfile = Path(OUTDIR).joinpath(f"{OUTFILE}{LFRAMENO:04d}.fits")
-    return lastfile
+    last_file = Path(OUTDIR).joinpath(f"{OUTFILE}{LFRAMENO:04d}.fits")
+    return last_file

@@ -23,13 +23,13 @@ def collimator():
     collred = get('hires', 'COLLRED')
     collblue = get('hires', 'COLLBLUE')
     if collred == 'red' and collblue == 'not blue':
-        collimator = 'red'
+        result = 'red'
     elif collred == 'not red' and collblue == 'blue':
-        collimator = 'blue'
+        result = 'blue'
     else:
-        collimator = None
-    log.info(f'  collimator = {collimator}')
-    return collimator
+        result = None
+    log.info(f'  collimator = {result}')
+    return result
 
 
 def set_covers(dest, wait=True):
@@ -142,8 +142,7 @@ def set_xdang(dest, simple=False, threshold=0.5, step=0.5):
                 sleep(1)
         log.debug(f"Making final move to {dest:.3f}")
         set('hires', 'XDANGL', dest, wait=True)
-    XDANG = xdang()
-    log.info(f"Done.  XDANGL = {XDANG:.3f} deg")
+    log.info(f"Done.  XDANGL = {xdang():.3f} deg")
     return XDANG
 
 
@@ -165,8 +164,7 @@ def set_xdraw(dest, simple=False, threshold=2000, step=2000):
                 sleep(1)
         log.debug(f"Making final move to {dest:.3f}")
         set('hires', 'XDRAW', dest, wait=True)
-    XDRAW = xdraw()
-    log.debug(f"Done.  XDRAW = {XDRAW:.3f} steps")
+    log.debug(f"Done.  XDRAW = {xdraw():.3f} steps")
     return XDRAW
 
 

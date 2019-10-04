@@ -12,7 +12,7 @@ def set_lamp(lampname, wait=True):
     log.info(f'Setting lamp to {lampname}')
     set('hires', 'LAMPNAME', lampname, wait=wait)
     if wait is True:
-        assert get_lamp() == lampname
+        assert lamp() == lampname
 
 
 def lamp_filter():
@@ -23,4 +23,4 @@ def set_lamp_filter(lfilname, wait=True):
     assert lfilname in ['bg12', 'bg13', 'bg14', 'bg38', 'clear', 'dt',
                         'etalon', 'gg495', 'ng3', 'ug1', 'ug5']
     set('hires', 'LFILNAME', lfilname, wait=wait)
-    assert get_lamp_filter() == lfilname
+    assert lamp_filter() == lfilname
