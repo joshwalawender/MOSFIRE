@@ -33,6 +33,8 @@ def enclosure_safe():
     if door_is_open() is True:
         log.warning('Door to HIRES enclosure is open!')
         safe = False
+    if safe is True:
+        log.info('Lights are off and door closed')
     return safe
 
 
