@@ -7,18 +7,18 @@ from .core import *
 def lights_are_on():
     """Returns True if lights are on in the enclosure.
     """
-    log.info('Getting status of enclosure lights ...')
+    log.debug('Getting status of enclosure lights ...')
     lights_str = get('hires', 'lights')
-    log.info(f'  lights are {lights_str}')
+    log.debug(f'  lights are {lights_str}')
     return (lights_str == 'on')
 
 
 def door_is_open():
     """Returns True if the door to the enclosure is open.
     """
-    log.info('Getting status of enclosure door ...')
+    log.debug('Getting status of enclosure door ...')
     door_str = get('hires', 'door')
-    log.info(f'  door is {door_str}')
+    log.debug(f'  door is {door_str}')
     return (door_str == 'open')
 
 
