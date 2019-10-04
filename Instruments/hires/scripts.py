@@ -11,7 +11,7 @@ from .mechs import *
 # Calibrate Cross Disperser
 # -----------------------------------------------------------------------------
 def calibrate_cd():
-    mode = get_collimator()
+    mode = collimator()
     print(f'Calibrating {mode} cross disperser.')
     proceed = input('Continue? [y]')
     if proceed.lower() not in ['y', 'yes', 'ok', '']:
@@ -134,7 +134,7 @@ def calibrate_cd():
         # Running xdchange
         xdchangemode = {'red': 'red', 'blue': 'uv'}[mode]
         xdchange_cmd = ['xdchange', xdchangemode, f"{g.mean_1.value:.1f}", 
-                        f"{get_xdraw():d}"]
+                        f"{xdraw():d}"]
         print(f"Run on hiresserver: {' '.join(xdchange_cmd)}")
         
 #         ssh_cmd = ['xterm', '-e', 'ssh', 'hiresserver', 

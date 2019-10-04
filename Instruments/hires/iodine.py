@@ -1,7 +1,7 @@
 from .core import *
 
 
-def get_iodine_temps():
+def iodine_temps():
     """Returns the iodine cell temperatures (tempiod1, tempiod2) in units
     of degrees C.
     """
@@ -15,7 +15,7 @@ def check_iodine_temps(target1=65, target2=50, range=0.1, wait=False):
     range.  Default values are those used by the CPS team.
     """
     log.info('Checking whether iodine cell is at operating temp ...')
-    tempiod1, tempiod2 = get_iodine_temps()
+    tempiod1, tempiod2 = iodine_temps()
     tempiod1_diff = tempiod1 - target1
     tempiod2_diff = tempiod2 - target2
     log.debug(f'  tempiod1 is {tempiod1_diff:.1f} off nominal')

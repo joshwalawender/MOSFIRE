@@ -1,7 +1,7 @@
 from .core import *
 
 
-def get_binning():
+def binning():
     """Return the binning value, a tuple of (binX, binY).
     """
     binningkwstr = get('hiccd', 'BINNING')
@@ -40,7 +40,7 @@ def set_binning(input):
         log.error(f"  Available binnings: {binnings}")
 
 
-def get_windowing():
+def windowing():
     """Return the windowing status.
     """
     keywordresult = get('hiccd', 'WINDOW')
@@ -61,7 +61,7 @@ def get_windowing():
         return None
 
 
-def get_gain():
+def gain():
     """Return the gain as a string 'low' or 'high'.
     """
     return get('hiccd', 'CCDGAIN')
@@ -76,13 +76,13 @@ def set_gain(gain):
     set('hiccd', 'CCDGAIN', gain.lower())
 
 
-def get_ccdspeed():
+def ccdspeed():
     """Return the CCD readout speed as a string.
     """
     return get('hiccd', 'CCDSPEED')
 
 
-def get_exptime():
+def exptime():
     get('hiccd', 'TTIME', mode=int)
 
 
@@ -94,7 +94,7 @@ def is_writing():
     return get('hiccd', 'WCRATE', mode=bool)
 
 
-def get_obstype():
+def obstype():
     obstype = get('hiccd', 'obstype')
     assert obstype in obstypes
     return obstype
@@ -104,7 +104,7 @@ def set_obstype(obstype):
     log.info(f'Setting OBSTYPE to "{obstype}"')
     if obstype in obstypes:
         set('hiccd', 'obstype', obstype)
-        return get_obstype()
+        return obstype()
     else:
         log.error(f'OBSTYPE {obstype} not recognized.')
         log.error(f'Allowed obstypes:')
@@ -124,7 +124,7 @@ def take_exposure(obstype=None, exptime=None, nexp=1):
     Modeled after goi script.
     """
     if obstype is None:
-        obstype = get_obstype()
+        obstype = obstype()
     if obstype not in obstypes:
         log.warning(f'OBSTYPE "{obstype} not understood"')
         return None

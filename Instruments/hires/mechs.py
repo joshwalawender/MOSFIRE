@@ -14,7 +14,7 @@ def lights_are_on():
     return lights
 
 
-def get_collimator():
+def collimator():
     """Determine which collimator is in the beam.  Returns a string of
     'red' or 'blue' indicating which is in beam.  Returns None if it can
     not interpret the result.
@@ -48,7 +48,7 @@ def set_covers(dest, wait=True):
                     camcover = open   darkslid = open     wait
     """
     assert dest in ['open', 'closed']
-    collimator = get_collimator()
+    collimator = collimator()
     log.info(f'Setting {collimator} covers to {dest}')
 
     if collimator == 'red':
@@ -116,11 +116,11 @@ def set_filters(fil1name, fil2name, wait=True):
     set('hires', 'fil2name', fil2name, wait=wait)
 
 
-def get_xdang():
+def xdang():
     return get('hires', 'XDANGL', mode=float)
 
 
-def get_xdraw():
+def xdraw():
     return get('hires', 'XDRAW', mode=int)
 
 
@@ -130,19 +130,19 @@ def set_xdang(dest, simple=False, threshold=0.5, step=0.5):
         log.debug(f"Making simple move to {dest:.3f}")
         set('hires', 'XDANGL', dest, wait=True)
     else:
-        delta = dest - get_xdang()
+        delta = dest - xdang()
         log.debug(f'Total move is {delta:.3f} deg')
         if abs(delta) > threshold:
             nsteps = int(np.floor(abs(delta) / step))
             log.debug(f"Will move in {nsteps+1} steps")
             for i in range(nsteps):
-                movedest = get_xdang() + np.sign(delta)*step
+                movedest = xdang() + np.sign(delta)*step
                 log.debug(f"Making intermediate move to {movedest:.3f}")
                 set('hires', 'XDANGL', movedest, wait=True)
                 sleep(1)
         log.debug(f"Making final move to {dest:.3f}")
         set('hires', 'XDANGL', dest, wait=True)
-    XDANG = get_xdang()
+    XDANG = xdang()
     log.info(f"Done.  XDANGL = {XDANG:.3f} deg")
     return XDANG
 
@@ -153,19 +153,19 @@ def set_xdraw(dest, simple=False, threshold=2000, step=2000):
         log.debug(f"Making simple move to {dest:.3f}")
         set('hires', 'XDRAW', dest, wait=True)
     else:
-        delta = dest - get_xdraw()
+        delta = dest - xdraw()
         log.debug(f'Total move is {delta:.3f} counts')
         if abs(delta) > threshold:
             nsteps = int(np.floor(abs(delta) / step))
             log.debug(f"Will move in {nsteps+1} steps")
             for i in range(nsteps):
-                movedest = get_xdraw() + np.sign(delta)*step
+                movedest = xdraw() + np.sign(delta)*step
                 log.debug(f"Making intermediate move to {movedest:.3f}")
                 set('hires', 'XDRAW', movedest, wait=True)
                 sleep(1)
         log.debug(f"Making final move to {dest:.3f}")
         set('hires', 'XDRAW', dest, wait=True)
-    XDRAW = get_xdraw()
+    XDRAW = xdraw()
     log.debug(f"Done.  XDRAW = {XDRAW:.3f} steps")
     return XDRAW
 

@@ -1,7 +1,7 @@
 from .core import *
 
 
-def get_lamp():
+def lamp():
     return get('hires', 'LAMPNAME')
 
 
@@ -15,7 +15,7 @@ def set_lamp(lampname, wait=True):
         assert get_lamp() == lampname
 
 
-def get_lamp_filter():
+def lamp_filter():
     return get('hires', 'LFILNAME')
 
 

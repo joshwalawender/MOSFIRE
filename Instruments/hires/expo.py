@@ -1,7 +1,7 @@
 from .core import *
 
 
-def get_expo_status():
+def expo_status():
     return get('expo', 'EXM0STA')
 
 

@@ -19,7 +19,7 @@ def PRV_afternoon_setup(check_iodine=True, fnroot=None):
         log.error('Enclosure may be occupied, halting script.')
         return False
     # Check dewar level, if below threshold, fill
-    if get_DWRN2LV() < 30:
+    if DWRN2LV() < 30:
         log.info(f'Dewar level at {getDWRN2LV():.1f} %. Initiating dewar fill.')
         fill_dewar()
     # Start iodine cell
@@ -35,16 +35,16 @@ def PRV_afternoon_setup(check_iodine=True, fnroot=None):
     set_binning('3x1')
     # --> Set full frame (not possible?)
     # Confirm gain=low
-    assert get_gain() == 'low'
+    assert gain() == 'low'
     # Confirm Speed = fast
-    assert get_ccdspeed() == 'fast'
+    assert ccdspeed() == 'fast'
     # m slitname=opened
     open_slit()
     # m fil1name=clear
     # m fil2name=clear
     set_filters('clear', 'clear')
     # Confirm collimator = red
-    assert get_collimator() == 'red'
+    assert collimator() == 'red'
     # m cofraw = +70000
     set_cofraw(70000)
     # m cafraw=0
@@ -59,7 +59,7 @@ def PRV_afternoon_setup(check_iodine=True, fnroot=None):
     if check_iodine is True:
         while check_iodine_temps() is not True:
             log.info('Iodine cell not at temperature.')
-            tempiod1, tempiod2 = get_iodine_temps()
+            tempiod1, tempiod2 = iodine_temps()
             log.info(f'  tempiod1 = {tempiod1:.1f} C')
             log.info(f'  tempiod2 = {tempiod2:.1f} C')
             log.info(f'  waiting 5 minutes before checking again (or CTRL-c to exit)')
@@ -68,7 +68,7 @@ def PRV_afternoon_setup(check_iodine=True, fnroot=None):
         log.info('Iodine cell at temperature:')
     else:
         log.info('Iodine cell is not at recommended temperature:')
-        tempiod1, tempiod2 = get_iodine_temps()
+        tempiod1, tempiod2 = iodine_temps()
         log.info(f'  tempiod1 = {tempiod1:.1f} C')
         log.info(f'  tempiod2 = {tempiod2:.1f} C')
 
@@ -132,7 +132,7 @@ def PRV_calibrations():
         log.error('Enclosure may be occupied, halting script.')
         return False
     # Check dewar level, if below threshold, fill
-    if get_DWRN2LV() < 30:
+    if DWRN2LV() < 30:
         log.info(f'Dewar level at {getDWRN2LV():.1f} %. Initiating dewar fill.')
         fill_dewar()
 
