@@ -11,6 +11,11 @@ from .mechs import *
 # Calibrate Cross Disperser
 # -----------------------------------------------------------------------------
 def calibrate_cd():
+    # Check that lights are off and foor is closed in the HIRES enclosure
+    if enclosure_safe() is False:
+        log.error('Enclosure may be occupied, halting script.')
+        return False
+
     mode = collimator()
     print(f'Calibrating {mode} cross disperser.')
     proceed = input('Continue? [y]')

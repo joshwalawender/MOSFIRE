@@ -22,6 +22,20 @@ def door_is_open():
     return (door_str == 'open')
 
 
+def enclosure_safe():
+    # Check that lights are off in the HIRES enclosure
+    safe = True
+    log.info('Checking enclosure lights and door.')
+    if lights_are_on() is True:
+        log.warning('Lights in HIRES enclosure are on!')
+        safe = False
+    # Check that lights are off in the HIRES enclosure
+    if door_is_open() is True:
+        log.warning('Door to HIRES enclosure is open!')
+        safe = False
+    return safe
+
+
 def collimator():
     """Determine which collimator is in the beam.  Returns a string of
     'red' or 'blue' indicating which is in beam.  Returns None if it can

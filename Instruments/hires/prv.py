@@ -13,9 +13,8 @@ from .mechs import *
 def PRV_afternoon_setup(check_iodine=True, fnroot=None):
     """Configure the instrument for afternoon setup (PRV mode).
     """
-    # Check that lights are off in the HIRES enclosure
-    if lights_are_on() is True:
-        log.error('Lights in HIRES enclosure are on!')
+    # Check that lights are off and foor is closed in the HIRES enclosure
+    if enclosure_safe() is False:
         log.error('Enclosure may be occupied, halting script.')
         return False
     # Check dewar level, if below threshold, fill
@@ -126,11 +125,11 @@ def PRV_calibrations():
         log.info('Exiting calibrations script.')
         return False
 
-    # Check that lights are off in the HIRES enclosure
-    if lights_are_on() is True:
-        log.error('Lights in HIRES enclosure are on!')
+    # Check that lights are off and foor is closed in the HIRES enclosure
+    if enclosure_safe() is False:
         log.error('Enclosure may be occupied, halting script.')
         return False
+
     # Check dewar level, if below threshold, fill
     if DWRN2LV() < 30:
         log.info(f'Dewar level at {getDWRN2LV():.1f} %. Initiating dewar fill.')
