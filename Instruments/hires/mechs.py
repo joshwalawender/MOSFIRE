@@ -10,8 +10,16 @@ def lights_are_on():
     log.info('Getting status of enclosure lights ...')
     lights_str = get('hires', 'lights')
     log.info(f'  lights are {lights_str}')
-    lights = (lights_str == 'on')
-    return lights
+    return (lights_str == 'on')
+
+
+def door_is_open()
+    """Returns True if the door to the enclosure is open.
+    """
+    log.info('Getting status of enclosure door ...')
+    door_str = get('hires', 'door')
+    log.info(f'  door is {door_str}')
+    return (door_str == 'open')
 
 
 def collimator():
