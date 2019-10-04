@@ -13,7 +13,7 @@ def lights_are_on():
     return (lights_str == 'on')
 
 
-def door_is_open()
+def door_is_open():
     """Returns True if the door to the enclosure is open.
     """
     log.info('Getting status of enclosure door ...')
