@@ -1,5 +1,6 @@
 from .core import *
 
+import re
 
 def binning():
     """Return the binning value, a tuple of (binX, binY).
