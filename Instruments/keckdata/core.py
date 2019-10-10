@@ -243,3 +243,20 @@ def fits_reader(file, defaultunit='adu', datatype=None):
           f'and {len(kd.tabledata)} tables')
     kd.verify()
     return kd
+
+
+class KeckDataList(object):
+    def __init__(self, kds):
+        # Verify all input object have the same number of pixeldata arrays
+        pixeldata_lengths = set([len(kd.pixeldata) for kd in kds])
+        if len(pixeldata_lengths) != 1:
+            raise IncompatiblePixelData
+
+        # Determine which KeckData type this is
+        kdtypes = set([type(kd) for kd in kds])
+        if len(kdtypes) != 1:
+            raise IncompatiblePixelData
+        self.kdtype = kdtypes.pop(0)
+
+        self.kds = kds
+        self.len = len(kds)
