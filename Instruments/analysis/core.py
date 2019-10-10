@@ -38,49 +38,47 @@ def get_mode(input):
     return mode
 
 
-def make_master_bias(kds, clippingsigma=5, clippingiters=3, trimpix=0):
+def make_master_bias(kdl, clippingsigma=5, clippingiters=3, trimpix=0):
     '''
     Make master bias from a set of KeckData objects.
     '''
-    # Assume all input object have the same number of pixeldata arrays
-    pixeldata_lengths = set([len(kd.pixeldata) for kd in kds])
-    assert len( pixeldata_lengths ) == 1
-    npixeldata = pixeldata_lengths.pop()
+    if type(kdl) == list:
+        kdl = KeckDataList(kdl)
+    elif type(kdl) == KeckDataList:
+        pass
+    else:
+        raise KeckDataError
 
     log.info('  Making master bias')
-    master_pds = []
-    for i in range(npixeldata):
-        biases = [kd.pixeldata[i] for kd in kds]
-        master_bias = ccdproc.combine(biases, combine='average',
+    master_bias_kd = KeckData()
+    for i in range(kdl.len):
+        biases = [kd.pixeldata[i] for kd in kdl.kds]
+        master_bias_i = ccdproc.combine(biases, combine='average',
             sigma_clip=True,
             sigma_clip_low_thresh=clippingsigma,
             sigma_clip_high_thresh=clippingsigma)
-        ny, nx = master_bias.data.shape
+        ny, nx = master_bias_i.data.shape
         mean, median, stddev = stats.sigma_clipped_stats(
-            master_bias.data[trimpix:ny-trimpix,trimpix:nx-trimpix],
+            master_bias_i.data[trimpix:ny-trimpix,trimpix:nx-trimpix],
             sigma=clippingsigma,
             iters=clippingiters) * u.adu
-        mode = get_mode(master_bias.data)
-        log.debug(f'  Master Bias (mean, med, mode, std) = {mean.value:.1f}, '\
+        mode = get_mode(master_bias_i.data)
+        log.debug(f'  Master Bias {i} (mean, med, mode, std) = {mean.value:.1f}, '\
                   f'{median.value:.1f}, {mode:d}, {stddev.value:.2f}')
-        master_pds.append(master_bias.data)
+        master_bias_kd.pixeldata.append(master_bias_i.data)
+    return master_bias_kd
 
 
-
-def determine_read_noise(kds, trimpix==0):
+def determine_read_noise(kdl, trimpix==0):
     '''
     Determine read noise from a set of bias frames.
     '''
     log.info(f'Determining read noise')
-    biases = [kd for kd in kds if kd.type() == 'BIAS']
+    biases = [kd for kd in kdl.kds if kd.type() == 'BIAS']
     log.info(f'  Found {len(biases)} biases')
-    for i,bias in enumerate(biases):
-        if i == 0:
-            ny, nx = kd.pixeldata.shape
-            mean, median, stddev = stats.sigma_clipped_stats(
-                                         kd.pixeldata[buf:ny-buf,buf:nx-buf],
-                                         sigma=args.clippingsigma,
-                                         iters=args.clippingiters) * u.adu
-            mode = get_mode(bias0)
-            log.debug(f'  Bias (mean, med, mode, std) = {mean.value:.1f}, '
-                      f'{median.value:.1f}, {mode:d}, {stddev.value:.2f}')
+    bias0 = biases.pop(0)
+    remaining_biases = KeckDataList(biases)
+
+    master_bias = make_master_bias(remaining_biases)
+    diff = bias0.subtract(master_bias)
+
