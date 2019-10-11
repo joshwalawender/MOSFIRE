@@ -6,6 +6,7 @@ class HIRESData(KeckData):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.instrument = 'HIRES'
 
     def verify(self):
         """Verifies that the data which was read in matches an expected pattern

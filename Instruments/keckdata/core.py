@@ -1,7 +1,7 @@
 #!/usr/env/python
 
 ## Import General Tools
-from pathlib import Path
+from pathlib import Path, PosixPath
 
 import numpy as np
 from astropy.io import fits
@@ -57,6 +57,7 @@ class KeckData(object):
         self.pixeldata = []
         self.tabledata = []
         self.headers = []
+        self.instrument = None
 
     def verify(self):
         """Method to check the data against expectations. For the 
@@ -75,6 +76,7 @@ class KeckData(object):
             raise IncompatiblePixelData
         for i,pd in enumerate(self.pixeldata):
             self.pixeldata[i] = pd.add(kd2.pixeldata[i])
+        return self
 
     def subtract(self, kd2):
         """Method to subtract another KeckData object to this one
@@ -86,6 +88,7 @@ class KeckData(object):
             raise IncompatiblePixelData
         for i,pd in enumerate(self.pixeldata):
             self.pixeldata[i] = pd.subtract(kd2.pixeldata[i])
+        return self
 
     def multiply(self, kd2):
         """Method to multiply another KeckData object by this one
@@ -97,6 +100,7 @@ class KeckData(object):
             raise IncompatiblePixelData
         for i,pd in enumerate(self.pixeldata):
             self.pixeldata[i] = pd.multiply(kd2.pixeldata[i])
+        return self
 
     def get(self, kw):
         """Method to loop over all headers and get the specified keyword value.
@@ -107,7 +111,6 @@ class KeckData(object):
             val = hdr.get(kw, None)
             if val is not None:
                 return val
-
 
     def type(self):
         """Return the image type.
@@ -153,7 +156,7 @@ def get_hdu_type(hdu):
 ##-------------------------------------------------------------------------
 ## KeckData Reader
 ##-------------------------------------------------------------------------
-def fits_reader(file, defaultunit='adu', datatype=None):
+def fits_reader(file, defaultunit='adu', datatype=None, verbose=False):
     """A reader for KeckData objects.
     
     Currently this is a separate function, but should probably be
@@ -204,11 +207,11 @@ def fits_reader(file, defaultunit='adu', datatype=None):
     # Loop though HDUs and read them in as pixel data or table data
     kd = datatype()
     while len(hdul) > 0:
-        print('Extracting HDU')
+        if verbose: print('Extracting HDU')
         hdu = hdul.pop(0)
         kd.headers.append(hdu.header)
         hdu_type = get_hdu_type(hdu)
-        print(f'  Got HDU type = {hdu_type}')
+        if verbose: print(f'  Got HDU type = {hdu_type}')
         if hdu_type == 'header':
             pass
         elif hdu_type == 'tabledata':
@@ -238,25 +241,54 @@ def fits_reader(file, defaultunit='adu', datatype=None):
                         unit=hdu.header.get('BUNIT', defaultunit),
                        )
             kd.pixeldata.append(c)
-    print(f'Read in {len(kd.headers)} headers, '
-          f'{len(kd.pixeldata)} sets of pixel data, '
-          f'and {len(kd.tabledata)} tables')
+    if verbose: print(f'Read in {len(kd.headers)} headers, '
+                      f'{len(kd.pixeldata)} sets of pixel data, '
+                      f'and {len(kd.tabledata)} tables')
     kd.verify()
     return kd
 
 
 class KeckDataList(object):
-    def __init__(self, kds):
+    def __init__(self, input):
+        assert type(input) == list
+        self.kds = []
+        for item in input:
+            if type(item) == str:
+                p = Path(str)
+                if p.exists():
+                    try:
+                        kd = fits_reader(p)
+                        self.kds.append(kd)
+                    except:
+                        pass
+            elif type(item) in [Path, PosixPath]:
+                if item.exists():
+                    try:
+                        kd = fits_reader(item)
+                        self.kds.append(kd)
+                    except:
+                        pass
+            elif issubclass(type(item), KeckData):
+                self.kds.append(item)
+
+        self.len = len(self.kds)
+
         # Verify all input object have the same number of pixeldata arrays
-        pixeldata_lengths = set([len(kd.pixeldata) for kd in kds])
-        if len(pixeldata_lengths) != 1:
-            raise IncompatiblePixelData
+        pixeldata_lengths = set([len(kd.pixeldata) for kd in self.kds])
+        if len(pixeldata_lengths) > 1:
+            print(pixeldata_lengths)
+            raise IncompatiblePixelData(
+                  'Input files have insconsistent pixel data ')
 
         # Determine which KeckData type this is
-        kdtypes = set([type(kd) for kd in kds])
-        if len(kdtypes) != 1:
-            raise IncompatiblePixelData
-        self.kdtype = kdtypes.pop(0)
+        kdtypes = set([type(kd) for kd in self.kds])
+        if len(kdtypes) > 1:
+            print(kdtypes)
+            raise IncompatiblePixelData(
+                  'Input KeckData objects are not all of the same type')
+        self.kdtype = kdtypes.pop()
 
-        self.kds = kds
-        self.len = len(kds)
+    def pop(self):
+        self.len -= 1
+        return self.kds.pop()
+        

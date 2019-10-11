@@ -6,6 +6,7 @@ class MOSFIREData(KeckData):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.instrument = 'MOSFIRE'
 
     def verify(self):
         """Verifies that the data which was read in matches an expected pattern
