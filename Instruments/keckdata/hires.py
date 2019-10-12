@@ -19,9 +19,22 @@ class HIRESData(KeckData):
             raise IncorrectNumberOfExtensions("table", "0", self)
 
     def type(self):
-        if self.get('OBSTYPE').upper() == 'BIAS' and self.get('EXPTIME') < 0.1:
+        if self.get('OBSTYPE').upper() == 'BIAS' and float(self.get('DARKTIME')) < 0.1:
             return 'BIAS'
+        elif self.get('OBSTYPE').upper() == 'DARK':
+            return 'DARK'
         elif self.get('OBSTYPE').upper() == 'INTFLAT':
             return 'INTFLAT'
         else:
             return None
+
+    def filename(self):
+        return f"{self.get('OUTFILE')}{int(self.get('FRAMENO')):04d}.fits"
+
+    def exptime(self):
+        """Return the exposure time in seconds.
+        """
+        if self.type() in ['BIAS', 'DARK']:
+            return float(self.get('DARKTIME'))
+        else:
+            return float(self.get('EXPTIME'))
