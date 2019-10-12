@@ -119,6 +119,11 @@ class KeckData(object):
         """
         return None
 
+    def exptime(self):
+        """Return the exposure time in seconds.
+        """
+        return self.get('EXPTIME')
+
 
 ##-------------------------------------------------------------------------
 ## Get HDU Type
@@ -264,37 +269,37 @@ class KeckDataList(object):
     """
     def __init__(self, input):
         assert type(input) == list
-        self.kds = []
+        self.frames = []
         for item in input:
             if type(item) == str:
                 p = Path(str)
                 if p.exists():
                     try:
                         kd = fits_reader(p)
-                        self.kds.append(kd)
+                        self.frames.append(kd)
                     except:
                         pass
             elif type(item) in [Path, PosixPath]:
                 if item.exists():
                     try:
                         kd = fits_reader(item)
-                        self.kds.append(kd)
+                        self.frames.append(kd)
                     except:
                         pass
             elif issubclass(type(item), KeckData):
-                self.kds.append(item)
+                self.frames.append(item)
 
-        self.len = len(self.kds)
+        self.len = len(self.frames)
 
         # Verify all input object have the same number of pixeldata arrays
-        pixeldata_lengths = set([len(kd.pixeldata) for kd in self.kds])
+        pixeldata_lengths = set([len(kd.pixeldata) for kd in self.frames])
         if len(pixeldata_lengths) > 1:
             print(pixeldata_lengths)
             raise IncompatiblePixelData(
                   'Input files have insconsistent pixel data ')
 
         # Determine which KeckData type this is
-        kdtypes = set([type(kd) for kd in self.kds])
+        kdtypes = set([type(kd) for kd in self.frames])
         if len(kdtypes) > 1:
             print(kdtypes)
             raise IncompatiblePixelData(
@@ -305,5 +310,5 @@ class KeckDataList(object):
         '''Return one object from the list and remove it from the list.
         '''
         self.len -= 1
-        return self.kds.pop()
+        return self.frames.pop()
         
