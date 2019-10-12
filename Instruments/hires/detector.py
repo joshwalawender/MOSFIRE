@@ -133,7 +133,7 @@ def take_exposure(type=None, exptime=None, nexp=1):
     wait_for_observip()
 
     if exptime is not None:
-        set_itime(int(exptime))
+        set_exptime(int(exptime))
 
     if type.lower() in ["dark", "bias", "zero"]:
         set('hiccd', 'AUTOSHUT', False)
