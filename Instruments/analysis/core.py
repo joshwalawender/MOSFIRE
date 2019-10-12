@@ -18,7 +18,8 @@ log = create_log(name, loglevel='INFO')
 
 def get_mode(input):
     '''
-    Return mode of an array.  Assumes int values (ADU), so uses binsize of one.
+    Return mode of an array, HDUList, or CCDData.  Assumes int values (ADU),
+    so uses binsize of one.
     '''
     if type(input) == ccdproc.CCDData:
         data = input.data.ravel()
@@ -40,7 +41,8 @@ def get_mode(input):
 
 def make_master_bias(kdl, clippingsigma=5, clippingiters=3, trimpix=0):
     '''
-    Make master bias from a set of KeckData objects.
+    Make master bias from a set of KeckData objects.  Input should be either
+    a list of KeckData objects, a list of file paths, or a KeckDataList object.
     '''
     if type(kdl) == list:
         kdl = KeckDataList(kdl)
@@ -77,6 +79,7 @@ def determine_read_noise(kdl, clippingsigma=5, clippingiters=3, trimpix=0):
     Determine read noise from a set of bias frames.
     '''
     log.info(f'Determining read noise')
+    log.info(f'  Checking that all inputs are BIAS frames')
     biases = KeckDataList([kd for kd in kdl.kds if kd.type() == 'BIAS'])
     log.info(f'  Found {biases.len} biases')
     bias0 = biases.pop()

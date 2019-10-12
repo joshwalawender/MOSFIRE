@@ -248,7 +248,18 @@ def fits_reader(file, defaultunit='adu', datatype=None, verbose=False):
     return kd
 
 
+##-------------------------------------------------------------------------
+## KeckDataList
+##-------------------------------------------------------------------------
 class KeckDataList(object):
+    """An object to manage lists of KeckData objects.
+    
+    Attributes:
+    kds -- a list of KeckData objects.
+    len -- the number of KeckData objects in the list
+    kdtype -- the type of KeckData object contained in the list.
+              e.g. `KeckData`, `HIRESData`, `MOSFIREData`
+    """
     def __init__(self, input):
         assert type(input) == list
         self.kds = []
