@@ -23,15 +23,16 @@ class IncompatiblePixelData(KeckDataError):
     objects which have incompatible pixeldata.
     """
     def __init__(self, message):
-        super().__init__(f"KeckData objects have incompatible pixeldata. {message}")
+        msg = f"KeckData objects have incompatible pixeldata. {message}"
+        super().__init__(msg)
 
 
 class IncorrectNumberOfExtensions(KeckDataError):
     """Raise when verify method fails for a specific instrument.
     """
     def __init__(self, datatype, expected, kd):
-        msg = f"Incorrect number of {datatype} entries.  Expected {expected} for {type(kd)}"
-        print(msg)
+        msg = (f"Incorrect number of {datatype} entries.  "
+               f"Expected {expected} for {type(kd)}")
         super().__init__(msg)
 
 
@@ -39,7 +40,8 @@ class UnableToParseInstrument(KeckDataError):
     """Raise when failing to parse INSTRUME header keyword.
     """
     def __init__(self, message):
-        super().__init__(f"Unable to determine instrument. {message}")
+        msg = f"Unable to determine instrument. {message}"
+        super().__init__(msg)
 
 
 ##-------------------------------------------------------------------------
@@ -300,6 +302,8 @@ class KeckDataList(object):
         self.kdtype = kdtypes.pop()
 
     def pop(self):
+        '''Return one object from the list and remove it from the list.
+        '''
         self.len -= 1
         return self.kds.pop()
         
