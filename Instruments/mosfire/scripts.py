@@ -7,6 +7,7 @@ from time import sleep
 def measure_FCS_flexure(rotpposn):
     set_rotpposn(rotpposn)
     set_obsmode('H-spectroscopy')
+    waitfor_FCS()
     take_exposure(wait=True)
     go_dark(wait=False)
 

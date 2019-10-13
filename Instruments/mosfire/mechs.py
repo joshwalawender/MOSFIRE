@@ -173,7 +173,7 @@ def FCS_ok():
 def check_FCS(PAthreshold=0.1, ELthreshold=0.1):
     '''Check status of FCS.  Returns True if system appears ok.
     '''
-    FCPA_EL = get('PA_EL', serice='mfcs', mode=str)
+    FCPA_EL = get('PA_EL', service='mfcs', mode=str)
     FCSPA = float(FCPA_EL.split()[0])
     FCSEL = float(FCPA_EL.split()[1])
     ROTPPOSN = get('ROTPPOSN', service='dcs', mode=float)
@@ -186,7 +186,7 @@ def check_FCS(PAthreshold=0.1, ELthreshold=0.1):
 def waitfor_FCS(timeout=60, PAthreshold=0.1, ELthreshold=0.1, noshim=False):
     '''Wait for FCS to get close to actual PA and EL.
     '''
-    log.debug('Waiting for FCS to reach destination')
+    log.info('Waiting for FCS to reach destination')
     if noshim is False:
         sleep(1)
     done = check_FCS(PAthreshold=PAthreshold, ELthreshold=ELthreshold)

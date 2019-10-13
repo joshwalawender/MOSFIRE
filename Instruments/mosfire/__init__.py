@@ -5,3 +5,4 @@ from .detector import *
 from .csu import *
 from .analysis import *
 from .checkout import *
+from .scripts import *
