@@ -8,7 +8,7 @@ from .mechs import *
 ##-------------------------------------------------------------------------
 def exptime():
     '''Returns the exposure time per coadd in seconds.'''
-    return get('EXPTIME', mode=int)/1000
+    return get('ITIME', mode=int)/1000
 
 
 def set_exptime(exptime):
