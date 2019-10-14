@@ -4,10 +4,11 @@ from .detector import *
 from time import sleep
 
 
-def measure_FCS_flexure(rotpposn, obsmode='H-spectroscopy'):
+def measure_FCS_flexure(rotpposn, obsmode='H-spectroscopy', waitforfcs=True):
     set_rotpposn(rotpposn)
     set_obsmode(obsmode)
-    waitfor_FCS()
+    if waitforfcs is True:
+        waitfor_FCS()
     take_exposure(wait=True)
     go_dark(wait=False)
 
