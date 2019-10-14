@@ -1,6 +1,10 @@
 from .core import *
-import ktl
 import re
+
+try:
+    import ktl
+except:
+    ktl = None
 
 def binning():
     """Return the binning value, a tuple of (binX, binY).

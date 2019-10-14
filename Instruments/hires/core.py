@@ -7,7 +7,10 @@ import logging
 
 from Instruments import connect_to_ktl, create_log
 
-from ktl import Exceptions as ktlExceptions
+try:
+    from ktl import Exceptions as ktlExceptions
+except:
+    pass
 
 
 ##-------------------------------------------------------------------------
