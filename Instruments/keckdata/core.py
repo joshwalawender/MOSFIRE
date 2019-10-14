@@ -104,7 +104,7 @@ class KeckData(object):
             self.pixeldata[i] = pd.multiply(kd2.pixeldata[i])
         return self
 
-    def get(self, kw):
+    def get(self, kw, mode=None):
         """Method to loop over all headers and get the specified keyword value.
         Returns the first result it finds and doe not check for duplicate
         instances of the keyword in subsequent headers.
@@ -112,10 +112,29 @@ class KeckData(object):
         for hdr in self.headers:
             val = hdr.get(kw, None)
             if val is not None:
-                return val
+                if mode is not None:
+                    assert mode in [str, float, int, bool]
+                    if mode is bool and type(val) is str:
+                        if val.strip().lower() == 'false':
+                            return False
+                        elif val.strip().lower() == 'true':
+                            return True
+                    elif mode is bool and type(val) is int:
+                        return bool(int(val))
+                    # Convert result to requested type
+                    try:
+                        return mode(val)
+                    except ValueError:
+                        print(f'WARNING: Failed to parse "{val}" as {mode}')
+                        return val
+                else:
+                    return val
+        return None
 
     def type(self):
         """Return the image type.
+        
+        BIAS, DARK, INTFLAT, ARC, FLAT, FLATOFF, OBJECT
         """
         return None
 
