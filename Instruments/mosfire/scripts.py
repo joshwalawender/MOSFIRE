@@ -5,6 +5,20 @@ from time import sleep
 
 
 def measure_FCS_flexure(rotpposn, obsmode='H-spectroscopy', waitforfcs=True):
+    '''A simple script used during the FCS flexure measurements.
+    
+    This script sets a rotator position, an obsmode, then takes an exposure,
+    then goes dark.  This would typically be used in a set of measurements
+    (taken for example by `measure_FCS_flexure_set`) to get a series of images
+    at different rotator angles.
+    
+    This script would typically be used to take arc lamp spectra of a mask to
+    determine flexure by comparing the positions of arc lines in images taken
+    over a variety of rotator angles and elevation values.
+    
+    Under typical use, one would need to turn on the arc lamp manually before
+    running this script.
+    '''
     set_rotpposn(rotpposn)
     set_obsmode(obsmode)
     if waitforfcs is True:
@@ -14,6 +28,9 @@ def measure_FCS_flexure(rotpposn, obsmode='H-spectroscopy', waitforfcs=True):
 
 
 def measure_FCS_flexure_set(reverse=False, skip=None, obsmode='H-spectroscopy'):
+    '''Wraps `measure_FCS_flexure` to take measurements over a range of rotator
+    angles.
+    '''
     rotpposns = [-360, -315, -270, -225, -180, -135, -90, -45, 0, 45]
     if reverse is True:
         rotpposns.reverse()
