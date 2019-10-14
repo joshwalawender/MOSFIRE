@@ -18,6 +18,16 @@ def measure_FCS_flexure(rotpposn, obsmode='H-spectroscopy', waitforfcs=True):
     
     Under typical use, one would need to turn on the arc lamp manually before
     running this script.
+    
+    The data taking method used (in Sept & Oct 2019) was:
+    * acquire arc lamp spectra at set of rotator angles (using
+      `measure_FCS_flexure_set`)
+    * do the above at a set of elevation values (e.g. 15, 25, 35, 45, 55, 65,
+      75, 85).
+    * do the above with the FCS either on or off depending on what is being
+      measured.
+    * cross correlate the arc lamp spectra to determine how much image motion
+      there is due to instrument flexure.
     '''
     set_rotpposn(rotpposn)
     set_obsmode(obsmode)
