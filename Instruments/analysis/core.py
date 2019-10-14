@@ -112,7 +112,7 @@ def determine_read_noise(input, master_bias=None, clippingsigma=5, clippingiters
                   f'{median.value:.1f}, {mode:d}, {stddev.value:.2f}')
 
         RN = stddev / np.sqrt(1.+1./master_bias.nbiases )
-        log.info(f'  Read Noise is {RN:.2f}')
+        log.info(f'  Read Noise is {RN:.2f} for extension {i+1}')
         read_noise.append(RN)
     return u.Quantity(read_noise)
 
@@ -136,7 +136,7 @@ def determine_dark_current(input, master_bias=None,
         exptimes.append(dark_frame.exptime())
         dark_diff = dark_frame.subtract(master_bias)
         dark_mean = [None] * npds
-#         dark_median = [None] * npds
+        dark_median = [None] * npds
         for i in range(npds):
             ny, nx = dark_diff.pixeldata[i].shape
             mean, median, stddev = stats.sigma_clipped_stats(
@@ -156,24 +156,13 @@ def determine_dark_current(input, master_bias=None,
 #     dark_medians = np.array(dark_medians)
 
     # Fit Line to Dark Level to Determine Dark Current
-    dark_current = [None]*npds
+    DC = [None]*npds
     line = models.Linear1D(intercept=0, slope=0)
     line.intercept.fixed = True
     fitter = fitting.LinearLSQFitter()
     for i in range(npds):
         dc_fit_mean = fitter(line, exptimes, dark_means[:,i])
 #         dc_fit_median = fitter(line, exptimes, dark_medians[:,i])
-        dark_current[i] = dc_fit_mean.slope.value * u.adu/u.second
-
-    return dark_current
-
-#     longest_exptime = int(max(exptimes))
-#     long_dark_table = dark_table[np.array(dark_table['exptime'], dtype=int) == longest_exptime]
-# 
-# 
-#     nhotpix = int(np.mean(long_dark_table['nhotpix'])) * u.pix
-#     nhotpixstd = int(np.std(long_dark_table['nhotpix']))\
-#                  / np.sqrt(len(long_dark_table['nhotpix'])) * u.pix
-#     dark_stats = [dark_current, nhotpix, nhotpixstd]
-#     log.info(f'  Dark Current = {dark_current:.3f}')
-#     log.info(f'  N Hot Pixels = {nhotpix:.0f} +/- {nhotpixstd:.0f}')
+        DC[i] = dc_fit_mean.slope.value * u.adu/u.second
+        log.info(f'  Dark Current is {DC[i]:.3f} for extension {i+1}')
+    return DC

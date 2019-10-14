@@ -203,10 +203,10 @@ def fits_reader(file, defaultunit='adu', datatype=None, verbose=False):
             raise UnableToParseInstrument
 
         if instrument[:5] == 'HIRES':
-            from .hires import HIRESData
+            from .visible import HIRESData
             datatype = HIRESData
         elif instrument == 'MOSFIRE':
-            from .mosfire import MOSFIREData
+            from .infrared import MOSFIREData
             datatype = MOSFIREData
         else:
             datatype = KeckData
@@ -267,7 +267,7 @@ class KeckDataList(object):
     kdtype -- the type of KeckData object contained in the list.
               e.g. `KeckData`, `HIRESData`, `MOSFIREData`
     """
-    def __init__(self, input):
+    def __init__(self, input, verbose=False):
         assert type(input) == list
         self.frames = []
         for item in input:
@@ -275,17 +275,20 @@ class KeckDataList(object):
                 p = Path(str)
                 if p.exists():
                     try:
-                        kd = fits_reader(p)
+                        kd = fits_reader(p, verbose=verbose)
                         self.frames.append(kd)
                     except:
                         pass
             elif type(item) in [Path, PosixPath]:
                 if item.exists():
                     try:
-                        kd = fits_reader(item)
+                        kd = fits_reader(item, verbose=verbose)
                         self.frames.append(kd)
                     except:
-                        pass
+                        print(f"WARNING: Unable to read: {item}")
+                        raise
+                else:
+                    print(f"WARNING: File not found: {item}")
             elif issubclass(type(item), KeckData):
                 self.frames.append(item)
 
@@ -294,16 +297,14 @@ class KeckDataList(object):
         # Verify all input object have the same number of pixeldata arrays
         pixeldata_lengths = set([len(kd.pixeldata) for kd in self.frames])
         if len(pixeldata_lengths) > 1:
-            print(pixeldata_lengths)
             raise IncompatiblePixelData(
                   'Input files have insconsistent pixel data ')
 
         # Determine which KeckData type this is
         kdtypes = set([type(kd) for kd in self.frames])
         if len(kdtypes) > 1:
-            print(kdtypes)
             raise IncompatiblePixelData(
-                  'Input KeckData objects are not all of the same type')
+                  'Input KeckData objects are not all of the same type: {kdtypes}')
         self.kdtype = kdtypes.pop()
 
     def pop(self):

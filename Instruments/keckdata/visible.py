@@ -19,7 +19,7 @@ class HIRESData(KeckData):
             raise IncorrectNumberOfExtensions("table", "0", self)
 
     def type(self):
-        if self.get('OBSTYPE').upper() == 'BIAS' and float(self.get('DARKTIME')) < 0.1:
+        if self.get('OBSTYPE').upper() == 'BIAS' and float(self.get('DARKTIME')) < 2:
             return 'BIAS'
         elif self.get('OBSTYPE').upper() == 'DARK':
             return 'DARK'
