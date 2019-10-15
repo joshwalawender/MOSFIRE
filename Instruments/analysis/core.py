@@ -72,4 +72,5 @@ def make_master_bias(kdl, clippingsigma=5, clippingiters=3, trimpix=0):
                   f'{median.value:.1f}, {mode:d}, {stddev.value:.2f}')
         master_bias_kd.pixeldata.append(master_bias_i)
     master_bias_kd.nbiases = kdl.len
+    log.info('  Done')
     return master_bias_kd

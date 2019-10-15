@@ -93,6 +93,10 @@ def determine_dark_current(input, master_bias=None,
 #     dark_medians = np.array(dark_medians)
 
     # Fit Line to Dark Level to Determine Dark Current
+    log.info(f"  Determining dark current from")
+    exptime_ints = [int(t) for t in exptimes]
+    for t in set(exptime_ints):
+        log.info(f"    {exptime_ints.count(t)} {t} second darks")
     DC = [None]*npds
     line = models.Linear1D(intercept=0, slope=0)
     line.intercept.fixed = True
