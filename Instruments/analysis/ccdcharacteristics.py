@@ -106,4 +106,4 @@ def determine_dark_current(input, master_bias=None,
 #         dc_fit_median = fitter(line, exptimes, dark_medians[:,i])
         DC[i] = dc_fit_mean.slope.value * u.adu/u.second
         log.info(f'  Dark Current is {DC[i]:.3f} for extension {i+1}')
-    return DC
+    return u.Quantity(DC)
