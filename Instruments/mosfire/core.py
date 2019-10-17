@@ -23,7 +23,10 @@ from scipy import ndimage
 
 from Instruments import connect_to_ktl, create_log
 
-from ktl import Exceptions as ktlExceptions
+try:
+    from ktl import Exceptions as ktlExceptions
+except:
+    pass
 
 import matplotlib as mpl
 mpl.use('Agg')
