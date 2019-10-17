@@ -129,7 +129,8 @@ def get_current_mask():
         leftmm = barpos[leftbar-1]
         rightbar = slitno*2-1
         rightmm = barpos[rightbar-1]
-        slitcent = 0
+        centermm = (leftmm + rightmm) / 2
+        slitcent = 189.62934431020133 - -1.3801254681363402 * centermm
         width = (leftmm - rightmm)*0.7/0.507
         slits_list.append( {'centerPositionArcsec': slitcent,
                             'leftBarNumber': leftbar,
