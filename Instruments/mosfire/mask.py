@@ -155,6 +155,7 @@ class Mask(object):
                                 'slitWidthArcsec': width,
                                 'target': ''} )
         self.slitpos = Table(slits_list)
+        self.slitpos.sort('slitNumber')
 
         # Alignment Box
         slit23 = self.slitpos[self.slitpos['slitNumber'] == 23][0]
