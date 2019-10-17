@@ -34,35 +34,36 @@ class Mask(object):
         self.PA = None
         self.mascgenArguments = None
 
-        xmlfile = Path(input)
-        if type(input) == Path:
-            self.read_xml(input)
-        elif xmlfile.exists():
-            log.debug(f'"{input}" exists as file on disk')
-            self.read_xml(xmlfile)
-        # Is the input OPEN mask
-        elif input.upper() in ['OPEN', 'OPEN MASK']:
-            log.debug(f'"{input}" interpreted as OPEN')
-            self.build_open_mask()
-        # Is the input asking for a random mask
-        elif input.upper() in ['RAND', 'RANDOM']:
-            log.debug(f'"{input}" interpreted as RANDOM')
-            self.build_random_mask()
-        # Try to parse input as long slit specification
-        elif input is None:
+        if input is None:
             pass
         else:
-            try:
-                width, length = input.split('x')
-                width = float(width)
-                length = int(length)
-                assert length <= 46
-                assert width > 0
-                self.build_longslit(input)
-            except:
-                log.debug(f'Unable to parse "{input}" as long slit')
-                log.error(f'Unable to parse "{input}"')
-                raise ValueError(f'Unable to parse "{input}"')
+            xmlfile = Path(input)
+            if type(input) == Path:
+                self.read_xml(input)
+            elif xmlfile.exists():
+                log.debug(f'"{input}" exists as file on disk')
+                self.read_xml(xmlfile)
+            # Is the input OPEN mask
+            elif input.upper() in ['OPEN', 'OPEN MASK']:
+                log.debug(f'"{input}" interpreted as OPEN')
+                self.build_open_mask()
+            # Is the input asking for a random mask
+            elif input.upper() in ['RAND', 'RANDOM']:
+                log.debug(f'"{input}" interpreted as RANDOM')
+                self.build_random_mask()
+            # Try to parse input as long slit specification
+            else:
+                try:
+                    width, length = input.split('x')
+                    width = float(width)
+                    length = int(length)
+                    assert length <= 46
+                    assert width > 0
+                    self.build_longslit(input)
+                except:
+                    log.debug(f'Unable to parse "{input}" as long slit')
+                    log.error(f'Unable to parse "{input}"')
+                    raise ValueError(f'Unable to parse "{input}"')
 
 
     def read_xml(self, xml):

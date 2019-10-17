@@ -120,7 +120,7 @@ def get_current_mask():
     deltas = [abs(pair[0]-pair[1]) < 0.01 for pair in zip(barpos, bartarg)]
     assert np.all(deltas)
 
-    current_mask = Mask()
+    current_mask = Mask(None)
     current_mask.name = get('MASKNAME', service='mcsus')
 
     slits_list = []
@@ -130,7 +130,7 @@ def get_current_mask():
         rightbar = slitno*2-1
         rightmm = barpos[rightbar-1]
         slitcent = 0
-        width = (rightmm - leftmm)*0.7/0.507
+        width = (leftmm - rightmm)*0.7/0.507
         slits_list.append( {'centerPositionArcsec': slitcent,
                             'leftBarNumber': leftbar,
                             'leftBarPositionMM': leftmm,
@@ -139,7 +139,8 @@ def get_current_mask():
                             'slitNumber': slitno,
                             'slitWidthArcsec': width,
                             'target': ''} )
-    self.slitpos = Table(slits_list)
+    current_mask.slitpos = Table(slits_list)
+    return current_mask
 
 
 ## ------------------------------------------------------------------
