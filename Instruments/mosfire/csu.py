@@ -1,3 +1,6 @@
+import numpy as np
+from astropy.table import Table, Column
+
 from .core import *
 from .mechs import *
 from .mask import *
@@ -10,6 +13,19 @@ class CSUFatalError(Exception):
 ##-------------------------------------------------------------------------
 ## CSU Controls
 ##-------------------------------------------------------------------------
+def barok(barnum):
+    '''Is bar number barnum ok?
+    '''
+    return get(f"B{barnum:02d}STAT") == 'OK'
+
+
+def CSUok():
+    '''Are all the bars ok?
+    '''
+    barstats = [barok(barnum) for barnum in range(1,93,1)]
+    return np.all(barstats)
+
+
 def CSUready():
     '''Is the CSU in the ready state?
     '''
@@ -94,6 +110,36 @@ def initialise_bars(bars=None):
                 assert bar <= 46
                 log.info('Initializing bar {bar}')
                 set('CSUINITBAR', bar)
+
+
+def get_current_mask():
+    '''
+    '''
+    barpos = [get(f"B{bar:02d}POS", mode=float) for bar in range(1,93,1)]
+    bartarg = [get(f"B{bar:02d}TARG", mode=float) for bar in range(1,93,1)]
+    deltas = [abs(pair[0]-pair[1]) < 0.01 for pair in zip(barpos, bartarg)]
+    assert np.all(deltas)
+
+    current_mask = Mask()
+    current_mask.name = get('MASKNAME', service='mcsus')
+
+    slits_list = []
+    for slitno in range(1,47,1):
+        leftbar = slitno*2
+        leftmm = barpos[leftbar-1]
+        rightbar = slitno*2-1
+        rightmm = barpos[rightbar-1]
+        slitcent = 0
+        width = (rightmm - leftmm)*0.7/0.507
+        slits_list.append( {'centerPositionArcsec': slitcent,
+                            'leftBarNumber': leftbar,
+                            'leftBarPositionMM': leftmm,
+                            'rightBarNumber': rightbar,
+                            'rightBarPositionMM': rightmm,
+                            'slitNumber': slitno,
+                            'slitWidthArcsec': width,
+                            'target': ''} )
+    self.slitpos = Table(slits_list)
 
 
 ## ------------------------------------------------------------------

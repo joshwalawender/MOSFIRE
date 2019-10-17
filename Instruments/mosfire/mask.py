@@ -49,6 +49,8 @@ class Mask(object):
             log.debug(f'"{input}" interpreted as RANDOM')
             self.build_random_mask()
         # Try to parse input as long slit specification
+        elif input is None:
+            pass
         else:
             try:
                 width, length = input.split('x')
