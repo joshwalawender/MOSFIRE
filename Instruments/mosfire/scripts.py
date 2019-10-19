@@ -74,9 +74,7 @@ def measure_guider_flexure(obsmode='Y-imaging', reverse=False, skip=None):
             skipped = rotpposns.pop(0)
             log.info(f'Skipping ROTPPOSN = {skipped}')
 
-    print(rotpposns)
     rotpposn = rotpposns.pop(0)
-    print(rotpposns)
     print(f'1. OA: Pick a pointing star near desired EL.')
     print(f'2. OA: Slew to star using PO REF (drive angle = {rotpposn}).')
     print(f'3. OA: Center star on REF using Ca, Ce adjustments ("adjust pointing") and begin guiding.')
@@ -85,9 +83,11 @@ def measure_guider_flexure(obsmode='Y-imaging', reverse=False, skip=None):
     while proceed.lower() not in ['y', 'yes', 'ok', '']:
         proceed = input('Take image? [y]')
     set_obsmode(obsmode)
+    update_FCS()
+    sleep(2)
     waitfor_FCS()
     take_exposure(wait=True)
-    go_dark(wait=False)
+#     go_dark(wait=False)
 
     for rotpposn in rotpposns:
         print(f'4. OA: Choose rotator position angle (PA) near rotator drive angle {rotpposn}.')
@@ -95,8 +95,9 @@ def measure_guider_flexure(obsmode='Y-imaging', reverse=False, skip=None):
         proceed = input('Take image? [y]')
         while proceed.lower() not in ['y', 'yes', 'ok', '']:
             proceed = input('Take image? [y]')
-        set_obsmode(obsmode)
+#         set_obsmode(obsmode)
+        update_FCS()
+        sleep(2)
         waitfor_FCS()
         take_exposure(wait=True)
-        go_dark(wait=False)
-    
+#         go_dark(wait=False)
