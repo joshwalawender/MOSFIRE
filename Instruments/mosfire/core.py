@@ -138,3 +138,30 @@ def set_rotpposn(rotpposn):
         sleep(2)
         log.info('Trying again ...')
         set_rotpposn(rotpposn)
+
+
+##-------------------------------------------------------------------------
+## Software
+##-------------------------------------------------------------------------
+def watchrot_ok():
+    return get('WATCHROTOK', mode=bool)
+
+def watchslew_ok():
+    return get('WATCHSLEWOK', mode=bool)
+
+def watchfcs_ok():
+    return get('WATCHFCSOK', mode=bool)
+
+def watchdarcorr_ok():
+    return get('DARENABL', mode=bool)
+
+def autodisplay_ok():
+    return get('AUTODISPLAYOK', mode=bool)
+
+def watchprocesses_ok():
+    ok = watchrot_ok()
+    ok &= watchslew_ok()
+    ok &= watchfcs_ok()
+    ok &= watchdarcorr_ok()
+    ok &= autodisplay_ok()
+    return ok
