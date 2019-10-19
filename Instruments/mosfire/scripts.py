@@ -53,6 +53,13 @@ def measure_FCS_flexure_set(reverse=False, skip=None, obsmode='H-spectroscopy'):
         sleep(1)
 
 
+def measure_single_guider_flexure(obsmode='Y-imaging'):
+    update_FCS()
+    sleep(2)
+    waitfor_FCS()
+    take_exposure(wait=True)
+
+
 def measure_guider_flexure(obsmode='Y-imaging', reverse=False, skip=None):
     '''
     1. OA: Pick a pointing star near desired EL.
@@ -66,7 +73,7 @@ def measure_guider_flexure(obsmode='Y-imaging', reverse=False, skip=None):
     9. Keep repeating steps 7-10 until you have rotated 360 degrees.
     10. Then repeat for a new EL.
     '''
-    rotpposns = [-360, -315, -270, -225, -180, -135, -90, -45, 0, 45]
+    rotpposns = [-405, -360, -315, -270, -225, -180, -135, -90, -45, 0, 45]
     if reverse is True:
         rotpposns.reverse()
     if skip is not None:
@@ -78,16 +85,11 @@ def measure_guider_flexure(obsmode='Y-imaging', reverse=False, skip=None):
     print(f'1. OA: Pick a pointing star near desired EL.')
     print(f'2. OA: Slew to star using PO REF (drive angle = {rotpposn}).')
     print(f'3. OA: Center star on REF using Ca, Ce adjustments ("adjust pointing") and begin guiding.')
-
     proceed = input('Take image? [y]')
     while proceed.lower() not in ['y', 'yes', 'ok', '']:
         proceed = input('Take image? [y]')
     set_obsmode(obsmode)
-    update_FCS()
-    sleep(2)
-    waitfor_FCS()
-    take_exposure(wait=True)
-#     go_dark(wait=False)
+    measure_single_guider_flexure(obsmode=obsmode)
 
     for rotpposn in rotpposns:
         print(f'4. OA: Choose rotator position angle (PA) near rotator drive angle {rotpposn}.')
@@ -95,9 +97,6 @@ def measure_guider_flexure(obsmode='Y-imaging', reverse=False, skip=None):
         proceed = input('Take image? [y]')
         while proceed.lower() not in ['y', 'yes', 'ok', '']:
             proceed = input('Take image? [y]')
-#         set_obsmode(obsmode)
-        update_FCS()
-        sleep(2)
-        waitfor_FCS()
-        take_exposure(wait=True)
-#         go_dark(wait=False)
+        measure_single_guider_flexure(obsmode=obsmode)
+    go_dark(wait=False)
+
