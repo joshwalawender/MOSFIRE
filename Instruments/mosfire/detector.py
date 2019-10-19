@@ -6,6 +6,26 @@ from .mechs import *
 ##-------------------------------------------------------------------------
 ## MOSFIRE Exposure Control Functions
 ##-------------------------------------------------------------------------
+def object():
+    '''Returns the object string.'''
+    return get('OBJECT')
+
+
+def set_object(input):
+    '''Set the object string.'''
+    return set('OBJECT', input)
+
+
+def observer():
+    '''Returns the object string.'''
+    return get('OBSERVER')
+
+
+def set_observer(input):
+    '''Set the object string.'''
+    return set('OBSERVER', input)
+
+
 def exptime():
     '''Returns the exposure time per coadd in seconds.'''
     return get('ITIME', mode=int)/1000
