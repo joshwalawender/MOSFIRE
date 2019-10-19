@@ -170,7 +170,7 @@ def FCS_ok():
     return (active is True) and (enabled is True)
 
 
-def check_FCS(PAthreshold=0.1, ELthreshold=0.1):
+def check_FCS(PAthreshold=0.5, ELthreshold=0.5):
     '''Check status of FCS.  Returns True if system appears ok.
     '''
     FCPA_EL = get('PA_EL', service='mfcs', mode=str)
@@ -183,7 +183,14 @@ def check_FCS(PAthreshold=0.1, ELthreshold=0.1):
     return done
 
 
-def waitfor_FCS(timeout=60, PAthreshold=0.1, ELthreshold=0.1, noshim=False):
+def update_FCS():
+    ROTPPOSN = get('ROTPPOSN', service='dcs', mode=float)
+    EL = get('EL', service='dcs', mode=float)
+    log.info(f'Updating FCS PA_EL values to current DCS values')
+    set('PA_EL', f"{ROTPPOSN:.2f} {EL:.2f}", service='mfcs')
+
+
+def waitfor_FCS(timeout=60, PAthreshold=0.5, ELthreshold=0.5, noshim=False):
     '''Wait for FCS to get close to actual PA and EL.
     '''
     log.info('Waiting for FCS to reach destination')
