@@ -142,6 +142,7 @@ def set_rotpposn(rotpposn):
 
 ##-------------------------------------------------------------------------
 ## Software
+## * check for camera connection (ICE?)
 ##-------------------------------------------------------------------------
 def watchrot_ok():
     return get('WATCHROTOK', mode=bool)
