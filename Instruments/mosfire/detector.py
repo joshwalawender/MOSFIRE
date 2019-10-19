@@ -6,6 +6,20 @@ from .mechs import *
 ##-------------------------------------------------------------------------
 ## MOSFIRE Exposure Control Functions
 ##-------------------------------------------------------------------------
+def outdir():
+    '''Return the outdir string.'''
+    return get('OUTDIR')
+
+
+def set_outdir(input):
+    '''Set the outdir string.'''
+    p = Path(input)
+    if not p.parent.exists():
+        log.error(f'Can not find parent directory for {input}')
+        log.error('Failed to set OUTDIR')
+    return set('OUTDIR', p)
+
+
 def object():
     '''Returns the object string.'''
     return get('OBJECT')
@@ -107,7 +121,8 @@ def wfgo(timeout=300, noshim=False):
     waitfor_exposure(timeout=timeout, noshim=noshim)
 
 
-def goi(exptime=None, coadds=None, sampmode=None, wait=True):
+def goi(exptime=None, coadds=None, sampmode=None, wait=True,
+        waitforFCS=True, updateFCS=True):
     '''Take an exposure.
     
     If the exptime, coadds, sampmode inputs are specified, those parameters for
@@ -120,6 +135,14 @@ def goi(exptime=None, coadds=None, sampmode=None, wait=True):
         set_coadds(coadds)
     if sampmode is not None:
         set_sampmode(sampmode)
+
+    if updateFCS is True:
+        update_FCS()
+        sleep(1)
+    if waitforFCS is True:
+        waitfor_FCS
+
+
     log.info('Taking exposure')
     set('go', '1')
     if wait is True:
@@ -131,10 +154,12 @@ def goi(exptime=None, coadds=None, sampmode=None, wait=True):
             log.warning(f'Did not find file: {imagefile}')
 
 
-def take_exposure(exptime=None, coadds=None, sampmode=None, wait=True):
+def take_exposure(exptime=None, coadds=None, sampmode=None, wait=True,
+                  waitforFCS=True, updateFCS=True):
     '''Alias take_exposure to goi
     '''
-    goi(exptime=exptime, coadds=coadds, sampmode=sampmode, wait=wait)
+    goi(exptime=exptime, coadds=coadds, sampmode=sampmode, wait=wait,
+        waitforFCS=waitforFCS, updateFCS=updateFCS)
 
 
 def filename():
