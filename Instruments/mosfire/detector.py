@@ -69,6 +69,15 @@ def sampmode():
     return get('SAMPMODE', mode=int)
 
 
+def numreads():
+    '''Returns the number of sampling reads.
+    
+    CDS would have 2 reads.
+    MCDS16 would have 16 reads.
+    '''
+    return get('SAMPMODE', mode=int)
+
+
 def parse_sampmode(input):
     if type(input) is int:
         sampmode = input
@@ -146,6 +155,7 @@ def goi(exptime=None, coadds=None, sampmode=None, wait=True,
     log.info('Taking exposure')
     set('go', '1')
     if wait is True:
+        sleep(2)
         waitfor_exposure()
         imagefile = Path(lastfile())
         if imagefile.exists():

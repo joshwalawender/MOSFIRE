@@ -37,10 +37,10 @@ def checkout(quick=False):
     * Quick Dark
     * Message user to verify sidecar logging
     '''
-    intromsg = 'This script will do a quick checkout of MOSFIRE.  It should '\
-               'take about ?? minutes to complete.  Please confirm that you '\
-               'have started the MOSFIRE software AND that the instrument '\
-               'rotator is not within 10 degrees of a multiple of 180 degrees.'
+    intromsg = ('This script will do a quick checkout of MOSFIRE.  It should '
+                'take about ?? minutes to complete.  Please confirm that you '
+                'have started the MOSFIRE software AND that the instrument '
+                'rotator is not within 10 degrees of a multiple of 180.')
     log.info(intromsg)
     print()
     proceed = input('Continue? [y]')

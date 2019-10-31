@@ -57,6 +57,7 @@ def analyze_mask_image(imagefile, filtersize=7, plot=False):
             plt.plot(bars[bar], np.mean(ypos[bar]), 'rx', alpha=0.5)
         plt.savefig(str(plotfile))
 
+    
     return bars
 
 
