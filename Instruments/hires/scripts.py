@@ -8,6 +8,46 @@ from .mechs import *
 
 
 # -----------------------------------------------------------------------------
+# Take Data for Detector Characterization
+# -----------------------------------------------------------------------------
+def take_characterization_data(noflats=True, nframes=5, binning='2x1',
+          darktimes=[60,120,300,600,900],
+          flattimes=[5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 80, 100, 140, 180],
+          ):
+    assert enclosure_safe() is True
+
+    set_binning(binning)
+
+    # Take flats
+    set_covers('open')
+    set('hires', 'xdcover', 'closed', wait=True)
+    set_lamp('quartz1')
+    set_lamp_filter('clear')
+    set_filters('clear', 'clear')
+    set_echang(0)
+    set_xdang(0)
+    for flattime in flattimes:
+        set_obstype('IntFlat')
+        set_exptime(flattime)
+        take_exposure(nexp=nframes)
+
+    # Take Biases and Darks
+    set_covers('closed')
+    set_obstype('Bias')
+    set_exptime(0)
+    take_exposure(nexp=nframes)
+    for darktime in darktimes:
+        set_obstype('Bias')
+        set_exptime(0)
+        take_exposure(nexp=nframes)
+        set_obstype('Dark')
+        set_exptime(darktime)
+        take_exposure(nexp=nframes)
+
+    
+
+
+# -----------------------------------------------------------------------------
 # Calibrate Cross Disperser
 # -----------------------------------------------------------------------------
 def calibrate_cd():
