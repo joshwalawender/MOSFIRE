@@ -6,6 +6,7 @@ from .expo import *
 from .iodine import *
 from .mechs import *
 
+from time import sleep
 
 # -----------------------------------------------------------------------------
 # Take Data for Detector Characterization
@@ -19,21 +20,22 @@ def take_characterization_data(noflats=True, nframes=5, binning='2x1',
     set_binning(binning)
 
     # Take flats
-    set_covers('open')
-    set('hires', 'xdcover', 'closed', wait=True)
-    set_lamp('quartz1')
-    set_lamp_filter('clear')
-    set_filters('clear', 'clear')
-    set_echang(0)
-    set_xdang(0)
-    for flattime in flattimes:
-        set_obstype('IntFlat')
-        set_exptime(flattime)
-        take_exposure(nexp=nframes)
-    set_lamp('none')
-    set_lamp_filter('ng3')
+    if len(flattimes) > 0:
+        set_covers('open')
+        set('hires', 'xdcover', 'closed', wait=True)
+        set_lamp('quartz1')
+        set_lamp_filter('clear')
+        set_filters('clear', 'clear')
+        set_echang(0)
+        set_xdang(0)
+        for flattime in flattimes:
+            set_obstype('IntFlat')
+            set_exptime(flattime)
+            take_exposure(nexp=nframes)
 
     # Take Biases and Darks
+    set_lamp('none')
+    set_lamp_filter('ng3')
     set_covers('closed')
     set_obstype('Bias')
     set_exptime(0)
