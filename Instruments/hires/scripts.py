@@ -30,6 +30,8 @@ def take_characterization_data(noflats=True, nframes=5, binning='2x1',
         set_obstype('IntFlat')
         set_exptime(flattime)
         take_exposure(nexp=nframes)
+    set_lamp('none')
+    set_lamp_filter('ng3')
 
     # Take Biases and Darks
     set_covers('closed')
@@ -43,8 +45,6 @@ def take_characterization_data(noflats=True, nframes=5, binning='2x1',
         set_obstype('Dark')
         set_exptime(darktime)
         take_exposure(nexp=nframes)
-
-    
 
 
 # -----------------------------------------------------------------------------
