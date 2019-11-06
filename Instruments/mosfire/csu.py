@@ -1,5 +1,5 @@
 import numpy as np
-from astropy.table import Table, Column
+from astropy.table import Table, Column, Row
 
 from .core import *
 from .mechs import *
@@ -77,10 +77,14 @@ def setup_mask(mask):
     log.info(f'Setting up mask: {mask.name}')
     log.debug('Setting bar target position keywords')
     for slit in mask.slitpos:
-        log.debug(f"  Setting B{slit['rightBarNumber']:02d}TARG = {slit['rightBarPositionMM']}")
-        set(f"B{slit['rightBarNumber']:02d}TARG", slit['rightBarPositionMM'])
-        log.debug(f"  Setting B{slit['leftBarNumber']:02d}TARG = {slit['leftBarPositionMM']}")
-        set(f"B{slit['leftBarNumber']:02d}TARG", slit['leftBarPositionMM'])
+        rbn = slit['rightBarNumber']
+        rbp = slit['rightBarPositionMM']
+        lbn = slit['leftBarNumber']
+        lbp = slit['leftBarPositionMM']
+        log.debug(f"  Setting B{rbn:02d}TARG = {rbp}")
+        set(f"B{rbn:02d}TARG", rbp)
+        log.debug(f"  Setting B{lbn:02d}TARG = {lbp}")
+        set(f"B{lbn:02d}TARG", lbp)
     log.debug('Invoke SETUP process on CSU')
     set('CSUSETUP', 1)
     set('SETUPNAME', mask.name, service='mcsus')
@@ -142,6 +146,41 @@ def get_current_mask():
                             'target': ''} )
     current_mask.slitpos = Table(slits_list)
     return current_mask
+
+
+##-------------------------------------------------------------------------
+## Bar Status Checks
+##-------------------------------------------------------------------------
+def read_csu_bar_state():
+    if not csu_bar_state_file.exists():
+        log.error(f"Unable to locate csu_bar_state file: {csu_bar_state_file}")
+        return None
+    mask = Mask(None)
+    mask.name = 'From csu_bar_state'
+    with open(csu_bar_state_file, 'r') as cbs:
+        lines = cbs.readlines()
+    t = Table(names=('slitNumber', 'leftBarNumber', 'rightBarNumber',
+                     'leftBarPositionMM', 'rightBarPositionMM',
+                     'centerPositionArcsec', 'slitWidthArcsec', 'target'),
+              dtype=('i4', 'i4', 'i4', 'f4', 'f4', 'f4', 'f4', 'a30'))
+    for line in lines:
+        barno, barpos, barstate = line.strip('\n').split(',')
+        slit = bar_to_slit(int(barno))
+        if int(barno) % 2 != 0:
+            dict = {'slitNumber': slit}
+            dict['leftBarNumber'] = -1
+            dict['leftBarPositionMM'] = float('nan')
+            dict['rightBarNumber'] = int(barno)
+            dict['rightBarPositionMM'] = float(barpos)
+            dict['centerPositionArcsec'] = float('nan')
+            dict['slitWidthArcsec'] = float('nan')
+            dict['target'] = ''
+            t.add_row(dict)
+        else:
+            t[slit-1]['leftBarNumber'] = int(barno)
+            t[slit-1]['leftBarPositionMM'] = float(barpos)
+    mask.slitpos = t
+    return mask
 
 
 ## ------------------------------------------------------------------
@@ -233,7 +272,7 @@ def physical_to_pixel(x):
 #     physical = yaml.safe_load(contents)
 # Apixel_to_physical, Aphysical_to_pixel = fit_transforms(pixels, physical)
 ## Convert from numpy arrays to list for simpler YAML
-# Apixel_to_physical = [ [float(val) for val in line] for line in Apixel_to_physical]
-# Aphysical_to_pixel = [ [float(val) for val in line] for line in Aphysical_to_pixel]
+# Apixel_to_physical = [[float(val) for val in l] for l in Apixel_to_physical]
+# Aphysical_to_pixel = [[float(val) for val in l] for l in Aphysical_to_pixel]
 # with open('MOSFIRE_transforms.txt', 'w') as FO:
 #     FO.write(yaml.dump([Aphysical_to_pixel, Apixel_to_physical]))

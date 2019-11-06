@@ -42,6 +42,7 @@ name = 'MOSFIRE'
 serviceNames = ['mosfire', 'mmf1s', 'mmf2s', 'mcsus', 'mfcs', 'mds', 'dcs']
 modes = ['dark-imaging', 'dark-spectroscopy', 'imaging', 'spectroscopy']
 filters = ['Y', 'J', 'H', 'K', 'J2', 'J3', 'NB']
+csu_bar_state_file = Path('/s/sdata1300/logs/server/mcsus/csu_bar_state')
 
 allowed_sampmodes = [2, 3]
 sampmode_names = {'CDS': (2, None), 'MCDS': (3, None), 'MCDS16': (3, 16)}
