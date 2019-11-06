@@ -75,12 +75,12 @@ def set_covers(dest, wait=True):
                     camcover = open   darkslid = open     wait
     """
     assert dest in ['open', 'closed']
-    collimator = collimator()
-    log.info(f'Setting {collimator} covers to {dest}')
+    whichcollimator = collimator()
+    log.info(f'Setting {whichcollimator} covers to {dest}')
 
-    if collimator == 'red':
+    if whichcollimator == 'red':
         set('hires', 'rcocover', dest, wait=False)
-    elif collimator == 'blue':
+    elif whichcollimator == 'blue':
         set('hires', 'bcocover', dest, wait=False)
     else:
         log.error('Collimator is unknown. Cover not opened.')
@@ -92,9 +92,9 @@ def set_covers(dest, wait=True):
     set('hires', 'darkslid', dest, wait=False)
 
     if wait is True:
-        if collimator == 'red':
+        if whichcollimator == 'red':
             set('hires', 'rcocover', dest, wait=True)
-        elif collimator == 'blue':
+        elif whichcollimator == 'blue':
             set('hires', 'bcocover', dest, wait=True)
         else:
             log.error('Collimator is unknown. Cover not opened.')
