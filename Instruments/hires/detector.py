@@ -1,5 +1,7 @@
 from .core import *
+
 import re
+from time import sleep
 
 try:
     import ktl
@@ -124,7 +126,7 @@ def wait_for_observip(timeout=300):
             raise Exception('Timed out waiting for OBSERVIP')
 
 
-def take_exposure(type=None, exptime=None, nexp=1):
+def take_exposure(type=None, exptime=None, nexp=1, timeshim=True):
     """Takes one or more exposures of the given exposure time and type.
     Modeled after goi script.
     """
@@ -149,13 +151,14 @@ def take_exposure(type=None, exptime=None, nexp=1):
         log.info(f"Taking exposure {i+1:d} of {nexp:d}")
         log.info(f"  Exposure Time = {exptime:d} s")
         set('hiccd', 'EXPOSE', True)
+        if timeshim is True: sleep(1)
         exposing = ktl.Expression("($hiccd.OBSERVIP == True) "
                                   "and ($hiccd.EXPOSIP == True )")
         reading = ktl.Expression("($hiccd.OBSERVIP == True) "
                                  "and ($hiccd.WCRATE == True )")
         obsdone = ktl.Expression("($hiccd.OBSERVIP == False)")
 
-        if not exposing.wait(timeout=30):
+        if not exposing.wait(timeout=30) and exptime > 2:
             raise Exception('Timed out waiting for EXPOSING to start')
         log.info('  Exposing ...')
 
