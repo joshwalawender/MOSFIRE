@@ -1,3 +1,6 @@
+from datetime import datetime as dt
+import subprocess
+
 from .core import *
 from .cals import *
 from .detector import *
@@ -62,7 +65,7 @@ def PRV_afternoon_setup(check_iodine=True, fnroot=None):
             log.info(f'  tempiod1 = {tempiod1:.1f} C')
             log.info(f'  tempiod2 = {tempiod2:.1f} C')
             log.info(f'  waiting 5 minutes before checking again (or CTRL-c to exit)')
-            sleep(300)
+            sleep(60)
     if check_iodine_temps() is True:
         log.info('Iodine cell at temperature:')
     else:
@@ -86,9 +89,9 @@ def PRV_afternoon_setup(check_iodine=True, fnroot=None):
     # - iodine out
     iodine_out()
     # - texp = 10 seconds
-    set_itime(10)
+    set_exptime(10)
     # - expose
-    take_exposure(n=1)
+    take_exposure(nexp=1)
     
     # - -> run IDL focus routine and iterate as needed
     foc_instructions = f"""
