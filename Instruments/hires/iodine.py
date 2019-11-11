@@ -10,7 +10,7 @@ def iodine_temps():
     return [tempiod1, tempiod2]
 
 
-def check_iodine_temps(target1=65, target2=50, range=0.1, wait=False):
+def check_iodine_temps(target1=65, target2=50, range=0.05, wait=False):
     """Checks the iodine cell temperatures agains the given targets and
     range.  Default values are those used by the CPS team.
     """
@@ -20,7 +20,8 @@ def check_iodine_temps(target1=65, target2=50, range=0.1, wait=False):
     tempiod2_diff = tempiod2 - target2
     log.debug(f'  tempiod1 is {tempiod1_diff:.1f} off nominal')
     log.debug(f'  tempiod2 is {tempiod2_diff:.1f} off nominal')
-    if abs(tempiod1_diff) < range and abs(tempiod2_diff) < range:
+#    if abs(tempiod1_diff) < range and abs(tempiod2_diff) < range:
+    if abs(tempiod2_diff) < range:
         log.info('  Iodine temperatures in range')
         return True
     else:
