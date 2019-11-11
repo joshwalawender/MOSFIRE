@@ -126,7 +126,7 @@ def wait_for_observip(timeout=300):
             raise Exception('Timed out waiting for OBSERVIP')
 
 
-def take_exposure(type=None, exptime=None, nexp=1, timeshim=True):
+def goi(type=None, exptime=None, nexp=1, timeshim=True):
     """Takes one or more exposures of the given exposure time and type.
     Modeled after goi script.
     """
@@ -168,11 +168,18 @@ def take_exposure(type=None, exptime=None, nexp=1, timeshim=True):
 
         if not obsdone.wait(timeout=90):
             raise Exception('Timed out waiting for READING to finish')
+        lf = lastfile()
+        if lf.exists():
+            log.info(f"  Found image file: {lf}")
+        else:
+            log.warning(f"  Image file {lf} not found on disk")
         log.info('Done')
 
 
-def goi(type=None, exptime=None, nexp=1):
-    take_exposure(type=type, exptime=exptime, nexp=nexp)
+def take_exposure(type=None, exptime=None, nexp=1, timeshim=True):
+    '''Alias take_exposure to goi
+    '''
+    goi(type=type, exptime=exptime, nexp=nexp, timeshim=timeshim)
 
 
 def lastfile():
