@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from .core import *
 from .cals import *
 from .detector import *
@@ -11,10 +13,34 @@ from time import sleep
 # -----------------------------------------------------------------------------
 # Take Data for Detector Characterization
 # -----------------------------------------------------------------------------
+def estimate_flat_times(flattime=30,
+                        adulevels=[]):
+    """Take a flat image and use that to estimate the set of flat exposure
+    times that would make a good data set for the `take_characterization_data`
+    script.
+    """
+    raise NotImplementedYetError
+    set_covers('open')
+    set('hires', 'xdcover', 'closed', wait=True)
+    set_lamp('quartz1')
+    set_lamp_filter('clear')
+    set_filters('clear', 'clear')
+    set_echang(0)
+    set_xdang(0)
+    set_obstype('IntFlat')
+    set_exptime(flattime)
+    take_exposure()
+    last_file = Path(lastfile())
+    assert last_file.exists() is True
+
+
 def take_characterization_data(noflats=True, nframes=5, binning='2x1',
           darktimes=[60,120,300,600,900],
-          flattimes=[5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 80, 100, 140, 180],
+          flattimes=[10, 15, 20, 25, 30, 40, 50, 60, 80, 100, 140, 180],
           ):
+    """Take a series of biases, darks, and flats to be used to measure read
+    noise, dark current, gain, and linearity.
+    """
     assert enclosure_safe() is True
 
     set_binning(binning)
