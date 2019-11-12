@@ -168,6 +168,7 @@ def goi(type=None, exptime=None, nexp=1, timeshim=True):
 
         if not obsdone.wait(timeout=90):
             raise Exception('Timed out waiting for READING to finish')
+        sleep(0.5)
         lf = lastfile()
         if lf.exists():
             log.info(f"  Found image file: {lf}")
