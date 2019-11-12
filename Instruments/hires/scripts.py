@@ -9,34 +9,55 @@ from .iodine import *
 from .mechs import *
 
 from time import sleep
+from astropy.io import fits
+import numpy as np
+
 
 # -----------------------------------------------------------------------------
 # Take Data for Detector Characterization
 # -----------------------------------------------------------------------------
-def estimate_flat_times(flattime=30,
-                        adulevels=[]):
-    """Take a flat image and use that to estimate the set of flat exposure
-    times that would make a good data set for the `take_characterization_data`
-    script.
-    """
-    raise NotImplementedYetError
+def config_for_flats():
     set_covers('open')
+    log.info('Closing XD cover')
     set('hires', 'xdcover', 'closed', wait=True)
     set_lamp('quartz1')
     set_lamp_filter('clear')
     set_filters('clear', 'clear')
     set_echang(0)
     set_xdang(0)
+    set_decker('D4')
     set_obstype('IntFlat')
+
+
+def estimate_flat_times(flattime=30, target_level=60000):
+    """Take a flat image and use that to estimate the set of flat exposure
+    times that would make a good data set for the `take_characterization_data`
+    script.
+    """
+    log.info('Estimating flat times for gain and linearity measurement')
+    config_for_flats()
     set_exptime(flattime)
     take_exposure()
     last_file = Path(lastfile())
     assert last_file.exists() is True
 
+    rates = []
+    hdul = fits.open(last_file)
+    for hdu in hdul:
+        if hdu.data is not None:
+            med = np.median(hdu.data)
+            rates.append(med / flattime)
+    longest_exp = np.floor(target_level/min(rates)/10)*10 # rounded to nearest 10s
+
+    flattimes = np.array([1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10, 15, 20, 30])/30
+    flattimes = [np.floor(exp) for exp in flattimes*longest_exp]
+    return flattimes
+
 
 def take_characterization_data(noflats=True, nframes=5, binning='2x1',
           darktimes=[60,120,300,600,900],
           flattimes=[10, 15, 20, 25, 30, 40, 50, 60, 80, 100, 140, 180],
+          autoflattimes=True,
           ):
     """Take a series of biases, darks, and flats to be used to measure read
     noise, dark current, gain, and linearity.
@@ -45,19 +66,17 @@ def take_characterization_data(noflats=True, nframes=5, binning='2x1',
 
     set_binning(binning)
 
+    if autoflattimes is True:
+        flattimes = estimate_flat_times()
+        log.info(f"  {flattimes}")
+    else:
+        config_for_flats()
+
     # Take flats
-    if len(flattimes) > 0:
-        set_covers('open')
-        set('hires', 'xdcover', 'closed', wait=True)
-        set_lamp('quartz1')
-        set_lamp_filter('clear')
-        set_filters('clear', 'clear')
-        set_echang(0)
-        set_xdang(0)
-        for flattime in flattimes:
-            set_obstype('IntFlat')
-            set_exptime(flattime)
-            take_exposure(nexp=nframes)
+    for flattime in flattimes:
+        set_obstype('IntFlat')
+        set_exptime(flattime)
+        take_exposure(nexp=nframes)
 
     # Take Biases and Darks
     set_lamp('none')
