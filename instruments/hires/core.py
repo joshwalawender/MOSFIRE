@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 import logging
 
-from Instruments import connect_to_ktl, create_log
+from instruments import connect_to_ktl, create_log
 
 try:
     from ktl import Exceptions as ktlExceptions
@@ -20,7 +20,7 @@ name = 'HIRES'
 # scripts = ["stare", "slit nod", "ABBA", "ABB'A'"]
 binnings = ["1x1", "1x2", "2x1", "2x2", "3x1"]
 lampnames = ['none', 'ThAr1', 'ThAr2', 'quartz1', 'quartz2']
-serviceNames = ["hires", "hiccd", "expo"]
+serviceNames = ["hires", "hiccd", "expo", "dcs"]
 obstypes = ['Object', 'Dark', 'Line', 'Bias', 'IntFlat', 'DmFlat', 'SkyFlat']
 slits = {'B1': (3.5, 0.574),
          'B2': (7.0, 0.574),
@@ -45,12 +45,19 @@ slits = {'B1': (3.5, 0.574),
          }
 
 log = create_log(name, loglevel='INFO')
-services = connect_to_ktl(name, serviceNames)
+services = {}
 
 
 ##-------------------------------------------------------------------------
 ## Define Common Functions
 ##-------------------------------------------------------------------------
+def connect(service):
+    if type(connect) is str and connect.lower() == 'all':
+        services.update(connect_to_ktl(name, serviceNames))
+    else:
+        services.update(connect_to_ktl(name, [service]))
+
+
 def get(service, keyword, mode=str):
     """Generic function to get a keyword value.  Converts it to the specified
     mode and does some simple parsing of true and false strings.

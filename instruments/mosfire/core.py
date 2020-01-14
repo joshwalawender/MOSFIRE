@@ -21,7 +21,7 @@ from astropy import units as u
 from astropy.modeling import models, fitting
 from scipy import ndimage
 
-from Instruments import connect_to_ktl, create_log
+from instruments import connect_to_ktl, create_log
 
 try:
     from ktl import Exceptions as ktlExceptions
@@ -55,12 +55,19 @@ Aphysical_to_pixel = np.array(Aphysical_to_pixel)
 Apixel_to_physical = np.array(Apixel_to_physical)
 
 log = create_log(name, loglevel='INFO')
-services = connect_to_ktl(name, serviceNames)
+services = {}
 
 
 ##-------------------------------------------------------------------------
 ## Define Common Functions
 ##-------------------------------------------------------------------------
+def connect(service):
+    if type(connect) is str and connect.lower() == 'all':
+        services.update(connect_to_ktl(name, serviceNames))
+    else:
+        services.update(connect_to_ktl(name, [service]))
+
+
 def get(keyword, service='mosfire', mode=str):
     """Generic function to get a keyword value.  Converts it to the specified
     mode and does some simple parsing of true and false strings.
