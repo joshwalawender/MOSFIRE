@@ -121,7 +121,7 @@ def set(keyword, value, service='mosfire', wait=True):
 def _set_rotpposn(rotpposn):
     '''Set the rotator position in stationary mode.
     
-    This only tries tose the position once, use `set_rotpposn` in practice
+    This only tries to set the position once, use `set_rotpposn` in practice
     as it makes multiple attempts which seems to be more reliable.
     '''
     log.info(f'Setting ROTPPOSN to {rotpposn:.1f}')
