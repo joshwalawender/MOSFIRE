@@ -62,7 +62,7 @@ services = {}
 ## Define Common Functions
 ##-------------------------------------------------------------------------
 def connect(service):
-    if type(connect) is str and connect.lower() == 'all':
+    if type(service) is str and service.lower() == 'all':
         services.update(connect_to_ktl(name, serviceNames))
     else:
         services.update(connect_to_ktl(name, [service]))
