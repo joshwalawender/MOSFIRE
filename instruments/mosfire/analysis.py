@@ -1,6 +1,12 @@
 from .core import *
 from .csu import *
 
+import matplotlib as mpl
+mpl.use('Agg')
+from matplotlib import pyplot as plt
+from astropy import visualization as viz
+plt.ioff()
+
 
 ## ------------------------------------------------------------------
 ##  Analyze Image to Determine Bar Positions

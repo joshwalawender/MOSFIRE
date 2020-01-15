@@ -28,12 +28,6 @@ try:
 except:
     pass
 
-import matplotlib as mpl
-mpl.use('Agg')
-from matplotlib import pyplot as plt
-from astropy import visualization as viz
-plt.ioff()
-
 
 ##-------------------------------------------------------------------------
 ## MOSFIRE Properties
