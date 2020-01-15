@@ -72,6 +72,10 @@ def get(keyword, service='mosfire', mode=str):
     """Generic function to get a keyword value.  Converts it to the specified
     mode and does some simple parsing of true and false strings.
     """
+    if service not in services.keys():
+        log.error(f'Not connected to service "{service}"')
+        return None
+
     log.debug(f'Querying {service} for {keyword}')
     if services == {}:
         return None
