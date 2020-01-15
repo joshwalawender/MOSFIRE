@@ -112,6 +112,10 @@ def get(keyword, service='mosfire', mode=str):
 def set(keyword, value, service='mosfire', wait=True):
     """Generic function to set a keyword value.
     """
+    if service not in services.keys():
+        log.error(f'Not connected to service "{service}"')
+        return None
+
     log.debug(f'Setting {service}.{keyword} to "{value}" (wait={wait})')
     if services == {}:
         return None
