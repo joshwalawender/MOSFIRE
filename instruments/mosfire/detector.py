@@ -184,15 +184,20 @@ def lastfile():
     This also checks that the file exists.  If it does not, it checks a
     similar path with /s prepended.  This handles the vm-mosfire machine case.
     '''
-    lastfile = Path(get('LASTFILE'))
-    if lastfile.exists():
-        return lastfile
+    lastfile_raw = get('LASTFILE')
+    try:
+        lastfile = Path(lastfile_raw)
+    except:
+        log.warning(f'Could not parse "{lastfile_raw}" as a Path')
     else:
-        # Check and see if we need a /s prepended on the path for this machine
-        trypath = Path('/s')
-        for part in lastfile.parts[1:]:
-            trypath = trypath.joinpath(part)
-        if not trypath.exists():
-            log.warning(f'Could not find last file on disk: {lastfile}')
+        if lastfile.exists():
+            return lastfile
         else:
-            return trypath
+            # Check and see if we need a /s prepended on the path for this machine
+            trypath = Path('/s')
+            for part in lastfile.parts[1:]:
+                trypath = trypath.joinpath(part)
+            if not trypath.exists():
+                log.warning(f'Could not find last file on disk: {lastfile}')
+            else:
+                return trypath
