@@ -88,14 +88,14 @@ def set_obsmode(destination, wait=True, timeout=60,
         else:
             if wait is True:
                 endat = dt.utcnow() + tdelta(seconds=timeout)
-                done = (obsmode().lower() == destination.lower())
                 obsmodekw = ktl.cache(service='mosfire', keyword='OBSMODE')
+                done = (obsmodekw.read().lower() == destination.lower())
                 while not done and dt.utcnow() < endat:
                     sleep(1)
                     done = (obsmodekw.read().lower() == destination.lower())
                 if not done:
                     raise FailedPostCondition(f'Timeout exceeded on waiting for mode {destination}')
-                # Check grating turret status
+            # Check grating turret status
             mmgts_statuskw = ktl.cache(service='mmgts', keyword='STATUS')
             turret_status = mmgts_statuskw.read()
             if turret_status != 'OK':
