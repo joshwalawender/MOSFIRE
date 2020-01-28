@@ -39,3 +39,4 @@ def function(arguments, skipprecond=False, skippostcond=False):
 
     postcondition(arguments, skippostcond=skippostcond)
 
+    return None

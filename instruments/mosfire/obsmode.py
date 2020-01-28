@@ -36,10 +36,12 @@ def obsmode(skipprecond=False, skippostcond=False):
     ## Script Contents
     precondition(skipprecond=skipprecond)
 
-    obsmode = ktl.cache(service='mosfire', keyword='OBSMODE')
-    return obsmode.read()
+    obsmodekw = ktl.cache(service='mosfire', keyword='OBSMODE')
+    obsmode_string = obsmodekw.read()
 
     postcondition(skippostcond=skippostcond)
+
+    return obsmode_string
 
 
 ##-----------------------------------------------------------------------------
