@@ -24,12 +24,12 @@ def obsmode(skipprecond=False, skippostcond=False):
             mmgts_statuskw = ktl.cache(service='mmgts', keyword='STATUS')
             turret_status = mmgts_statuskw.read()
             if turret_status != 'OK':
-                raise FailedPreCondition(f'Grating turret status is not OK: "{turret_status}"')
+                raise FailedPrePostCondition(f'Grating turret status is not OK: "{turret_status}"')
             # Check grating shim status
             mmgss_statuskw = ktl.cache(service='mmgss', keyword='STATUS')
             shim_status = mmgss_statuskw.read()
             if shim_status != 'OK':
-                raise FailedPreCondition(f'Grating shim status is not OK: "{shim_status}"')
+                raise FailedPrePostCondition(f'Grating shim status is not OK: "{shim_status}"')
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -43,12 +43,12 @@ def obsmode(skipprecond=False, skippostcond=False):
             mmgts_statuskw = ktl.cache(service='mmgts', keyword='STATUS')
             turret_status = mmgts_statuskw.read()
             if turret_status != 'OK':
-                raise FailedPostCondition(f'Grating turret status is not OK: "{turret_status}"')
+                raise FailedPrePostCondition(f'Grating turret status is not OK: "{turret_status}"')
             # Check grating shim status
             mmgss_statuskw = ktl.cache(service='mmgss', keyword='STATUS')
             shim_status = mmgss_statuskw.read()
             if shim_status != 'OK':
-                raise FailedPostCondition(f'Grating shim status is not OK: "{shim_status}"')
+                raise FailedPrePostCondition(f'Grating shim status is not OK: "{shim_status}"')
     
     ##-------------------------------------------------------------------------
     ## Script Contents
@@ -84,17 +84,17 @@ def set_obsmode(destination, wait=True, timeout=60,
             if not mode in modes:
                 raise FailedPreCondition(f"Mode: {mode} is unknown")
             if not filter in filters and filter != 'dark':
-                raise FailedPreCondition(f"Filter: {filter} is unknown")
+                raise FailedPrePostCondition(f"Filter: {filter} is unknown")
             # Check grating turret status
             mmgts_statuskw = ktl.cache(service='mmgts', keyword='STATUS')
             turret_status = mmgts_statuskw.read()
             if turret_status != 'OK':
-                raise FailedPreCondition(f'Grating turret status is not OK: "{turret_status}"')
+                raise FailedPrePostCondition(f'Grating turret status is not OK: "{turret_status}"')
             # Check grating shim status
             mmgss_statuskw = ktl.cache(service='mmgss', keyword='STATUS')
             shim_status = mmgss_statuskw.read()
             if shim_status != 'OK':
-                raise FailedPreCondition(f'Grating shim status is not OK: "{shim_status}"')
+                raise FailedPrePostCondition(f'Grating shim status is not OK: "{shim_status}"')
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -112,17 +112,17 @@ def set_obsmode(destination, wait=True, timeout=60,
                     sleep(1)
                     done = (obsmodekw.read().lower() == destination.lower())
                 if not done:
-                    raise FailedPostCondition(f'Timeout exceeded on waiting for mode {destination}')
+                    raise FailedPrePostCondition(f'Timeout exceeded on waiting for mode {destination}')
             # Check grating turret status
             mmgts_statuskw = ktl.cache(service='mmgts', keyword='STATUS')
             turret_status = mmgts_statuskw.read()
             if turret_status != 'OK':
-                raise FailedPostCondition(f'Grating turret status is not OK: "{turret_status}"')
+                raise FailedPrePostCondition(f'Grating turret status is not OK: "{turret_status}"')
             # Check grating shim status
             mmgss_statuskw = ktl.cache(service='mmgss', keyword='STATUS')
             shim_status = mmgss_statuskw.read()
             if shim_status != 'OK':
-                raise FailedPostCondition(f'Grating shim status is not OK: "{shim_status}"')
+                raise FailedPrePostCondition(f'Grating shim status is not OK: "{shim_status}"')
 
     ##-------------------------------------------------------------------------
     ## Script Contents

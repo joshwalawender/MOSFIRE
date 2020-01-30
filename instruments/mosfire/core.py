@@ -8,17 +8,10 @@ import numpy as np
 from instruments import create_log
 
 
-class FailedPreCondition(Exception):
+class FailedPrePostCondition(Exception):
     def __init__(self, message):
         self.message = message
-        log.error('Failed pre-condition check')
-        log.error(f'  {self.message}')
-
-
-class FailedPostCondition(Exception):
-    def __init__(self, message):
-        self.message = message
-        log.error('Failed pre-condition check')
+        log.error('Failed pre- or post- condition check')
         log.error(f'  {self.message}')
 
 
