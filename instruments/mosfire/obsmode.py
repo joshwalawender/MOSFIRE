@@ -20,7 +20,16 @@ def obsmode(skipprecond=False, skippostcond=False):
         if skipprecond is True:
             log.debug('Skipping pre condition checks')
         else:
-            pass
+            # Check grating turret status
+            mmgts_statuskw = ktl.cache(service='mmgts', keyword='STATUS')
+            turret_status = mmgts_statuskw.read()
+            if turret_status != 'OK':
+                raise FailedPreCondition(f'Grating turret status is not OK: "{turret_status}"')
+            # Check grating shim status
+            mmgss_statuskw = ktl.cache(service='mmgss', keyword='STATUS')
+            shim_status = mmgss_statuskw.read()
+            if shim_status != 'OK':
+                raise FailedPreCondition(f'Grating shim status is not OK: "{shim_status}"')
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -30,7 +39,16 @@ def obsmode(skipprecond=False, skippostcond=False):
         if skippostcond is True:
             log.debug('Skipping post condition checks')
         else:
-            pass
+            # Check grating turret status
+            mmgts_statuskw = ktl.cache(service='mmgts', keyword='STATUS')
+            turret_status = mmgts_statuskw.read()
+            if turret_status != 'OK':
+                raise FailedPostCondition(f'Grating turret status is not OK: "{turret_status}"')
+            # Check grating shim status
+            mmgss_statuskw = ktl.cache(service='mmgss', keyword='STATUS')
+            shim_status = mmgss_statuskw.read()
+            if shim_status != 'OK':
+                raise FailedPostCondition(f'Grating shim status is not OK: "{shim_status}"')
     
     ##-------------------------------------------------------------------------
     ## Script Contents
