@@ -1,3 +1,4 @@
+import inspect
 from datetime import datetime as dt
 from datetime import timedelta as tdelta
 import ktl
@@ -52,6 +53,8 @@ def obsmode(skipprecond=False, skippostcond=False):
     
     ##-------------------------------------------------------------------------
     ## Script Contents
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
     precondition(skipprecond=skipprecond)
 
     obsmodekw = ktl.cache(service='mosfire', keyword='OBSMODE')
@@ -86,15 +89,13 @@ def set_obsmode(destination, wait=True, timeout=60,
             if not filter in filters and filter != 'dark':
                 raise FailedPrePostCondition(f"Filter: {filter} is unknown")
             # Check grating turret status
-            mmgts_statuskw = ktl.cache(service='mmgts', keyword='STATUS')
-            turret_status = mmgts_statuskw.read()
-            if turret_status != 'OK':
-                raise FailedPrePostCondition(f'Grating turret status is not OK: "{turret_status}"')
+            turret_statuskw = ktl.cache(service='mmgts', keyword='STATUS')
+            if str(turret_statuskw) != 'OK':
+                raise FailedPrePostCondition(f'Grating turret status is not OK: "{turret_statuskw}"')
             # Check grating shim status
-            mmgss_statuskw = ktl.cache(service='mmgss', keyword='STATUS')
-            shim_status = mmgss_statuskw.read()
-            if shim_status != 'OK':
-                raise FailedPrePostCondition(f'Grating shim status is not OK: "{shim_status}"')
+            shim_statuskw = ktl.cache(service='mmgss', keyword='STATUS')
+            if str(shim_statuskw) != 'OK':
+                raise FailedPrePostCondition(f'Grating shim status is not OK: "{shim_statuskw}"')
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -126,6 +127,8 @@ def set_obsmode(destination, wait=True, timeout=60,
 
     ##-------------------------------------------------------------------------
     ## Script Contents
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
     precondition(destination, skipprecond=skipprecond)
     
     setobsmodekw = ktl.cache(service='mosfire', keyword='SETOBSMODE')

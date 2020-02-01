@@ -1,3 +1,4 @@
+import inspect
 import ktl
 
 from .core import *
@@ -9,7 +10,7 @@ def function(arguments, skipprecond=False, skippostcond=False):
     
     ##-------------------------------------------------------------------------
     ## Pre-Condition Checks
-    def precondition(arguments, skipprecond=False):
+    def precondition(skipprecond=False):
         '''docstring
         '''
         if skipprecond is True:
@@ -23,7 +24,7 @@ def function(arguments, skipprecond=False, skippostcond=False):
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
-    def postcondition(arguments, skippostcond=False):
+    def postcondition(skippostcond=False):
         '''docstring
         '''
         if skippostcond is True:
@@ -38,10 +39,12 @@ def function(arguments, skipprecond=False, skippostcond=False):
     
     ##-------------------------------------------------------------------------
     ## Script Contents
-    precondition(arguments, skipprecond=skipprecond)
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
+    precondition(skipprecond=skipprecond)
 
     # ----> insert instrument script here <----
 
-    postcondition(arguments, skippostcond=skippostcond)
+    postcondition(skippostcond=skippostcond)
 
     return None
