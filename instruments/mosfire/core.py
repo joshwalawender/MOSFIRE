@@ -77,7 +77,7 @@ def grating_shim_ok():
     '''Commonly used pre- and post- condition to check whether there are errors
     in the grating shim status.
     '''
-    mmgss_statuskw = ktl.cache(keyword='STAUS', service='mmgss')
+    mmgss_statuskw = ktl.cache(keyword='STATUS', service='mmgss')
     shim_status = mmgss_statuskw.read()
     if shim_status != 'OK':
         raise FailedPrePostCondition(f'Grating shim status is {shim_status}')
@@ -87,7 +87,7 @@ def grating_turret_ok():
     '''Commonly used pre- and post- condition to check whether there are errors
     in the grating turret status.
     '''
-    mmgts_statuskw = ktl.cache(keyword='STAUS', service='mmgts')
+    mmgts_statuskw = ktl.cache(keyword='STATUS', service='mmgts')
     turret_status = mmgts_statuskw.read()
     if turret_status != 'OK':
         raise FailedPrePostCondition(f'Grating turret status is {turret_status}')
@@ -97,7 +97,7 @@ def pupil_rotator_ok():
     '''Commonly used pre- and post- condition to check whether there are errors
     in the pupil rotator status.
     '''
-    mmprs_statuskw = ktl.cache(keyword='STAUS', service='mmprs')
+    mmprs_statuskw = ktl.cache(keyword='STATUS', service='mmprs')
     pupil_status = mmprs_statuskw.read()
     if pupil_status != 'OK':
         raise FailedPrePostCondition(f'Pupil rotator status is {pupil_status}')
@@ -107,7 +107,7 @@ def trapdoor_ok():
     '''Commonly used pre- and post- condition to check whether there are errors
     in the trap door (aka dust cover) status.
     '''
-    mmdcs_statuskw = ktl.cache(keyword='STAUS', service='mmdcs')
+    mmdcs_statuskw = ktl.cache(keyword='STATUS', service='mmdcs')
     trapdoor_status = mmdcs_statuskw.read()
     if trapdoor_status != 'OK':
         raise FailedPrePostCondition(f'Trap door status is {trapdoor_status}')
