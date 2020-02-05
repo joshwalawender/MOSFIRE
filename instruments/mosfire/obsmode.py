@@ -7,6 +7,29 @@ from .core import *
 
 
 ##-----------------------------------------------------------------------------
+## pre- and post- conditions
+##-----------------------------------------------------------------------------
+def grating_shim_ok():
+    '''Commonly used pre- and post- condition to check whether there are errors
+    in the grating shim status.
+    '''
+    mmgss_statuskw = ktl.cache(service='mmgss', keyword='STATUS')
+    shim_status = mmgss_statuskw.read()
+    if shim_status not in ['OK', 'Moving']:
+        raise FailedCondition(f'Grating shim status is: "{shim_status}"')
+
+
+def grating_turret_ok():
+    '''Commonly used pre- and post- condition to check whether there are errors
+    in the grating turret status.
+    '''
+    mmgts_statuskw = ktl.cache(service='mmgts', keyword='STATUS')
+    turret_status = mmgts_statuskw.read()
+    if turret_status not in ['OK', 'Moving']:
+        raise FailedCondition(f'Grating turret status is: "{turret_status}"')
+
+
+##-----------------------------------------------------------------------------
 ## get obsmode
 ##-----------------------------------------------------------------------------
 def obsmode(skipprecond=False, skippostcond=False):

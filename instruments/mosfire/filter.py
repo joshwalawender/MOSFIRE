@@ -5,6 +5,31 @@ from .core import *
 
 
 ##-----------------------------------------------------------------------------
+## pre- and post- conditions
+##-----------------------------------------------------------------------------
+def filter1_ok():
+    '''Commonly used pre- and post- condition to check whether there are errors
+    in the filter wheel status.
+    '''
+    # Check filter wheel 1 status
+    mmf1s_status = ktl.cache(service='mmf1s', keyword='STATUS')
+    filter1_status = mmf1s_status.read()
+    if filter1_status != 'OK':
+        raise FailedCondition(f'Filter 1 status is not OK: "{filter1_status}"')
+
+
+def filter2_ok():
+    '''Commonly used pre- and post- condition to check whether there are errors
+    in the filter wheel status.
+    '''
+    # Check filter wheel 2 status
+    mmf2s_status = ktl.cache(service='mmf2s', keyword='STATUS')
+    filter2_status = mmf2s_status.read()
+    if filter2_status != 'OK':
+        raise FailedCondition(f'Filter 2 status is not OK: "{filter2_status}"')
+
+
+##-----------------------------------------------------------------------------
 ## get filter
 ##-----------------------------------------------------------------------------
 def filter(skipprecond=False, skippostcond=False):

@@ -5,51 +5,155 @@ from .core import *
 from .mechs import *
 from .mask import *
 
-class CSUFatalError(Exception):
-    def __init__(self, *args):
-        self.args = ('CSU has experienced a Fatal Error.', args)
 
-
-##-------------------------------------------------------------------------
-## CSU Controls
-##-------------------------------------------------------------------------
-def barok(barnum):
-    '''Is bar number barnum ok?
+##-----------------------------------------------------------------------------
+## pre- and post- conditions
+##-----------------------------------------------------------------------------
+def bar_ok(barnum):
+    '''Commonly used pre- and post- condition to check whether there are errors
+    in the CSU bar status for a specified bar.
     '''
-    return get(f"B{barnum:02d}STAT") == 'OK'
+    bstatkw = ktl.cache(keyword=f"B{int(barnum):02d}STAT", service='mcsus')
+    bar_status = bstatkw.read()
+    if bar_status != 'OK':
+        raise FailedCondition(f'Bar {int(barnum):02d} status is {bar_status}')
 
 
-def CSUok():
-    '''Are all the bars ok?
+def CSUbars_ok():
+    '''Simple loop to check all bars in the CSU.
     '''
-    barstats = [barok(barnum) for barnum in range(1,93,1)]
-    return np.all(barstats)
+    for barnum in range(1,93,1):
+        bar_ok(barnum)
 
 
 def CSUready():
-    '''Is the CSU in the ready state?
+    '''Commonly used pre- and post- condition to check whether the CSU is ready
+    for a move.
     '''
-    ready = get('CSUREADY', mode=int)
+    csureadykw = ktl.cache(keyword='CSUREADY', service='mcsus')
+    csuready = int(csureadykw.read())
     translation = {0: 'Unknown',
                    1: 'System Started',
                    2: 'Ready for Move',
                    3: 'Moving',
                    4: 'Configuring',
                    -1: 'Error',
-                   -2: 'System Stopped'}
-    log.debug(f'  CSU state: {ready}, {translation[ready]}')
-    if ready == -1:
+                   -2: 'System Stopped'}[csuready]
+    if csuready == -1:
         raise CSUFatalError
-    return ready
+    if csuready != 2:
+        raise FailedCondition(f'CSU is not ready: {translation}')
 
 
-def execute_mask():
+##-----------------------------------------------------------------------------
+## execute_mask
+##-----------------------------------------------------------------------------
+def execute_mask(skipprecond=False, skippostcond=False):
     '''Execute a mask which has already been set up.
     '''
-    log.info('Executing CSU move')
-    set('CSUGO', 1)
+    
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    def precondition(skipprecond=False):
+        '''Check that CSU bars are all OK and that CSU is ready for a move.
+        '''
+        if skipprecond is True:
+            log.debug('Skipping pre condition checks')
+        else:
+            CSUbars_ok()
+            CSUready()
+    
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    def postcondition(skippostcond=False):
+        '''docstring
+        '''
+        if skippostcond is True:
+            log.debug('Skipping post condition checks')
+        else:
+            pass
+    
+    ##-------------------------------------------------------------------------
+    ## Script Contents
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
+    precondition(skipprecond=skipprecond)
+    
+    csugokw = ktl.cache(service='mcsus', keyword='SETUPGO')
+    csugokw.write(1)
     sleep(3) # shim needed because CSUREADY keyword doesn't update fast enough
+    
+    postcondition(skippostcond=skippostcond)
+    
+    return None
 
+
+##-----------------------------------------------------------------------------
+## Initialize Bars
+##-----------------------------------------------------------------------------
+def initialise_bars(bars=None, skipprecond=False, skippostcond=False):
+    '''Initialize one or more CSU bars.
+    '''
+    
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    def precondition(bars, skipprecond=False):
+        '''Verify that input is valid.
+        '''
+        if skipprecond is True:
+            log.debug('Skipping pre condition checks')
+        else:
+            if bars is None:
+                return
+            if type(bars) == int:
+                bars = list(bars)
+            if type(bars) != list:
+                raise FailedCondition(f'Input {bars} not parsed')
+            for bar in bars:
+                if type(bar) != int:
+                    raise FailedCondition(f'Bar {bar} is not integer')
+                if bar < 0 or bar > 92:
+                    raise FailedCondition(f'Bar {bar} is not in range 0-92')
+    
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    def postcondition(skippostcond=False):
+        '''docstring
+        '''
+        if skippostcond is True:
+            log.debug('Skipping post condition checks')
+        else:
+            pass
+    
+    ##-------------------------------------------------------------------------
+    ## Script Contents
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
+    precondition(bars, skipprecond=skipprecond)
+
+    CSUINITBARkw = ktl.cache(keyword='INITBAR', service='mcsus')
+    if bars is None:
+        log.info('Initializing all bars')
+        CSUINITBARkw.write(0)
+    if type(bars) == int:
+        bars = list(bars)
+    for bar in bars:
+        log.info(f'Initializing bar {bar}')
+        CSUINITBARkw.write(bar)
+
+    postcondition(skippostcond=skippostcond)
+
+    return None
+
+
+
+
+
+
+
+##-------------------------------------------------------------------------
+## CSU Controls
+##-------------------------------------------------------------------------
 
 def waitfor_CSU(timeout=480, noshim=False):
     '''Wait for a CSU move to be complete.
@@ -93,27 +197,6 @@ def setup_mask(mask):
     csustatus = get('CSUSTAT', service='mcsus')
     if re.search('Setup aborted.  Collision detected at row (\d+)', csustatus):
         log.error(csustatus)
-
-
-def initialise_bars(bars=None):
-    '''Initialize one or more CSU bars.
-    '''
-    if bars is None:
-        log.info('Initializing all bars')
-        set('CSUINITBAR', 0)
-    else:
-        if type(bars) == int:
-            assert bar >= 0
-            assert bar <= 46
-            log.info('Initializing bar {bar}')
-            set('CSUINITBAR', bar)
-        else:
-            for bar in bars:
-                assert type(bar) == int
-                assert bar >= 0
-                assert bar <= 46
-                log.info('Initializing bar {bar}')
-                set('CSUINITBAR', bar)
 
 
 def get_current_mask():
