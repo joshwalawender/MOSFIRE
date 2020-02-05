@@ -5,7 +5,7 @@ from datetime import timedelta as tdelta
 from time import sleep
 import numpy as np
 
-from instruments import create_log, FailedPrePostCondition
+from instruments import create_log, FailedCondition
 
 
 class CSUFatalError(Exception):
@@ -46,7 +46,7 @@ def filter1_ok():
     mmf1s_status = ktl.cache(service='mmf1s', keyword='STATUS')
     filter1_status = mmf1s_status.read()
     if filter1_status != 'OK':
-        raise FailedPrePostCondition(f'Filter 1 status is not OK: "{filter1_status}"')
+        raise FailedCondition(f'Filter 1 status is not OK: "{filter1_status}"')
 
 
 def filter2_ok():
@@ -57,38 +57,38 @@ def filter2_ok():
     mmf2s_status = ktl.cache(service='mmf2s', keyword='STATUS')
     filter2_status = mmf2s_status.read()
     if filter2_status != 'OK':
-        raise FailedPrePostCondition(f'Filter 2 status is not OK: "{filter2_status}"')
+        raise FailedCondition(f'Filter 2 status is not OK: "{filter2_status}"')
 
 
 def FCS_ok():
     activekw = ktl.cache(keyword='ACTIVE', service='mfcs')
     active = bool(activekw.read())
     if active is not True:
-        raise FailedPrePostCondition(f'FCS is not active')
+        raise FailedCondition(f'FCS is not active')
     enabledkw = ktl.cache(keyword='ENABLE', service='mfcs')
     enabled = bool(enabledkw.read())
     if enabled is not True:
-        raise FailedPrePostCondition(f'FCS is not enabled')
+        raise FailedCondition(f'FCS is not enabled')
 
 
 def grating_shim_ok():
     '''Commonly used pre- and post- condition to check whether there are errors
     in the grating shim status.
     '''
-    mmgss_statuskw = ktl.cache(keyword='STATUS', service='mmgss')
+    mmgss_statuskw = ktl.cache(service='mmgss', keyword='STATUS')
     shim_status = mmgss_statuskw.read()
-    if shim_status != 'OK':
-        raise FailedPrePostCondition(f'Grating shim status is {shim_status}')
+    if shim_status not in ['OK', 'Moving']:
+        raise FailedCondition(f'Grating shim status is: "{shim_status}"')
 
 
 def grating_turret_ok():
     '''Commonly used pre- and post- condition to check whether there are errors
     in the grating turret status.
     '''
-    mmgts_statuskw = ktl.cache(keyword='STATUS', service='mmgts')
+    mmgts_statuskw = ktl.cache(service='mmgts', keyword='STATUS')
     turret_status = mmgts_statuskw.read()
-    if turret_status != 'OK':
-        raise FailedPrePostCondition(f'Grating turret status is {turret_status}')
+    if turret_status not in ['OK', 'Moving']:
+        raise FailedCondition(f'Grating turret status is: "{turret_status}"')
 
 
 def pupil_rotator_ok():
@@ -98,7 +98,7 @@ def pupil_rotator_ok():
     mmprs_statuskw = ktl.cache(keyword='STATUS', service='mmprs')
     pupil_status = mmprs_statuskw.read()
     if pupil_status != 'OK':
-        raise FailedPrePostCondition(f'Pupil rotator status is {pupil_status}')
+        raise FailedCondition(f'Pupil rotator status is {pupil_status}')
 
 
 def trapdoor_ok():
@@ -108,7 +108,7 @@ def trapdoor_ok():
     mmdcs_statuskw = ktl.cache(keyword='STATUS', service='mmdcs')
     trapdoor_status = mmdcs_statuskw.read()
     if trapdoor_status != 'OK':
-        raise FailedPrePostCondition(f'Trap door status is {trapdoor_status}')
+        raise FailedCondition(f'Trap door status is {trapdoor_status}')
 
 
 def dustcover_ok():

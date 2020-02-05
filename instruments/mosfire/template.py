@@ -19,9 +19,9 @@ def function(arguments, skipprecond=False, skippostcond=False):
         else:
             # ----> insert checks here <----
             if condition1 is not True:
-                raise FailedPrePostCondition('description of failure')
+                raise FailedCondition('description of failure')
             if condition2 is not True:
-                raise FailedPrePostCondition('description of failure')
+                raise FailedCondition('description of failure')
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -33,10 +33,9 @@ def function(arguments, skipprecond=False, skippostcond=False):
         else:
             # ----> insert checks here <----
             if condition3 is not True:
-                raise FailedPrePostCondition('description of failure')
+                raise FailedCondition('description of failure')
             if condition4 is not True:
-                raise FailedPrePostCondition('description of failure')
-
+                raise FailedCondition('description of failure')
     
     ##-------------------------------------------------------------------------
     ## Script Contents

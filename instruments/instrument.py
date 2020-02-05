@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 
 
-class FailedPrePostCondition(Exception):
+class FailedCondition(Exception):
     def __init__(self, message):
         self.message = message
         log.error('Failed pre- or post- condition check')
