@@ -11,8 +11,8 @@ def filter1ok():
     in the filter wheel status.
     '''
     # Check filter wheel 1 status
-    filter1_status = ktl.cache(service='mmf1s', keyword='STATUS')
-    filter1_status.monitor()
+    mmf1s_status = ktl.cache(service='mmf1s', keyword='STATUS')
+    filter1_status = mmf1s_status.read()
     if filter1_status != 'OK':
         raise FailedPrePostCondition(f'Filter 1 status is not OK: "{filter1_status}"')
 
@@ -22,14 +22,14 @@ def filter2ok():
     in the filter wheel status.
     '''
     # Check filter wheel 2 status
-    filter2_status = ktl.cache(service='mmf2s', keyword='STATUS')
-    filter2_status.monitor()
+    mmf2s_status = ktl.cache(service='mmf2s', keyword='STATUS')
+    filter2_status = mmf2s_status.read()
     if filter2_status != 'OK':
         raise FailedPrePostCondition(f'Filter 2 status is not OK: "{filter2_status}"')
 
 
 ##-----------------------------------------------------------------------------
-## filter
+## get filter
 ##-----------------------------------------------------------------------------
 def filter(skipprecond=False, skippostcond=False):
     '''Query for the current filter.
@@ -112,13 +112,15 @@ def isdark(skipprecond=False, skippostcond=False):
 
     filterkw = ktl.cache(service='mosfire', keyword='FILTER')
     filterkw.monitor()
-    isitdark = (str(filterkw) == 'Dark')
 
     postcondition(skippostcond=skippostcond)
 
-    return isitdark
+    return (str(filterkw) == 'Dark')
 
 
+##-----------------------------------------------------------------------------
+## waitfordark
+##-----------------------------------------------------------------------------
 def waitfordark(timeout=60, skipprecond=False, skippostcond=False):
     '''Wait for the instrument to be in a dark state.
     '''
@@ -263,7 +265,8 @@ def quick_dark(wait=False, timeout=30,
         if skipprecond is True:
             log.debug('Skipping pre condition checks')
         else:
-            pass
+            filter1ok()
+            filter2ok()
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks

@@ -89,13 +89,15 @@ def set_obsmode(destination, wait=True, timeout=60,
             if not filter in filters and filter != 'dark':
                 raise FailedPrePostCondition(f"Filter: {filter} is unknown")
             # Check grating turret status
-            turret_statuskw = ktl.cache(service='mmgts', keyword='STATUS')
-            if str(turret_statuskw) != 'OK':
-                raise FailedPrePostCondition(f'Grating turret status is not OK: "{turret_statuskw}"')
+            mmgts_statuskw = ktl.cache(service='mmgts', keyword='STATUS')
+            turret_status = mmgts_statuskw.read()
+            if turret_status != 'OK':
+                raise FailedPrePostCondition(f'Grating turret status is not OK: "{turret_status}"')
             # Check grating shim status
-            shim_statuskw = ktl.cache(service='mmgss', keyword='STATUS')
-            if str(shim_statuskw) != 'OK':
-                raise FailedPrePostCondition(f'Grating shim status is not OK: "{shim_statuskw}"')
+            mmgss_statuskw = ktl.cache(service='mmgss', keyword='STATUS')
+            shim_status = mmgss_statuskw.read()
+            if shim_status != 'OK':
+                raise FailedPrePostCondition(f'Grating shim status is not OK: "{shim_status}"')
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks

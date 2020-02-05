@@ -1,9 +1,10 @@
 import inspect
 import ktl
 
-from .core import *
 
-
+##-----------------------------------------------------------------------------
+## Instrument Function
+##-----------------------------------------------------------------------------
 def function(arguments, skipprecond=False, skippostcond=False):
     '''docstring
     '''

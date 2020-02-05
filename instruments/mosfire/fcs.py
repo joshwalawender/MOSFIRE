@@ -20,7 +20,7 @@ def FCS_ok():
 
 
 ##-------------------------------------------------------------------------
-## FCS_up_to_date
+## FCS_in_position
 ##-------------------------------------------------------------------------
 def FCS_in_position(PAthreshold=0.5, ELthreshold=0.5,
                    skipprecond=False, skippostcond=False):
@@ -60,9 +60,9 @@ def FCS_in_position(PAthreshold=0.5, ELthreshold=0.5,
     FCSEL = float(FCPA_EL.split()[1])
     
     ROTPPOSNkw = ktl.cache(keyword='ROTPPOSN', service='dcs')
-    ROTPPOSN = float(ROTPPOSNkw)
+    ROTPPOSN = float(ROTPPOSNkw.read())
     ELkw = ktl.cache(keyword='EL', service='dcs')
-    EL = float(ELkw)
+    EL = float(ELkw.read())
     done = np.isclose(FCSPA, ROTPPOSN, atol=PAthreshold)\
            and np.isclose(FCSEL, EL, atol=ELthreshold)
 
@@ -106,15 +106,14 @@ def update_FCS(skipprecond=False, skippostcond=False):
     precondition(skipprecond=skipprecond)
     
     ROTPPOSNkw = ktl.cache(keyword='ROTPPOSN', service='dcs')
-    ROTPPOSNkw.monitor()
+    ROTPPOSN = ROTPPOSNkw.read()
     ELkw = ktl.cache(keyword='EL', service='dcs')
-    ELkw.monitor()
+    EL = ELkw.read()
 
     FCPA_ELkw = ktl.cache(keyword='PA_EL', service='mfcs')
     FCPA_ELkw.write(f"{ROTPPOSN:.2f} {EL:.2f}")
 
-    done = np.isclose(FCSPA, float(ROTPPOSNkw), atol=PAthreshold)\
-           and np.isclose(FCSEL, float(ELkw), atol=ELthreshold)
+    done = FCS_in_position()
 
     postcondition(skippostcond=skippostcond)
 
