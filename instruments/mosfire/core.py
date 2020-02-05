@@ -127,3 +127,38 @@ def check_mechanisms():
         statusfn = getattr(sys.modules[__name__], f'{mech}_ok')
         statusfn()
 
+
+def bar_ok(barnum):
+    '''Commonly used pre- and post- condition to check whether there are errors
+    in the CSU bar status for a specified bar.
+    '''
+    bstatkw = ktl.cache(keyword=f"B{int(barnum):02d}STAT", service='mcsus')
+    bar_status = bstatkw.read()
+    if bar_status != 'OK':
+        raise FailedCondition(f'Bar {int(barnum):02d} status is {bar_status}')
+
+
+def CSUbars_ok():
+    '''Simple loop to check all bars in the CSU.
+    '''
+    for barnum in range(1,93,1):
+        bar_ok(barnum)
+
+
+def CSUready():
+    '''Commonly used pre- and post- condition to check whether the CSU is ready
+    for a move.
+    '''
+    csureadykw = ktl.cache(keyword='CSUREADY', service='mcsus')
+    csuready = int(csureadykw.read())
+    translation = {0: 'Unknown',
+                   1: 'System Started',
+                   2: 'Ready for Move',
+                   3: 'Moving',
+                   4: 'Configuring',
+                   -1: 'Error',
+                   -2: 'System Stopped'}[csuready]
+    if csuready == -1:
+        raise CSUFatalError
+    if csuready != 2:
+        raise FailedCondition(f'CSU is not ready: {translation}')
