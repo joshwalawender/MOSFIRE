@@ -5,14 +5,12 @@ from datetime import timedelta as tdelta
 from time import sleep
 import numpy as np
 
-from instruments import create_log
+from instruments import create_log, FailedPrePostCondition
 
 
-class FailedPrePostCondition(Exception):
-    def __init__(self, message):
-        self.message = message
-        log.error('Failed pre- or post- condition check')
-        log.error(f'  {self.message}')
+class CSUFatalError(Exception):
+    def __init__(self, *args):
+        log.error('The CSU has experienced a Fatal Error')
 
 
 ##-------------------------------------------------------------------------
