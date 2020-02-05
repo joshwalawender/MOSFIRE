@@ -5,19 +5,6 @@ import ktl
 
 from .core import *
 
-##-------------------------------------------------------------------------
-## pre- and post- conditions
-##-------------------------------------------------------------------------
-def FCS_ok():
-    activekw = ktl.cache(keyword='ACTIVE', service='mfcs')
-    activekw.monitor()
-    if bool(activekw) is not True:
-        raise FailedPrePostCondition(f'FCS is not active')
-    enabledkw = ktl.cache(keyword='ENABLE', service='mfcs')
-    enabledkw.monitor()
-    if bool(enabledkw) is not True:
-        raise FailedPrePostCondition(f'FCS is not enabled')
-
 
 ##-------------------------------------------------------------------------
 ## FCS_in_position

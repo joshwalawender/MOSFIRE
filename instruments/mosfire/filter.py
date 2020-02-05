@@ -3,30 +3,6 @@ import ktl
 
 from .core import *
 
-##-----------------------------------------------------------------------------
-## pre- and post- conditions
-##-----------------------------------------------------------------------------
-def filter1ok():
-    '''Commonly used pre- and post- condition to check whether there are errors
-    in the filter wheel status.
-    '''
-    # Check filter wheel 1 status
-    mmf1s_status = ktl.cache(service='mmf1s', keyword='STATUS')
-    filter1_status = mmf1s_status.read()
-    if filter1_status != 'OK':
-        raise FailedPrePostCondition(f'Filter 1 status is not OK: "{filter1_status}"')
-
-
-def filter2ok():
-    '''Commonly used pre- and post- condition to check whether there are errors
-    in the filter wheel status.
-    '''
-    # Check filter wheel 2 status
-    mmf2s_status = ktl.cache(service='mmf2s', keyword='STATUS')
-    filter2_status = mmf2s_status.read()
-    if filter2_status != 'OK':
-        raise FailedPrePostCondition(f'Filter 2 status is not OK: "{filter2_status}"')
-
 
 ##-----------------------------------------------------------------------------
 ## get filter
@@ -47,8 +23,8 @@ def filter(skipprecond=False, skippostcond=False):
         if skipprecond is True:
             log.debug('Skipping pre condition checks')
         else:
-            filter1ok()
-            filter2ok()
+            filter1_ok()
+            filter2_ok()
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -58,8 +34,8 @@ def filter(skipprecond=False, skippostcond=False):
         if skippostcond is True:
             log.debug('Skipping post condition checks')
         else:
-            filter1ok()
-            filter2ok()
+            filter1_ok()
+            filter2_ok()
     
     ##-------------------------------------------------------------------------
     ## Script Contents
@@ -90,8 +66,8 @@ def isdark(skipprecond=False, skippostcond=False):
         if skipprecond is True:
             log.debug('Skipping pre condition checks')
         else:
-            filter1ok()
-            filter2ok()
+            filter1_ok()
+            filter2_ok()
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -101,8 +77,8 @@ def isdark(skipprecond=False, skippostcond=False):
         if skippostcond is True:
             log.debug('Skipping post condition checks')
         else:
-            filter1ok()
-            filter2ok()
+            filter1_ok()
+            filter2_ok()
     
     ##-------------------------------------------------------------------------
     ## Script Contents
@@ -132,8 +108,8 @@ def waitfordark(timeout=60, skipprecond=False, skippostcond=False):
         if skipprecond is True:
             log.debug('Skipping pre condition checks')
         else:
-            filter1ok()
-            filter2ok()
+            filter1_ok()
+            filter2_ok()
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -143,8 +119,8 @@ def waitfordark(timeout=60, skipprecond=False, skippostcond=False):
         if skippostcond is True:
             log.debug('Skipping post condition checks')
         else:
-            filter1ok()
-            filter2ok()
+            filter1_ok()
+            filter2_ok()
     
     ##-------------------------------------------------------------------------
     ## Script Contents
@@ -181,7 +157,7 @@ def filter1(skipprecond=False, skippostcond=False):
         if skipprecond is True:
             log.debug('Skipping pre condition checks')
         else:
-            filter1ok()
+            filter1_ok()
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -191,7 +167,7 @@ def filter1(skipprecond=False, skippostcond=False):
         if skippostcond is True:
             log.debug('Skipping post condition checks')
         else:
-            filter1ok()
+            filter1_ok()
     
     ##-------------------------------------------------------------------------
     ## Script Contents
@@ -222,7 +198,7 @@ def filter2(skipprecond=False, skippostcond=False):
         if skipprecond is True:
             log.debug('Skipping pre condition checks')
         else:
-            filter2ok()
+            filter2_ok()
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -232,7 +208,7 @@ def filter2(skipprecond=False, skippostcond=False):
         if skippostcond is True:
             log.debug('Skipping post condition checks')
         else:
-            filter2ok()
+            filter2_ok()
     
     ##-------------------------------------------------------------------------
     ## Script Contents
@@ -265,8 +241,8 @@ def quick_dark(wait=False, timeout=30,
         if skipprecond is True:
             log.debug('Skipping pre condition checks')
         else:
-            filter1ok()
-            filter2ok()
+            filter1_ok()
+            filter2_ok()
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -278,8 +254,8 @@ def quick_dark(wait=False, timeout=30,
         else:
             if wait is True:
                 waitfordark(timeout=timeout)
-            filter1ok()
-            filter2ok()
+            filter1_ok()
+            filter2_ok()
     
     ##-------------------------------------------------------------------------
     ## Script Contents
