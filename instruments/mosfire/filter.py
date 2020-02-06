@@ -1,5 +1,6 @@
 import inspect
 import ktl
+from time import sleep
 
 from .core import *
 
