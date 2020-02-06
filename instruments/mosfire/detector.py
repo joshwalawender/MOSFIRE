@@ -1,45 +1,14 @@
-from pathlib import Path
+import inspect
+import ktl
+from time import sleep
 
 from .core import *
-from .mechs import *
+from .metadata import *
+
 
 ##-------------------------------------------------------------------------
 ## MOSFIRE Exposure Control Functions
 ##-------------------------------------------------------------------------
-def outdir():
-    '''Return the outdir string.'''
-    return get('OUTDIR')
-
-
-def set_outdir(input):
-    '''Set the outdir string.'''
-    p = Path(input)
-    if not p.parent.exists():
-        log.error(f'Can not find parent directory for {input}')
-        log.error('Failed to set OUTDIR')
-    return set('OUTDIR', p)
-
-
-def object():
-    '''Returns the object string.'''
-    return get('OBJECT')
-
-
-def set_object(input):
-    '''Set the object string.'''
-    return set('OBJECT', input)
-
-
-def observer():
-    '''Returns the object string.'''
-    return get('OBSERVER')
-
-
-def set_observer(input):
-    '''Set the object string.'''
-    return set('OBSERVER', input)
-
-
 def exptime():
     '''Returns the exposure time per coadd in seconds.'''
     return get('ITIME', mode=int)/1000
@@ -172,32 +141,3 @@ def take_exposure(exptime=None, coadds=None, sampmode=None, wait=True,
         waitforFCS=waitforFCS, updateFCS=updateFCS)
 
 
-def filename():
-    '''Return the current filename value as a `pathlib.Path` object.
-    '''
-    return Path(get('FILENAME'))
-
-
-def lastfile():
-    '''Return the last filename value as a `pathlib.Path` object.
-    
-    This also checks that the file exists.  If it does not, it checks a
-    similar path with /s prepended.  This handles the vm-mosfire machine case.
-    '''
-    lastfile_raw = get('LASTFILE')
-    try:
-        lastfile = Path(lastfile_raw)
-    except:
-        log.warning(f'Could not parse "{lastfile_raw}" as a Path')
-    else:
-        if lastfile.exists():
-            return lastfile
-        else:
-            # Check and see if we need a /s prepended on the path for this machine
-            trypath = Path('/s')
-            for part in lastfile.parts[1:]:
-                trypath = trypath.joinpath(part)
-            if not trypath.exists():
-                log.warning(f'Could not find last file on disk: {lastfile}')
-            else:
-                return trypath
