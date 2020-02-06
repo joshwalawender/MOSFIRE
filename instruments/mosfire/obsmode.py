@@ -35,39 +35,28 @@ def grating_turret_ok():
 def obsmode(skipprecond=False, skippostcond=False):
     '''Return the current observing mode.
     '''
-    
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
     ##-------------------------------------------------------------------------
     ## Pre-Condition Checks
-    def precondition(skipprecond=skipprecond):
-        '''docstring
-        '''
-        if skipprecond is True:
-            log.debug('Skipping pre condition checks')
-        else:
-            grating_shim_ok()
-            grating_turret_ok()
-    
-    ##-------------------------------------------------------------------------
-    ## Post-Condition Checks
-    def postcondition(skippostcond=skippostcond):
-        '''docstring
-        '''
-        if skippostcond is True:
-            log.debug('Skipping post condition checks')
-        else:
-            grating_shim_ok()
-            grating_turret_ok()
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        grating_shim_ok()
+        grating_turret_ok()
     
     ##-------------------------------------------------------------------------
     ## Script Contents
-    this_function_name = inspect.currentframe().f_code.co_name
-    log.debug(f"Executing: {this_function_name}")
-    precondition(skipprecond=skipprecond)
-
     obsmodekw = ktl.cache(service='mosfire', keyword='OBSMODE')
     obsmode_string = obsmodekw.read()
 
-    postcondition(skippostcond=skippostcond)
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        grating_shim_ok()
+        grating_turret_ok()
 
     return obsmode_string
 
@@ -79,52 +68,43 @@ def set_obsmode(destination, wait=True, timeout=60,
                 skipprecond=False, skippostcond=False):
     '''Set the observing mode
     '''
-    
-    ##-------------------------------------------------------------------------
-    ## Pre-Condition Checks
-    def precondition(destination, skipprecond=skipprecond):
-        '''docstring
-        '''
-        if skipprecond is True:
-            log.debug('Skipping pre condition checks')
-        else:
-            filter, mode = destination.split('-')
-            # Check valid destination
-            if not mode in modes:
-                raise FailedPreCondition(f"Mode: {mode} is unknown")
-            if not filter in filters and filter != 'dark':
-                raise FailedCondition(f"Filter: {filter} is unknown")
-            grating_shim_ok()
-            grating_turret_ok()
-    
-    ##-------------------------------------------------------------------------
-    ## Post-Condition Checks
-    def postcondition(wait, timeout, skippostcond=skippostcond):
-        '''docstring
-        '''
-        if skippostcond is True:
-            log.debug('Skipping post condition checks')
-        else:
-            if wait is True:
-                endat = dt.utcnow() + tdelta(seconds=timeout)
-                obsmodekw = ktl.cache(service='mosfire', keyword='OBSMODE')
-                done = (obsmodekw.read().lower() == destination.lower())
-                while not done and dt.utcnow() < endat:
-                    sleep(1)
-                    done = (obsmodekw.read().lower() == destination.lower())
-                if not done:
-                    raise FailedCondition(f'Timeout exceeded on waiting for mode {destination}')
-            grating_shim_ok()
-            grating_turret_ok()
-
-    ##-------------------------------------------------------------------------
-    ## Script Contents
     this_function_name = inspect.currentframe().f_code.co_name
     log.debug(f"Executing: {this_function_name}")
-    precondition(destination, skipprecond=skipprecond)
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        filter, mode = destination.split('-')
+        # Check valid destination
+        if not mode in modes:
+            raise FailedPreCondition(f"Mode: {mode} is unknown")
+        if not filter in filters and filter != 'dark':
+            raise FailedCondition(f"Filter: {filter} is unknown")
+        grating_shim_ok()
+        grating_turret_ok()
     
+    ##-------------------------------------------------------------------------
+    ## Script Contents
     setobsmodekw = ktl.cache(service='mosfire', keyword='SETOBSMODE')
     log.info(f"Setting mode to {destination}")
     setobsmodekw.write(destination, wait=True)
+    
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        if wait is True:
+            endat = dt.utcnow() + tdelta(seconds=timeout)
+            obsmodekw = ktl.cache(service='mosfire', keyword='OBSMODE')
+            done = (obsmodekw.read().lower() == destination.lower())
+            while not done and dt.utcnow() < endat:
+                sleep(1)
+                done = (obsmodekw.read().lower() == destination.lower())
+            if not done:
+                raise FailedCondition(f'Timeout exceeded on waiting for mode {destination}')
+        grating_shim_ok()
+        grating_turret_ok()
 
-    postcondition(wait, timeout, skippostcond=skippostcond)
+    return None

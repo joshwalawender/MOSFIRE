@@ -1,8 +1,10 @@
+import inspect
+import ktl
+from time import sleep
 import numpy as np
 from astropy.table import Table, Column, Row
 from datetime import datetime as dt
 from datetime import timedelta as tdelta
-from time import sleep
 
 from .core import *
 from .mask import *
@@ -72,43 +74,20 @@ def CSUready():
 def setup_mask(mask, skipprecond=False, skippostcond=False):
     '''Setup the given mask.  Accepts a Mask object.
     '''
-    
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
     ##-------------------------------------------------------------------------
     ## Pre-Condition Checks
-    def precondition(mask, skipprecond=False):
-        '''docstring
-        '''
-        if skipprecond is True:
-            log.debug('Skipping pre condition checks')
-        else:
-            if type(mask) != Mask:
-                raise FailedCondition(f"Input {mask} is not a Mask object")
-            CSU_ok()
-            CSUbars_ok()
-    
-    ##-------------------------------------------------------------------------
-    ## Post-Condition Checks
-    def postcondition(skippostcond=False):
-        '''docstring
-        '''
-        if skippostcond is True:
-            log.debug('Skipping post condition checks')
-        else:
-            csustat = ktl.cache(keyword='CSUSTAT', service='mcsus')
-            csustat.monitor()
-            while str(csustat) == 'Creating Group.':
-                sleep(1)
-            if re.search('Setup aborted.  Collision detected at row (\d+)', str(csustat)):
-                raise FailedCondition(str(csustat))
-            CSU_ok()
-            CSUbars_ok()
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        if type(mask) != Mask:
+            raise FailedCondition(f"Input {mask} is not a Mask object")
+        CSU_ok()
+        CSUbars_ok()
     
     ##-------------------------------------------------------------------------
     ## Script Contents
-    this_function_name = inspect.currentframe().f_code.co_name
-    log.debug(f"Executing: {this_function_name}")
-    precondition(mask, skipprecond=skipprecond)
-
     log.info(f'Setting up mask: {mask.name}')
     log.debug('Setting bar target position keywords')
 
@@ -127,8 +106,20 @@ def setup_mask(mask, skipprecond=False, skippostcond=False):
     mcsus['SETUPGO'].write(1)
     mcsus['SETUPNAME'].write(mask.name)
 
-    postcondition(skippostcond=skippostcond)
-
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        csustat = ktl.cache(keyword='CSUSTAT', service='mcsus')
+        csustat.monitor()
+        while str(csustat) == 'Creating Group.':
+            sleep(1)
+        if re.search('Setup aborted.  Collision detected at row (\d+)', str(csustat)):
+            raise FailedCondition(str(csustat))
+        CSU_ok()
+        CSUbars_ok()
+    
     return None
 
 
@@ -138,39 +129,28 @@ def setup_mask(mask, skipprecond=False, skippostcond=False):
 def execute_mask(skipprecond=False, skippostcond=False):
     '''Execute a mask which has already been set up.
     '''
-    
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
     ##-------------------------------------------------------------------------
     ## Pre-Condition Checks
-    def precondition(skipprecond=False):
-        '''Check that CSU bars are all OK and that CSU is ready for a move.
-        '''
-        if skipprecond is True:
-            log.debug('Skipping pre condition checks')
-        else:
-            CSUbars_ok()
-            CSUready()
-    
-    ##-------------------------------------------------------------------------
-    ## Post-Condition Checks
-    def postcondition(skippostcond=False):
-        '''docstring
-        '''
-        if skippostcond is True:
-            log.debug('Skipping post condition checks')
-        else:
-            pass
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        CSUbars_ok()
+        CSUready()
     
     ##-------------------------------------------------------------------------
     ## Script Contents
-    this_function_name = inspect.currentframe().f_code.co_name
-    log.debug(f"Executing: {this_function_name}")
-    precondition(skipprecond=skipprecond)
-    
     csugokw = ktl.cache(service='mcsus', keyword='SETUPGO')
     csugokw.write(1)
     sleep(3) # shim needed because CSUREADY keyword doesn't update fast enough
     
-    postcondition(skippostcond=skippostcond)
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        pass
     
     return None
 
@@ -185,43 +165,27 @@ def initialise_bars(bars=None, skipprecond=False, skippostcond=False):
     a single bar, set bars equal to the ID number of the bar (1-92).  To
     initialize a subset of bars, set bars equal to a list of bar ID numbers.
     '''
-    
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
     ##-------------------------------------------------------------------------
     ## Pre-Condition Checks
-    def precondition(bars, skipprecond=False):
-        '''Verify that input is valid.
-        '''
-        if skipprecond is True:
-            log.debug('Skipping pre condition checks')
-        else:
-            if bars is None:
-                return
-            if type(bars) == int:
-                bars = list(bars)
-            if type(bars) != list:
-                raise FailedCondition(f'Input {bars} not parsed')
-            for bar in bars:
-                if type(bar) != int:
-                    raise FailedCondition(f'Bar {bar} is not integer')
-                if bar < 1 or bar > 92:
-                    raise FailedCondition(f'Bar {bar} is not in range 1-92')
-    
-    ##-------------------------------------------------------------------------
-    ## Post-Condition Checks
-    def postcondition(skippostcond=False):
-        '''docstring
-        '''
-        if skippostcond is True:
-            log.debug('Skipping post condition checks')
-        else:
-            pass
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        if bars is None:
+            return
+        if type(bars) == int:
+            bars = list(bars)
+        if type(bars) != list:
+            raise FailedCondition(f'Input {bars} not parsed')
+        for bar in bars:
+            if type(bar) != int:
+                raise FailedCondition(f'Bar {bar} is not integer')
+            if bar < 1 or bar > 92:
+                raise FailedCondition(f'Bar {bar} is not in range 1-92')
     
     ##-------------------------------------------------------------------------
     ## Script Contents
-    this_function_name = inspect.currentframe().f_code.co_name
-    log.debug(f"Executing: {this_function_name}")
-    precondition(bars, skipprecond=skipprecond)
-
     CSUINITBARkw = ktl.cache(keyword='INITBAR', service='mcsus')
     if bars is None:
         log.info('Initializing all bars')
@@ -232,8 +196,13 @@ def initialise_bars(bars=None, skipprecond=False, skippostcond=False):
         log.info(f'Initializing bar {bar}')
         CSUINITBARkw.write(bar)
 
-    postcondition(skippostcond=skippostcond)
-
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        pass
+    
     return None
 
 
@@ -243,48 +212,36 @@ def initialise_bars(bars=None, skipprecond=False, skippostcond=False):
 def waitfor_CSU(timeout=480, noshim=False, skipprecond=False, skippostcond=False):
     '''Wait for a CSU move to be complete.
     '''
-    
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
     ##-------------------------------------------------------------------------
     ## Pre-Condition Checks
-    def precondition(skipprecond=False):
-        '''docstring
-        '''
-        if skipprecond is True:
-            log.debug('Skipping pre condition checks')
-        else:
-            CSU_ok()
-    
-    ##-------------------------------------------------------------------------
-    ## Post-Condition Checks
-    def postcondition(csureadykw, skippostcond=False):
-        '''docstring
-        '''
-        if skippostcond is True:
-            log.debug('Skipping post condition checks')
-        else:
-            CSU_ok()
-            if int(csureadykw) != 2:
-                raise FailedCondition('Timeout exceeded on waitfor_CSU')
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        CSU_ok()
     
     ##-------------------------------------------------------------------------
     ## Script Contents
-    this_function_name = inspect.currentframe().f_code.co_name
-    log.debug(f"Executing: {this_function_name}")
-    precondition(skipprecond=skipprecond)
-
-    if noshim is False:
-        sleep(1)
-    endat = dt.utcnow() + tdelta(seconds=timeout)
-
     csureadykw = ktl.cache(keyword='CSUREADY', service='mcsus')
     csureadykw.monitor()
+    endat = dt.utcnow() + tdelta(seconds=timeout)
+    if noshim is False:
+        sleep(1)
     while int(csureadykw) != 2 and dt.utcnow() < endat:
         if int(csureadykw) == -1:
             raise CSUFatalError()
         sleep(2)
 
-    postcondition(csureadykw, skippostcond=skippostcond)
-
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        CSU_ok()
+        if int(csureadykw) != 2:
+            raise FailedCondition('Timeout exceeded on waitfor_CSU')
+    
     return None
 
 
@@ -294,43 +251,30 @@ def waitfor_CSU(timeout=480, noshim=False, skipprecond=False, skippostcond=False
 def get_current_mask(skipprecond=False, skippostcond=False):
     '''Get the current state of the CSU from keywords and build a Mask object.
     '''
-    
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
     ##-------------------------------------------------------------------------
     ## Pre-Condition Checks
-    def precondition(skipprecond=False):
-        '''docstring
-        '''
-        if skipprecond is True:
-            log.debug('Skipping pre condition checks')
-        else:
-            CSU_ok()
-    
-    ##-------------------------------------------------------------------------
-    ## Post-Condition Checks
-    def postcondition(skippostcond=False):
-        '''docstring
-        '''
-        if skippostcond is True:
-            log.debug('Skipping post condition checks')
-        else:
-            CSU_ok()
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        CSU_ok()
     
     ##-------------------------------------------------------------------------
     ## Script Contents
-    this_function_name = inspect.currentframe().f_code.co_name
-    log.debug(f"Executing: {this_function_name}")
-    precondition(skipprecond=skipprecond)
-
     mcsus = ktl.cache(service='mcsus')
 
-    barpos = [float(mcsus[f"B{bar:02d}POS"]) for bar in range(1,93,1)]
-    bartarg = [float(mcsus[f"B{bar:02d}TARG"]) for bar in range(1,93,1)]
+    log.debug('Getting bar positions')
+    barpos = [float(mcsus[f"B{bar:02d}POS"].read()) for bar in range(1,93,1)]
+    log.debug('Getting bar target positions for comparison')
+    bartarg = [float(mcsus[f"B{bar:02d}TARG"].read()) for bar in range(1,93,1)]
+    log.debug('Verifying differences are small')
     deltas = [abs(pair[0]-pair[1]) < 0.01 for pair in zip(barpos, bartarg)]
     assert np.all(deltas)
 
+    log.debug('Building mask object from keyword data')
     current_mask = Mask(None)
-    current_mask.name = get('MASKNAME', service='mcsus')
-
+    current_mask.name = str(mcsus['MASKNAME'].read())
     slits_list = []
     for slitno in range(1,47,1):
         leftbar = slitno*2
@@ -350,7 +294,12 @@ def get_current_mask(skipprecond=False, skippostcond=False):
                             'target': ''} )
     current_mask.slitpos = Table(slits_list)
 
-    postcondition(skippostcond=skippostcond)
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        CSU_ok()
 
     return current_mask
 
@@ -361,35 +310,19 @@ def get_current_mask(skipprecond=False, skippostcond=False):
 def read_csu_bar_state(skipprecond=False, skippostcond=False):
     '''docstring
     '''
-    
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
     ##-------------------------------------------------------------------------
     ## Pre-Condition Checks
-    def precondition(skipprecond=False):
-        '''docstring
-        '''
-        if skipprecond is True:
-            log.debug('Skipping pre condition checks')
-        else:
-            if not csu_bar_state_file.exists():
-                raise FailedCondition(f"Unable to locate csu_bar_state file: "
-                                      f"{csu_bar_state_file}")
-    
-    ##-------------------------------------------------------------------------
-    ## Post-Condition Checks
-    def postcondition(skippostcond=False):
-        '''docstring
-        '''
-        if skippostcond is True:
-            log.debug('Skipping post condition checks')
-        else:
-            pass
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        if not csu_bar_state_file.exists():
+            raise FailedCondition(f"Unable to locate csu_bar_state file: "
+                                  f"{csu_bar_state_file}")
     
     ##-------------------------------------------------------------------------
     ## Script Contents
-    this_function_name = inspect.currentframe().f_code.co_name
-    log.debug(f"Executing: {this_function_name}")
-    precondition(skipprecond=skipprecond)
-
     mask = Mask(None)
     mask.name = 'From csu_bar_state'
     with open(csu_bar_state_file, 'r') as cbs:
@@ -416,7 +349,12 @@ def read_csu_bar_state(skipprecond=False, skippostcond=False):
             t[slit-1]['leftBarPositionMM'] = float(barpos)
     mask.slitpos = t
 
-    postcondition(skippostcond=skippostcond)
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        pass
 
     return mask
 

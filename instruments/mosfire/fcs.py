@@ -29,33 +29,17 @@ def FCS_in_position(PAthreshold=0.5, ELthreshold=0.5,
     '''Check whether the current FCS position is correcting for the current
     rotator angle and telescope elevation values from dcs.
     '''
-    
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
     ##-------------------------------------------------------------------------
     ## Pre-Condition Checks
-    def precondition(skipprecond=False):
-        '''docstring
-        '''
-        if skipprecond is True:
-            log.debug('Skipping pre condition checks')
-        else:
-            FCS_ok()
-    
-    ##-------------------------------------------------------------------------
-    ## Post-Condition Checks
-    def postcondition(skippostcond=False):
-        '''docstring
-        '''
-        if skippostcond is True:
-            log.debug('Skipping post condition checks')
-        else:
-            FCS_ok()
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        FCS_ok()
     
     ##-------------------------------------------------------------------------
     ## Script Contents
-    this_function_name = inspect.currentframe().f_code.co_name
-    log.debug(f"Executing: {this_function_name}")
-    precondition(skipprecond=skipprecond)
-
     FCPA_ELkw = ktl.cache(keyword='PA_EL', service='mfcs')
     FCPA_EL = FCPA_ELkw.read()
     FCSPA = float(FCPA_EL.split()[0])
@@ -68,7 +52,12 @@ def FCS_in_position(PAthreshold=0.5, ELthreshold=0.5,
     done = np.isclose(FCSPA, ROTPPOSN, atol=PAthreshold)\
            and np.isclose(FCSEL, EL, atol=ELthreshold)
 
-    postcondition(skippostcond=skippostcond)
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        FCS_ok()
 
     return done
 
@@ -80,33 +69,17 @@ def update_FCS(skipprecond=False, skippostcond=False):
     '''Check whether the current FCS position is correcting for the current
     rotator angle and telescope elevation values from dcs.
     '''
-    
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
     ##-------------------------------------------------------------------------
     ## Pre-Condition Checks
-    def precondition(arguments, skipprecond=False):
-        '''docstring
-        '''
-        if skipprecond is True:
-            log.debug('Skipping pre condition checks')
-        else:
-            FCS_ok()
-    
-    ##-------------------------------------------------------------------------
-    ## Post-Condition Checks
-    def postcondition(arguments, skippostcond=False):
-        '''docstring
-        '''
-        if skippostcond is True:
-            log.debug('Skipping post condition checks')
-        else:
-            FCS_ok()
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        FCS_ok()
     
     ##-------------------------------------------------------------------------
     ## Script Contents
-    this_function_name = inspect.currentframe().f_code.co_name
-    log.debug(f"Executing: {this_function_name}")
-    precondition(skipprecond=skipprecond)
-    
     ROTPPOSNkw = ktl.cache(keyword='ROTPPOSN', service='dcs')
     ROTPPOSN = ROTPPOSNkw.read()
     ELkw = ktl.cache(keyword='EL', service='dcs')
@@ -117,8 +90,13 @@ def update_FCS(skipprecond=False, skippostcond=False):
 
     done = FCS_in_position()
 
-    postcondition(skippostcond=skippostcond)
-
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        FCS_ok()
+    
     return done
 
 
