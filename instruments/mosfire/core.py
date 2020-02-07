@@ -1,12 +1,15 @@
 from pathlib import Path
 import yaml
-from datetime import datetime as dt
-from datetime import timedelta as tdelta
 import numpy as np
+import socket
+import subprocess
 
 from instruments import create_log
 
 
+##-------------------------------------------------------------------------
+## Define Exceptions
+##-------------------------------------------------------------------------
 class FailedCondition(Exception):
     def __init__(self, message):
         self.message = message
@@ -23,13 +26,9 @@ class CSUFatalError(Exception):
 ## MOSFIRE Properties
 ##-------------------------------------------------------------------------
 name = 'MOSFIRE'
-serviceNames = ['mosfire', 'mmf1s', 'mmf2s', 'mcsus', 'mfcs', 'mds', 'dcs']
 modes = ['dark-imaging', 'dark-spectroscopy', 'imaging', 'spectroscopy']
 filters = ['Y', 'J', 'H', 'K', 'J2', 'J3', 'NB']
 csu_bar_state_file = Path('/s/sdata1300/logs/server/mcsus/csu_bar_state')
-
-allowed_sampmodes = [2, 3]
-sampmode_names = {'CDS': (2, None), 'MCDS': (3, None), 'MCDS16': (3, 16)}
 
 # Load default CSU coordinate transformations
 filepath = Path(__file__).parent
@@ -42,8 +41,28 @@ log = create_log(name, loglevel='DEBUG')
 
 
 ##-----------------------------------------------------------------------------
-## pre- and post- conditions for other mechanisms
+## pre- and post- conditions
 ##-----------------------------------------------------------------------------
+def check_connectivity():
+    '''Pings the two switches on the instrument to verify network connectivity.
+    '''
+    host = socket.gethostname()
+    addresses = ['192.168.13.11', '192.168.13.12']
+    if host == 'mosfireserver':
+        raise NotImplementedError
+    elif host == 'mosfire':
+        for address in addresses:
+            log.debug(f"Checking ping to {address}")
+            cmd = ['ssh', 'mosfireserver', f"ping {address}"]
+            result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout = result.stdout.decode().strip('\n')
+            stderr = result.stderr.decode().strip('\n')
+            log.debug(stdout)
+            if stderr != '': log.debug(stderr)
+            if bool(result.returncode):
+                raise FailedCondition(f"ping {address}: {stdout} {stderr}")
+
+
 def pupil_rotator_ok():
     '''Commonly used pre- and post- condition to check whether there are errors
     in the pupil rotator status.
@@ -79,7 +98,6 @@ def dustcover_ok():
 #     for mech in mechs:
 #         statusfn = getattr(sys.modules[__name__], f'{mech}_ok')
 #         statusfn()
-
 
 
 ##-----------------------------------------------------------------------------
@@ -139,3 +157,4 @@ def set_rotpposn(rotpposn):
         sleep(2)
         log.info('Trying again ...')
         _set_rotpposn(rotpposn)
+
