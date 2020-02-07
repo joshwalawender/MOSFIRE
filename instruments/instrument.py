@@ -2,13 +2,6 @@ import logging
 from pathlib import Path
 
 
-class FailedCondition(Exception):
-    def __init__(self, message):
-        self.message = message
-        log.error('Failed pre- or post- condition check')
-        log.error(f'  {self.message}')
-
-
 ##-------------------------------------------------------------------------
 ## Create logger object
 ##-------------------------------------------------------------------------

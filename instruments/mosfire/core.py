@@ -4,7 +4,14 @@ from datetime import datetime as dt
 from datetime import timedelta as tdelta
 import numpy as np
 
-from instruments import create_log, FailedCondition
+from instruments import create_log
+
+
+class FailedCondition(Exception):
+    def __init__(self, message):
+        self.message = message
+        log.error('Failed pre- or post- condition check')
+        log.error(f'  {self.message}')
 
 
 class CSUFatalError(Exception):
