@@ -1,9 +1,61 @@
-from .core import *
-from .mask import *
-from .mechs import *
-from .detector import *
-from .csu import *
-from .analysis import *
+#!kpython3
+
+## Import General Tools
+from pathlib import Path
+import argparse
+import logging
+
+from ..core import *
+from ..mask import *
+from ..filter import *
+from ..obsmode import *
+from ..metadata import *
+from ..detector import *
+from ..csu import *
+
+description = '''Perform a basic checkout of the MOSFIRE instrument.  The normal
+execution of this script performs a standard pre-run checkout.  The quick
+version performs a shorter, less complete checkout to be used when there is
+limited time.
+'''
+
+##-------------------------------------------------------------------------
+## Parse Command Line Arguments
+##-------------------------------------------------------------------------
+## create a parser object for understanding command-line arguments
+p = argparse.ArgumentParser(description=description)
+## add flags
+p.add_argument("-v", "--verbose", dest="verbose",
+    default=False, action="store_true",
+    help="Be verbose! (default = False)")
+p.add_argument("-q", "--quick", dest="quick",
+    default=False, action="store_true",
+    help="Do a quick checkout instead of a full checkout.")
+args = p.parse_args()
+
+
+##-------------------------------------------------------------------------
+## Create logger object
+##-------------------------------------------------------------------------
+log = logging.getLogger('MOSFIRE_checkout')
+log.setLevel(logging.DEBUG)
+## Set up console output
+LogConsoleHandler = logging.StreamHandler()
+if args.verbose:
+    LogConsoleHandler.setLevel(logging.DEBUG)
+else:
+    LogConsoleHandler.setLevel(logging.INFO)
+LogFormat = logging.Formatter('%(asctime)s %(levelname)8s: %(message)s',
+                              datefmt='%Y-%m-%d %H:%M:%S')
+LogConsoleHandler.setFormatter(LogFormat)
+log.addHandler(LogConsoleHandler)
+## Set up file output
+# LogFileName = None
+# LogFileHandler = logging.FileHandler(LogFileName)
+# LogFileHandler.setLevel(logging.DEBUG)
+# LogFileHandler.setFormatter(LogFormat)
+# log.addHandler(LogFileHandler)
+
 
 ##-------------------------------------------------------------------------
 ## MOSFIRE Checkout
@@ -114,3 +166,7 @@ def checkout(quick=False):
         execute_mask()
         waitfor_CSU()
 
+
+
+if __name__ == '__main__':
+    checkout(quick=args.quick)
