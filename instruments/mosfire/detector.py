@@ -1,143 +1,302 @@
 import inspect
 import ktl
 from time import sleep
+import re
 
 from .core import *
 from .metadata import *
+from .fcs import *
 
 
-##-------------------------------------------------------------------------
-## MOSFIRE Exposure Control Functions
-##-------------------------------------------------------------------------
-def exptime():
-    '''Returns the exposure time per coadd in seconds.'''
-    return get('ITIME', mode=int)/1000
-
-
-def set_exptime(exptime):
-    '''Set exposure time per coadd in seconds.  Note the ITIME keyword uses ms.
-    '''
-    log.info(f'Setting exposure time to {int(exptime*1000)} ms')
-    set('ITIME', int(exptime*1000))
-
-
-def coadds():
-    '''Returns the number of coadds.'''
-    return get('COADDS', mode=int)
-
-
-def set_coadds(coadds):
-    '''Set number of coadds
-    '''
-    log.info(f'Setting number of coadds to {int(coadds)}')
-    set('COADDS', int(coadds))
-
-
-def sampmode():
-    '''Returns the sampling mode as an integer.'''
-    return get('SAMPMODE', mode=int)
-
-
-def numreads():
-    '''Returns the number of sampling reads.
-    
-    CDS would have 2 reads.
-    MCDS16 would have 16 reads.
-    '''
-    return get('SAMPMODE', mode=int)
-
-
-def parse_sampmode(input):
-    if type(input) is int:
-        sampmode = input
-        numreads = None
-    if type(input) is str:
-        sampmode, numreads = sampmode_names.get(input)
-    return (sampmode, numreads)
-
-
-def set_sampmode(input):
-    '''Set sampling mode.
-    
-    Input can be either an integer corresponding to the keyword value or it
-    can be a string ('CDS', 'MCDS', 'MCDS16') which will be interpreted.
-    
-    If the 'MCDS16' string input is used, this will set *both* the sampling
-    mode and the number of reads.
-    '''
-    log.info(f'Setting Sampling Mode to {input}')
-    sampmode, numreads = parse_sampmode(input)
-    if sampmode in allowed_sampmodes:
-        log.debug(f'Setting Sampling Mode to: {sampmode}')
-        set('sampmode', sampmode)
-        if numreads is not None:
-            log.debug(f'Setting Number of Reads: {numreads}')
-            set('numreads', numreads)
-    else:
-        log.error(f'Sampling mode {sampmode} is not supported')
-
-
-def waitfor_exposure(timeout=300, noshim=False):
+##-----------------------------------------------------------------------------
+## pre- and post- conditions
+##-----------------------------------------------------------------------------
+def waitfor_exposure(timeout=240, shim=False):
     '''Block and wait for the current exposure to be complete.
     '''
     log.debug('Waiting for exposure to finish')
-    if noshim is False:
-        sleep(1)
-    done = get('imagedone', mode=bool) and get('ready', service='mds', mode=bool)
     endat = dt.utcnow() + tdelta(seconds=timeout)
-    while done is False and dt.utcnow() < endat:
+    if shim is True:
         sleep(1)
-        done = get('imagedone', mode=bool) and get('ready', service='mds', mode=bool)
-    if done is False:
-        log.warning(f'Timeout exceeded on waitfor_exposure to finish')
-    return done
+    IMAGEDONEkw = ktl.cache(service='mds', keyword='IMAGEDONE')
+    IMAGEDONEkw.monitor()
+    READYkw = ktl.cache(service='mds', keyword='READY')
+    READYkw.monitor()
+
+    done_and_ready = bool(IMAGEDONEkw) and bool(READYkw)
+    while dt.utcnow() < endat and not done_and_ready:
+        sleep(1)
+        done_and_ready = bool(IMAGEDONEkw) and bool(READYkw)
+    if not done_and_ready:
+        raise FailedCondition('Timeout exceeded on waitfor_exposure to finish')
 
 
-def wfgo(timeout=300, noshim=False):
+def wfgo(timeout=240, shim=False):
     '''Alias waitfor_exposure to wfgo
     '''
-    waitfor_exposure(timeout=timeout, noshim=noshim)
+    waitfor_exposure(timeout=timeout, shim=shim)
 
 
-def goi(exptime=None, coadds=None, sampmode=None, wait=True,
-        waitforFCS=True, updateFCS=True):
+##-----------------------------------------------------------------------------
+## exptime
+##-----------------------------------------------------------------------------
+def exptime(skipprecond=False, skippostcond=False):
+    '''Returns the exposure time per coadd in seconds.
+    '''
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        pass
+    
+    ##-------------------------------------------------------------------------
+    ## Script Contents
+    ITIMEkw = ktl.cache(service='mds', keyword='ITIME')
+    ITIME = float(ITIMEkw.read()/1000)
+
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        pass
+    
+    return ITIME
+
+
+##-----------------------------------------------------------------------------
+## set exptime
+##-----------------------------------------------------------------------------
+def set_exptime(input, skipprecond=False, skippostcond=False):
+    '''Set exposure time per coadd in seconds.  Note the ITIME keyword uses ms.
+    '''
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        pass
+    
+    ##-------------------------------------------------------------------------
+    ## Script Contents
+    ITIMEkw = ktl.cache(service='mds', keyword='ITIME')
+    ITIMEkw.write(float(input)*1000)
+    
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        pass
+    
+    return None
+
+
+##-----------------------------------------------------------------------------
+## coadds
+##-----------------------------------------------------------------------------
+def coadds(skipprecond=False, skippostcond=False):
+    '''Return the number of coadds
+    '''
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        pass
+    
+    ##-------------------------------------------------------------------------
+    ## Script Contents
+    COADDSkw = ktl.cache(service='mds', keyword='COADDS')
+    COADDS = int(COADDSkw.read())
+
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        pass
+    
+    return COADDS
+
+
+##-----------------------------------------------------------------------------
+## set OUTDIR
+##-----------------------------------------------------------------------------
+def set_coadds(input, skipprecond=False, skippostcond=False):
+    '''Set coadds
+    '''
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        pass
+    
+    ##-------------------------------------------------------------------------
+    ## Script Contents
+    COADDSkw = ktl.cache(service='mds', keyword='COADDS')
+    COADDSkw.write(int(input))
+    
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        pass
+    
+    return None
+
+
+##-----------------------------------------------------------------------------
+## sampmode & numreads
+##-----------------------------------------------------------------------------
+def sampmode(skipprecond=False, skippostcond=False):
+    '''Return the sampling mode as a string (e.g. CDS, MCDS16, etc.)
+    '''
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
+
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        pass
+    
+    ##-------------------------------------------------------------------------
+    ## Script Contents
+    SAMPMODEkw = ktl.cache(service='mds', keyword='SAMPMODE')
+    NUMREADSkw = ktl.cache(service='mds', keyword='NUMREADS')
+    output = {2: 'CDS', 3: 'MCDS'}.get(int(SAMPMODEkw.read()), 'UNKNOWN')
+    if output == 'MCDS':
+        output += NUMREADSkw.read()
+    
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        pass
+
+    return output
+
+
+##-----------------------------------------------------------------------------
+## set sampmode & numreads
+##-----------------------------------------------------------------------------
+def set_sampmode(input, skipprecond=False, skippostcond=False):
+    '''Set the sampling mode from a string (e.g. CDS, MCDS16, etc.)
+    '''
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
+
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        namematch = re.match('(M?CDS)(\d*)', input.strip())
+        if namematch is None:
+            raise FailedCondition(f'Unable to parse "{input}"')
+        mode = {'CDS': 2, 'MCDS': 3}.get(namematch.group(1))
+    
+    ##-------------------------------------------------------------------------
+    ## Script Contents
+    SAMPMODEkw = ktl.cache(service='mds', keyword='SAMPMODE')
+    NUMREADSkw = ktl.cache(service='mds', keyword='NUMREADS')
+    SAMPMODEkw.write(mode)
+    if mode == 3:
+        nreads = int(namematch.group(2))
+        NUMREADSkw.write(nreads)
+    
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        result = sampmode()
+        if input != result:
+            raise FailedCondition(f'Failed to set SAMPMODE and NUMREADS. "{input}" != "{result}"')
+
+    return None
+
+
+##-----------------------------------------------------------------------------
+## take exposure
+##-----------------------------------------------------------------------------
+def take_exposure(exptime=None, coadds=None, sampmode=None, wait=True,
+                  waitforFCS=True, updateFCS=True,
+                  skipprecond=False, skippostcond=False):
     '''Take an exposure.
     
     If the exptime, coadds, sampmode inputs are specified, those parameters for
     the exposure will be set prior to triggering the exposure.
     '''
-    waitfor_exposure(noshim=True)
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
+
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        waitfor_exposure()
+    
+    ##-------------------------------------------------------------------------
+    ## Script Contents
     if exptime is not None:
         set_exptime(exptime)
     if coadds is not None:
         set_coadds(coadds)
     if sampmode is not None:
         set_sampmode(sampmode)
-
     if updateFCS is True:
         update_FCS()
         sleep(1)
     if waitforFCS is True:
-        waitfor_FCS
-
-
+        waitfor_FCS()
+    
+    GOkw = ktl.cache(service='mds', keyword='GO')
     log.info('Taking exposure')
-    set('go', '1')
-    if wait is True:
-        sleep(2)
-        waitfor_exposure()
-        imagefile = Path(lastfile())
+    GOkw.write(True)
+
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        if wait is True:
+            sleep(2)
+            waitfor_exposure()
+        imagefile = lastfile()
         if imagefile.exists():
             log.info(f'  Found last file {imagefile.name}')
         else:
-            log.warning(f'Did not find file: {imagefile}')
+            raise FailedCondition(f'Did not find file: {imagefile}')
+
+    return None
 
 
-def take_exposure(exptime=None, coadds=None, sampmode=None, wait=True,
-                  waitforFCS=True, updateFCS=True):
+##-------------------------------------------------------------------------
+## MOSFIRE Exposure Control Functions
+##-------------------------------------------------------------------------
+def goi(exptime=None, coadds=None, sampmode=None, wait=True,
+        waitforFCS=True, updateFCS=True,
+        skipprecond=False, skippostcond=False):
     '''Alias take_exposure to goi
     '''
-    goi(exptime=exptime, coadds=coadds, sampmode=sampmode, wait=wait,
-        waitforFCS=waitforFCS, updateFCS=updateFCS)
+    take_exposure(exptime=exptime, coadds=coadds, sampmode=sampmode, wait=wait,
+                  waitforFCS=waitforFCS, updateFCS=updateFCS,
+                  skipprecond=skipprecond, skippostcond=skippostcond)
 
 
