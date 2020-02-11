@@ -1,10 +1,11 @@
 import inspect
-import ktl
+from datetime import datetime as dt
+from datetime import timedelta as tdelta
 from time import sleep
 import numpy as np
 from astropy.table import Table, Column, Row
-from datetime import datetime as dt
-from datetime import timedelta as tdelta
+
+import ktl
 
 from .core import *
 from .mask import *
@@ -13,7 +14,7 @@ from .mask import *
 ##-----------------------------------------------------------------------------
 ## pre- and post- conditions
 ##-----------------------------------------------------------------------------
-def bar_ok(barnum):
+def CSUbar_ok(barnum):
     '''Commonly used pre- and post- condition to check whether there are errors
     in the CSU bar status for a specified bar.
     '''
@@ -27,7 +28,7 @@ def CSUbars_ok():
     '''Simple loop to check all bars in the CSU.
     '''
     for barnum in range(1,93,1):
-        bar_ok(barnum)
+        CSUbar_ok(barnum)
 
 
 def CSU_ok():

@@ -1,7 +1,10 @@
 import inspect
-import ktl
+from datetime import datetime as dt
+from datetime import timedelta as tdelta
 from time import sleep
 from pathlib import Path
+
+import ktl
 
 from .core import *
 
@@ -51,8 +54,12 @@ def set_outdir(input, skipprecond=False, skippostcond=False):
     else:
         p = Path(input)
         if not p.parent.exists():
-            raise FailedCondition(f'Can not find parent directory for {input}')
-    
+            trypath = Path('/s')
+            for part in p.parent.parts[1:]:
+                trypath = trypath.joinpath(part)
+            if not trypath.exists():
+                raise FailedCondition(f'Can not find parent directory for {input}')
+
     ##-------------------------------------------------------------------------
     ## Script Contents
     OUTDIRkw = ktl.cache(service='mds', keyword='OUTDIR')
@@ -63,7 +70,8 @@ def set_outdir(input, skipprecond=False, skippostcond=False):
     if skippostcond is True:
         log.debug('Skipping post condition checks')
     else:
-        pass
+        if OUTDIRkw.read() != input:
+            raise FailedCondition(f'Failed to set outdir to "{input}"')
     
     return None
 
@@ -86,7 +94,7 @@ def object(skipprecond=False, skippostcond=False):
     ##-------------------------------------------------------------------------
     ## Script Contents
     objectkw = ktl.cache(service='mds', keyword='OBJECT')
-    object_str = Path(objectkw.read())
+    object_str = objectkw.read()
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -123,7 +131,8 @@ def set_object(input, skipprecond=False, skippostcond=False):
     if skippostcond is True:
         log.debug('Skipping post condition checks')
     else:
-        pass
+        if objectkw.read() != input:
+            raise FailedCondition(f'Failed to set object to "{input}"')
     
     return None
 
@@ -146,7 +155,7 @@ def observer(skipprecond=False, skippostcond=False):
     ##-------------------------------------------------------------------------
     ## Script Contents
     observerkw = ktl.cache(service='mosfire', keyword='OBSERVER')
-    observer_str = Path(observerkw.read())
+    observer_str = observerkw.read()
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -183,7 +192,8 @@ def set_observer(input, skipprecond=False, skippostcond=False):
     if skippostcond is True:
         log.debug('Skipping post condition checks')
     else:
-        pass
+        if observerkw.read() != input:
+            raise FailedCondition(f'Failed to set observer to "{input}"')
     
     return None
 
@@ -248,11 +258,15 @@ def lastfile(skipprecond=False, skippostcond=False):
     if skippostcond is True:
         log.debug('Skipping post condition checks')
     else:
-        if lastfile_path.exists() is False:
+        if lastfile_path.exists():
+            log.debug(f'Found file at {lastfile_path}')
+        else:
             trypath = Path('/s')
             for part in lastfile_path.parts[1:]:
                 trypath = trypath.joinpath(part)
-            if not trypath.exists():
+            if trypath.exists():
+                log.debug(f'Found file at {trypath}')
+            else:
                 raise FailedCondition(f'Could not find last file on disk: {lastfile_path}')
 
     return lastfile_path

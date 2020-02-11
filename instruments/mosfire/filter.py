@@ -1,6 +1,9 @@
 import inspect
-import ktl
+from datetime import datetime as dt
+from datetime import timedelta as tdelta
 from time import sleep
+
+import ktl
 
 from .core import *
 
@@ -15,7 +18,8 @@ def filter1_ok():
     # Check filter wheel 1 status
     mmf1s_status = ktl.cache(service='mmf1s', keyword='STATUS')
     filter1_status = mmf1s_status.read()
-    if filter1_status != 'OK':
+    log.debug(f'Filter1 status is "{filter1_status}"')
+    if filter1_status not in ['OK', 'Moving']:
         raise FailedCondition(f'Filter 1 status is not OK: "{filter1_status}"')
 
 
@@ -26,7 +30,8 @@ def filter2_ok():
     # Check filter wheel 2 status
     mmf2s_status = ktl.cache(service='mmf2s', keyword='STATUS')
     filter2_status = mmf2s_status.read()
-    if filter2_status != 'OK':
+    log.debug(f'Filter2 status is "{filter2_status}"')
+    if filter2_status not in ['OK', 'Moving']:
         raise FailedCondition(f'Filter 2 status is not OK: "{filter2_status}"')
 
 

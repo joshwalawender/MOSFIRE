@@ -6,3 +6,4 @@ from .metadata import *
 from .csu import *
 from .mask import *
 from .detector import *
+from .rotator import *

@@ -1,7 +1,10 @@
 import inspect
-import ktl
+from datetime import datetime as dt
+from datetime import timedelta as tdelta
 from time import sleep
 import re
+
+import ktl
 
 from .core import *
 from .metadata import *
@@ -55,7 +58,7 @@ def exptime(skipprecond=False, skippostcond=False):
     ##-------------------------------------------------------------------------
     ## Script Contents
     ITIMEkw = ktl.cache(service='mds', keyword='ITIME')
-    ITIME = float(ITIMEkw.read()/1000)
+    ITIME = float(ITIMEkw.read())/1000
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -85,14 +88,17 @@ def set_exptime(input, skipprecond=False, skippostcond=False):
     ##-------------------------------------------------------------------------
     ## Script Contents
     ITIMEkw = ktl.cache(service='mds', keyword='ITIME')
-    ITIMEkw.write(float(input)*1000)
+    new_exptime = float(input)*1000
+    log.debug(f'Setting exposure time to {new_exptime:.1f} ms')
+    ITIMEkw.write(new_exptime)
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
     if skippostcond is True:
         log.debug('Skipping post condition checks')
     else:
-        pass
+        ITIME = float(ITIMEkw.read())/1000
+        log.debug(f'Exposure time is now {ITIME:.1f} sec')
     
     return None
 
@@ -145,6 +151,7 @@ def set_coadds(input, skipprecond=False, skippostcond=False):
     ##-------------------------------------------------------------------------
     ## Script Contents
     COADDSkw = ktl.cache(service='mds', keyword='COADDS')
+    log.debug(f'Setting coadds to {int(input)}')
     COADDSkw.write(int(input))
     
     ##-------------------------------------------------------------------------
@@ -152,7 +159,10 @@ def set_coadds(input, skipprecond=False, skippostcond=False):
     if skippostcond is True:
         log.debug('Skipping post condition checks')
     else:
-        pass
+        nCOADDS = COADDSkw.read()
+        log.debug(f'Number of coadds is now {nCOADDS}')
+        if nCOADDS != int(input):
+            raise FailedCondition('Failed to set COADDS')
     
     return None
 

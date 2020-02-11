@@ -1,5 +1,6 @@
 import inspect
-import numpy as np
+from datetime import datetime as dt
+from datetime import timedelta as tdelta
 from time import sleep
 
 import ktl
@@ -81,9 +82,9 @@ def update_FCS(skipprecond=False, skippostcond=False):
     ##-------------------------------------------------------------------------
     ## Script Contents
     ROTPPOSNkw = ktl.cache(keyword='ROTPPOSN', service='dcs')
-    ROTPPOSN = ROTPPOSNkw.read()
+    ROTPPOSN = float(ROTPPOSNkw.read())
     ELkw = ktl.cache(keyword='EL', service='dcs')
-    EL = ELkw.read()
+    EL = float(ELkw.read())
 
     FCPA_ELkw = ktl.cache(keyword='PA_EL', service='mfcs')
     FCPA_ELkw.write(f"{ROTPPOSN:.2f} {EL:.2f}")
