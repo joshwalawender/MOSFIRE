@@ -3,6 +3,7 @@ import yaml
 import numpy as np
 import socket
 import subprocess
+import ktl
 
 from instruments import create_log
 
@@ -43,6 +44,14 @@ log = create_log(name, loglevel='DEBUG')
 ##-----------------------------------------------------------------------------
 ## pre- and post- conditions
 ##-----------------------------------------------------------------------------
+def instrument_is_MOSFIRE():
+    '''Checks whether MOSFIRE is the currently selected instrument.
+    '''
+    INSTRUMEkw = ktl.cache(service='dcs', keyword='INSTRUME')
+    if INSTRUMEkw.read() != 'MOSFIRE':
+        raise FailedCondition('MOSFIRE is not the selected instrument')
+
+
 def check_connectivity():
     '''Pings the two switches on the instrument to verify network connectivity.
     '''
@@ -86,7 +95,7 @@ def trapdoor_ok():
 def dustcover_ok():
     '''Alias for trapdoor_ok
     '''
-    return trapdoor_ok
+    return trapdoor_ok()
 
 
 # def check_mechanisms():
