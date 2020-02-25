@@ -5,7 +5,10 @@ from time import sleep
 import numpy as np
 from astropy.table import Table, Column, Row
 
-import ktl
+try:
+    import ktl
+except ModuleNotFoundError as e:
+    print(e)
 
 from .core import *
 from .mask import *

@@ -9,7 +9,10 @@ from pathlib import Path
 import argparse
 import logging
 
-import ktl
+try:
+    import ktl
+except ModuleNotFoundError as e:
+    print(e)
 
 description = '''
 '''

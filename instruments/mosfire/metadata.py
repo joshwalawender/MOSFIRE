@@ -4,7 +4,10 @@ from datetime import timedelta as tdelta
 from time import sleep
 from pathlib import Path
 
-import ktl
+try:
+    import ktl
+except ModuleNotFoundError as e:
+    print(e)
 
 from .core import *
 

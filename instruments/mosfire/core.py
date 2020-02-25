@@ -3,7 +3,10 @@ import yaml
 import numpy as np
 import socket
 import subprocess
-import ktl
+try:
+    import ktl
+except ModuleNotFoundError as e:
+    print(e)
 
 from instruments import create_log
 
