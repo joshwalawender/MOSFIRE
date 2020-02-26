@@ -7,10 +7,13 @@ from time import sleep
 from pathlib import Path
 import random
 import xml.etree.ElementTree as ET
+import numpy as np
 
 from astropy.table import Table, Column
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import SkyCoord, Angle
 from astropy import units as u
+from astropy.time import Time
+from astroplan import FixedTarget, Observer
 
 from .core import log
 
@@ -69,6 +72,88 @@ class Mask(object):
                     log.debug(f'Unable to parse "{input}" as long slit')
                     log.error(f'Unable to parse "{input}"')
                     raise ValueError(f'Unable to parse "{input}"')
+
+
+    def find_bad_angles(self, night='2020-02-25', nhours=6, plot=False):
+        log.info(f'Checking for bad angles for mask "{self.name}" on {night}')
+        if self.PA is None:
+            log.error("No PA defined for this mask.")
+            return None
+        if not isinstance(self.center, SkyCoord):
+            log.error("No central coordinate defined for this mask")
+            return None
+        time = Time(f'{night}T10:00:00', format='isot', scale='utc') + np.arange(-nhours, nhours, 1/60)*u.hour
+        observer = Observer.at_site('Keck', timezone="US/Hawaii")
+        p_angles = observer.parallactic_angle(time, FixedTarget(self.center))
+        predicted_rotpposn = 45*u.deg - p_angles
+        predicted_rotpposn = predicted_rotpposn.wrap_at(360*u.deg)
+
+        result = []
+        danger_times = []
+        danger_angles = []
+        last_point_bad = False
+        for t,p in zip(time, predicted_rotpposn):
+            if abs(p.value-180) < 10 or abs(p.value-0) < 10:
+                if last_point_bad is False:
+                    result.append( [t, None] )
+                last_point_bad = True
+                danger_times.append(t)
+                danger_angles.append(p)
+            else:
+                if last_point_bad is True:
+                    result[-1][1] = t
+                    msg = (f'  Bad rotator angle for "{self.name}" from '
+                           f'{result[-1][0].datetime.strftime("%H:%M UT")} to '
+                           f"{result[-1][1].datetime.strftime('%H:%M UT')}")
+                    log.info(msg)
+                last_point_bad = False
+        danger_times = Time(danger_times)
+        danger_angles = Angle(danger_angles)
+    
+        if plot is True:
+            from matplotlib import pyplot as plt
+            from matplotlib import dates
+
+            plt.figure(figsize=(18,6))
+
+            plt.title(msg)
+            plt.fill_between(danger_times.plot_date, -10, 370, color='red', alpha=0.2)
+
+            # plt.plot_date(UTs.plot_date, ROTPPOSNs, 'go')
+            plt.plot_date(time.plot_date, predicted_rotpposn.to(u.deg), 'b-')
+            plt.plot_date(danger_times.plot_date, danger_angles.to(u.deg), 'r-', lw=8)
+
+            # Format the time axis
+            date_formatter = dates.DateFormatter('%H:%M')
+            plt.gca().xaxis.set_major_formatter(date_formatter)
+            # Set labels.
+            plt.yticks(np.arange(0,390,180))
+            plt.ylabel("Drive Angle (degrees)")
+            plt.xlabel("UTC Time on {0}".format(min(time).datetime.date()))
+            plt.grid()
+            plt.show()
+        
+        return result
+        
+        
+    def slit_corners(self, scienceslitno):
+        '''Return the 4 corners of the science slit in RA and Dec.
+        '''
+        slit = dict(self.scienceTargets[scienceslitno])
+        ra_str = f"{slit['slitRaH']}h{slit['slitRaM']}m{slit['slitRaS']}s"
+        dec_str = f"{slit['slitDecD']}d{slit['slitDecM']}m{slit['slitDecS']}s"
+        slit_center = SkyCoord(f"{ra_str} {dec_str}")
+        slitL = float(slit['slitLengthArcsec'])
+        slitW = float(slit['slitWidthArcsec'])
+        c1 = slit_center.directional_offset_by(m.PA*u.deg + (np.tan(slitW/slitL)*u.radian).to(u.deg),
+                                               ((slitL/2)**2 + (slitW/2)**2)**0.5*u.arcsec )
+        c2 = slit_center.directional_offset_by(m.PA*u.deg - (np.tan(slitW/slitL)*u.radian).to(u.deg),
+                                               ((slitL/2)**2 + (slitW/2)**2)**0.5*u.arcsec )
+        c3 = slit_center.directional_offset_by(m.PA*u.deg + (np.tan(slitW/slitL)*u.radian).to(u.deg) + 180*u.deg,
+                                               ((slitL/2)**2 + (slitW/2)**2)**0.5*u.arcsec )
+        c4 = slit_center.directional_offset_by(m.PA*u.deg - (np.tan(slitW/slitL)*u.radian).to(u.deg) + 180*u.deg,
+                                               ((slitL/2)**2 + (slitW/2)**2)**0.5*u.arcsec )
+        return (c1, c2, c3, c4)
 
 
     def read_xml(self, xml):
