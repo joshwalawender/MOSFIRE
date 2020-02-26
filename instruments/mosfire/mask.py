@@ -44,22 +44,21 @@ class Mask(object):
 
         if input is None:
             pass
-        else:
-            xmlfile = Path(input)
-            if type(input) == Path:
+        elif isinstance(input, Path):
+            input = input.expanduser()
+            if input.exists() is True:
+                log.debug(f'Found mask file "{input}" on disk')
                 self.read_xml(input)
-            elif xmlfile.exists():
-                log.debug(f'"{input}" exists as file on disk')
-                self.read_xml(xmlfile)
-            # Is the input OPEN mask
-            elif input.upper() in ['OPEN', 'OPEN MASK']:
+            else:
+                log.error(f'Failed to find "{input}" on disk')
+                return None
+        elif isinstance(input, str):
+            if input.upper() in ['OPEN', 'OPEN MASK']:
                 log.debug(f'"{input}" interpreted as OPEN')
                 self.build_open_mask()
-            # Is the input asking for a random mask
             elif input.upper() in ['RAND', 'RANDOM']:
                 log.debug(f'"{input}" interpreted as RANDOM')
                 self.build_random_mask()
-            # Try to parse input as long slit specification
             else:
                 try:
                     width, length = input.split('x')
@@ -72,6 +71,8 @@ class Mask(object):
                     log.debug(f'Unable to parse "{input}" as long slit')
                     log.error(f'Unable to parse "{input}"')
                     raise ValueError(f'Unable to parse "{input}"')
+        else:
+            raise ValueError(f'Unable to parse "{input}"')
 
 
     def find_bad_angles(self, night='2020-02-25', nhours=6, plot=False):
