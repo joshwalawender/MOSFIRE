@@ -31,6 +31,9 @@ will be in one of MOSFIRE's "bad angles" (e.g. -180, 0, +180) on the rotator.
 p.add_argument("-v", "--verbose", dest="verbose",
     default=False, action="store_true",
     help="Be verbose! (default = False)")
+p.add_argument("-p", "--plot", dest="plot",
+    default=False, action="store_true",
+    help="Generate plot")
 ## add options
 p.add_argument('maskfile', type=str,
                help="The XML file containing your mask")
@@ -65,7 +68,7 @@ log.addHandler(LogConsoleHandler)
 ##-------------------------------------------------------------------------
 ## Check Mask Angles
 ##-------------------------------------------------------------------------
-def check_mask_angles(maskfile, night=None,
+def check_mask_angles(maskfile, night=None, plot=False,
                       skipprecond=False, skippostcond=True):
     this_script_name = inspect.currentframe().f_code.co_name
     log.debug(f"Executing: {this_script_name}")
@@ -83,7 +86,7 @@ def check_mask_angles(maskfile, night=None,
     ## Script Contents
 
     mask = mosfire.Mask(maskfile)
-    mask.find_bad_angles(night=night)
+    mask.find_bad_angles(night=night, plot=plot)
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -94,4 +97,4 @@ def check_mask_angles(maskfile, night=None,
 
 
 if __name__ == '__main__':
-    check_mask_angles(args.maskfile, night=args.night)
+    check_mask_angles(args.maskfile, night=args.night, plot=args.plot)
