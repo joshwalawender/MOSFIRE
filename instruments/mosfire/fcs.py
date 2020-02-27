@@ -6,7 +6,7 @@ from time import sleep
 try:
     import ktl
 except ModuleNotFoundError as e:
-    print(e)
+    pass
 
 from .core import *
 

@@ -12,7 +12,7 @@ import logging
 try:
     import ktl
 except ModuleNotFoundError as e:
-    print(e)
+    pass
 
 description = '''
 '''
@@ -63,7 +63,7 @@ log.addHandler(LogConsoleHandler)
 ##-------------------------------------------------------------------------
 ## The Instrument Script
 ##-------------------------------------------------------------------------
-def instrument_script():
+def instrument_script(skipprecond=False, skippostcond=True):
     this_script_name = inspect.currentframe().f_code.co_name
     log.debug(f"Executing: {this_script_name}")
 

@@ -6,7 +6,7 @@ import subprocess
 try:
     import ktl
 except ModuleNotFoundError as e:
-    print(e)
+    pass
 
 from instruments import create_log
 

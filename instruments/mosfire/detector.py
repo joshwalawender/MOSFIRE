@@ -7,7 +7,7 @@ import re
 try:
     import ktl
 except ModuleNotFoundError as e:
-    print(e)
+    pass
 
 from .core import *
 from .metadata import *

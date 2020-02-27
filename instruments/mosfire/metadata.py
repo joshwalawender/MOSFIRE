@@ -7,7 +7,7 @@ from pathlib import Path
 try:
     import ktl
 except ModuleNotFoundError as e:
-    print(e)
+    pass
 
 from .core import *
 

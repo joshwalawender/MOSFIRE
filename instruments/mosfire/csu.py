@@ -8,7 +8,7 @@ from astropy.table import Table, Column, Row
 try:
     import ktl
 except ModuleNotFoundError as e:
-    print(e)
+    pass
 
 from .core import *
 from .mask import *
