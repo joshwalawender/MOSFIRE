@@ -107,9 +107,13 @@ class Mask(object):
             else:
                 if last_point_bad is True:
                     result[-1][1] = t
+                    bad_start = result[-1][0].datetime
+                    bad_end = result[-1][1].datetime
                     msg = (f'  Bad rotator angle for "{self.name}" from '
-                           f'{result[-1][0].datetime.strftime("%H:%M UT")} to '
-                           f"{result[-1][1].datetime.strftime('%H:%M UT')}")
+                           f'{bad_start.strftime("%H:%M UT")} to '
+                           f'{bad_end.strftime("%H:%M UT")} '
+                           f'({(bad_start-tdelta(hours=10)).strftime("%H:%M HST")} to '
+                           f'{(bad_end-tdelta(hours=10)).strftime("%H:%M HST")})')
                     log.info(msg)
                 last_point_bad = False
         danger_times = Time(danger_times)
@@ -133,8 +137,8 @@ class Mask(object):
             plt.gca().xaxis.set_major_formatter(date_formatter)
             # Set labels.
             plt.yticks(np.arange(0,390,180))
-            plt.ylabel("Drive Angle (degrees)")
-            plt.xlabel("UTC Time on {0}".format(min(time).datetime.date()))
+            plt.ylabel("Physical Drive Angle (degrees)")
+            plt.xlabel("HST Time on {0}".format(min(time).datetime.date()))
             plt.grid()
             plt.show()
         
