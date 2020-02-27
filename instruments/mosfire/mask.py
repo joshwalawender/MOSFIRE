@@ -42,8 +42,12 @@ class Mask(object):
         self.PA = None
         self.mascgenArguments = None
 
+        try_input_as_path = Path(input)
         if input is None:
             pass
+        if try_input_as_path.exists():
+            log.debug(f'Found mask file "{try_input_as_path}" on disk')
+            self.read_xml(try_input_as_path)
         elif isinstance(input, Path):
             input = input.expanduser()
             if input.exists() is True:
