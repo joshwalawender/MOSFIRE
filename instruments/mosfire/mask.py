@@ -10,10 +10,10 @@ import xml.etree.ElementTree as ET
 import numpy as np
 
 from astropy.table import Table, Column
-from astropy.coordinates import SkyCoord, Angle
+from astropy import coordinates as c
 from astropy import units as u
 from astropy.time import Time
-from astroplan import FixedTarget, Observer
+# from astroplan import FixedTarget, Observer
 
 from .core import log
 
@@ -84,13 +84,23 @@ class Mask(object):
         if self.PA is None:
             log.error("No PA defined for this mask.")
             return None
-        if not isinstance(self.center, SkyCoord):
+        if not isinstance(self.center, c.SkyCoord):
             log.error("No central coordinate defined for this mask")
             return None
-        time = Time(f'{night}T10:00:00', format='isot', scale='utc') + np.arange(-nhours, nhours, 1/60)*u.hour
-        observer = Observer.at_site('Keck', timezone="US/Hawaii")
-        p_angles = observer.parallactic_angle(time, FixedTarget(self.center))
-        predicted_rotpposn = 45*u.deg - p_angles
+
+        keck = c.EarthLocation.of_site('keck')
+        time = Time(f'{night}T10:00:00', format='isot', scale='utc', location=keck) + np.arange(-nhours, nhours, 1/60)*u.hour
+        HA = time.sidereal_time('apparent') - self.center.ra.hourangle*u.hourangle
+
+        # calculate parallactic angle from HA, dec, latitude
+        # from https://en.wikipedia.org/wiki/Parallactic_angle
+        # P = arctan( sin(HA) / (cos(dec)*tan(lat) - sin(dec)*cos(HA)) )
+        tan_p_angles = np.sin(HA.to(u.radian))
+        tan_p_angles /= np.cos(self.center.dec.radian)*np.tan(keck.lat.radian)\
+                      - np.sin(self.center.dec.radian)*np.cos(HA.to(u.radian))
+        p_angles = c.Angle(np.arctan(tan_p_angles)) - 180*u.deg
+
+        predicted_rotpposn = c.Angle(45*u.deg) - p_angles
         predicted_rotpposn = predicted_rotpposn.wrap_at(360*u.deg)
 
         result = []
@@ -117,7 +127,7 @@ class Mask(object):
                     log.info(msg)
                 last_point_bad = False
         danger_times = Time(danger_times)
-        danger_angles = Angle(danger_angles)
+        danger_angles = c.Angle(danger_angles)
     
         if plot is True:
             from matplotlib import pyplot as plt
@@ -151,7 +161,7 @@ class Mask(object):
         slit = dict(self.scienceTargets[scienceslitno])
         ra_str = f"{slit['slitRaH']}h{slit['slitRaM']}m{slit['slitRaS']}s"
         dec_str = f"{slit['slitDecD']}d{slit['slitDecM']}m{slit['slitDecS']}s"
-        slit_center = SkyCoord(f"{ra_str} {dec_str}")
+        slit_center = c.SkyCoord(f"{ra_str} {dec_str}")
         slitL = float(slit['slitLengthArcsec'])
         slitW = float(slit['slitWidthArcsec'])
         c1 = slit_center.directional_offset_by(m.PA*u.deg + (np.tan(slitW/slitL)*u.radian).to(u.deg),
@@ -190,7 +200,7 @@ class Mask(object):
                                   f"{child.attrib.get('centerDecD')}:"\
                                   f"{child.attrib.get('centerDecM')}:"\
                                   f"{child.attrib.get('centerDecS')}"
-                self.center = SkyCoord(self.center_str, unit=(u.hourangle, u.deg))
+                self.center = c.SkyCoord(self.center_str, unit=(u.hourangle, u.deg))
             elif child.tag == 'mascgenArguments':
                 self.mascgenArguments = {}
                 for el in child:
