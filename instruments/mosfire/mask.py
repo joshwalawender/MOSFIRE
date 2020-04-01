@@ -18,6 +18,22 @@ from astropy.time import Time
 from .core import log
 
 
+def parallactic_angle(time, target, location):
+    '''
+    Calculate parallactic angle from HA, dec, latitude
+    from https://en.wikipedia.org/wiki/Parallactic_angle
+    P = arctan( sin(HA) / (cos(dec)*tan(lat) - sin(dec)*cos(HA)) )
+    '''
+    HA = time.sidereal_time('apparent') - target.ra.hourangle*u.hourangle
+    tan_p_angles = np.sin(HA.to(u.radian))
+    tan_p_angles /= np.cos(target.dec.radian)*np.tan(location.lat.radian)\
+                  - np.sin(target.dec.radian)*np.cos(HA.to(u.radian))
+    p_angles = c.Angle(np.arctan(tan_p_angles))
+    # Fudge factor to make it match astroplan
+    p_angles -= 180*u.deg
+    return p_angles
+
+
 ##-------------------------------------------------------------------------
 ## Define Mask Object
 ##-------------------------------------------------------------------------
@@ -90,15 +106,8 @@ class Mask(object):
 
         keck = c.EarthLocation.of_site('keck')
         time = Time(f'{night}T10:00:00', format='isot', scale='utc', location=keck) + np.arange(-nhours, nhours, 1/60)*u.hour
-        HA = time.sidereal_time('apparent') - self.center.ra.hourangle*u.hourangle
 
-        # calculate parallactic angle from HA, dec, latitude
-        # from https://en.wikipedia.org/wiki/Parallactic_angle
-        # P = arctan( sin(HA) / (cos(dec)*tan(lat) - sin(dec)*cos(HA)) )
-        tan_p_angles = np.sin(HA.to(u.radian))
-        tan_p_angles /= np.cos(self.center.dec.radian)*np.tan(keck.lat.radian)\
-                      - np.sin(self.center.dec.radian)*np.cos(HA.to(u.radian))
-        p_angles = c.Angle(np.arctan(tan_p_angles)) - 180*u.deg
+        p_angles = parallactic_angle(time, self.center, keck)
 
         predicted_rotpposn = c.Angle(45*u.deg) - p_angles
         predicted_rotpposn = predicted_rotpposn.wrap_at(360*u.deg)
