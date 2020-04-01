@@ -42,7 +42,7 @@ class Mask(object):
         self.PA = None
         self.mascgenArguments = None
 
-        try_input_as_path = Path(input)
+        try_input_as_path = Path(input).expanduser()
         if input is None:
             pass
         if try_input_as_path.exists():
