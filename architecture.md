@@ -37,6 +37,22 @@ In many cases these functions just set a single keyword value, but the utility i
 1. We implement pre- and post- conditions for all functions.  These conditions effectively state our assumptions about the instrument state before and after we issue a command.
 1. This layer would also allow us to standardize behavior between instruments.  Something as simple as the units and name for exptime being consistent across all instruments would be a nice improvement.
 
+Here's a realistic example to show how cryptic direct keywords can be and why I think a layer of simple functions can help.  The following pseudocode snippet is from a real script, the second does the same thing using proposed functions.
+
+Using keywords:
+```
+if dwrn2lv < 25:
+    utbn2fil.write('on')
+```
+
+Using proposed instrument functions:
+```
+if dewar_hold_time() < 3*u.hours:
+    fill_dewar()
+```
+
+Note that in addition to the naming making the logic much easier to follow, we can bring the true intent forward: we're worried about hold time, not the actual level value which is a proxy for that.  In addition, we can make units clear if we want to support that feature.
+
 #### 3) Instrument Scripts
 
 Instrument “scripts” wrap functions and keyword calls.  There’s a big gray area between scripts and functions, it’s really a continuum, but I see scripts as being more complex structures calling multiple functions or keywords.  Scripts would also potentially call data analysis tools.  
