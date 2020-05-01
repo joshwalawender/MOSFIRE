@@ -3,6 +3,8 @@ import yaml
 import numpy as np
 import socket
 import subprocess
+import sys
+
 try:
     import ktl
 except ModuleNotFoundError as e:
@@ -42,6 +44,11 @@ Aphysical_to_pixel = np.array(Aphysical_to_pixel)
 Apixel_to_physical = np.array(Apixel_to_physical)
 
 log = create_log(name, loglevel='DEBUG')
+
+from .fcs import *
+from .filter import *
+from .hatch import *
+from .obsmode import *
 
 
 ##-----------------------------------------------------------------------------
@@ -85,28 +92,12 @@ def pupil_rotator_ok():
         raise FailedCondition(f'Pupil rotator status is {pupil_status}')
 
 
-def trapdoor_ok():
-    '''Commonly used pre- and post- condition to check whether there are errors
-    in the trap door (aka dust cover) status.
+def mechanisms_ok():
+    '''Simple loop to check all mechanisms.
     '''
-    mmdcs_statuskw = ktl.cache(keyword='STATUS', service='mmdcs')
-    trapdoor_status = mmdcs_statuskw.read()
-    if trapdoor_status != 'OK':
-        raise FailedCondition(f'Trap door status is {trapdoor_status}')
-
-
-def dustcover_ok():
-    '''Alias for trapdoor_ok
-    '''
-    return trapdoor_ok()
-
-
-# def check_mechanisms():
-#     '''Simple loop to check all mechanisms.
-#     '''
-#     log.info('Checking mechanisms')
-#     mechs = ['filter1', 'filter2', 'FCS', 'grating_shim', 'grating_turret',
-#              'pupil_rotator', 'trapdoor']
-#     for mech in mechs:
-#         statusfn = getattr(sys.modules[__name__], f'{mech}_ok')
-#         statusfn()
+    log.info('Checking mechanisms')
+    mechs = ['filter1', 'filter2', 'FCS', 'grating_shim', 'grating_turret',
+             'pupil_rotator', 'hatch']
+    for mech in mechs:
+        statusfn = getattr(sys.modules[__name__], f'{mech}_ok')
+        statusfn()
