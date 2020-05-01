@@ -2,8 +2,7 @@
 
 ## Import General Tools
 import inspect
-from datetime import datetime as dt
-from datetime import timedelta as tdelta
+from datetime import datetime
 from time import sleep
 from pathlib import Path
 import argparse
@@ -79,7 +78,7 @@ def check_mask_angles(maskfile, night=None, plot=False,
         log.debug('Skipping pre condition checks')
     else:
         if night in [None, '']:
-            now = dt.utcnow()
+            now = datetime.utcnow()
             night = now.strftime('%Y-%m-%d')
     
     ##-------------------------------------------------------------------------

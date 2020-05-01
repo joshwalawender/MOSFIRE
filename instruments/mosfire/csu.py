@@ -1,6 +1,5 @@
 import inspect
-from datetime import datetime as dt
-from datetime import timedelta as tdelta
+from datetime import datetime, timedelta
 from time import sleep
 import numpy as np
 from astropy.table import Table, Column, Row
@@ -229,10 +228,10 @@ def waitfor_CSU(timeout=480, noshim=False, skipprecond=False, skippostcond=False
     ## Script Contents
     csureadykw = ktl.cache(keyword='CSUREADY', service='mcsus')
     csureadykw.monitor()
-    endat = dt.utcnow() + tdelta(seconds=timeout)
+    endat = datetime.utcnow() + timedelta(seconds=timeout)
     if noshim is False:
         sleep(1)
-    while int(csureadykw) != 2 and dt.utcnow() < endat:
+    while int(csureadykw) != 2 and datetime.utcnow() < endat:
         if int(csureadykw) == -1:
             raise CSUFatalError()
         sleep(2)

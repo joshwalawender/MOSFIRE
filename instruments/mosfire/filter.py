@@ -1,6 +1,5 @@
 import inspect
-from datetime import datetime as dt
-from datetime import timedelta as tdelta
+from datetime import datetime, timedelta
 from time import sleep
 
 try:
@@ -124,11 +123,11 @@ def waitfordark(timeout=60, skipprecond=False, skippostcond=False):
     
     ##-------------------------------------------------------------------------
     ## Script Contents
-    endat = dt.utcnow() + tdelta(seconds=timeout)
+    endat = datetime.utcnow() + timedelta(seconds=timeout)
     filterkw = ktl.cache(service='mosfire', keyword='FILTER')
     filterkw.monitor()
 
-    while dt.utcnow() < endat and str(filterkw) != 'Dark':
+    while datetime.utcnow() < endat and str(filterkw) != 'Dark':
         sleep(1)
     if str(filterkw) != 'Dark':
         raise TimeoutError('Timed out waiting for instrument to be dark')

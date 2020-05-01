@@ -1,6 +1,5 @@
 import inspect
-from datetime import datetime as dt
-from datetime import timedelta as tdelta
+from datetime import datetime, timedelta
 from time import sleep
 
 try:
@@ -101,12 +100,13 @@ def set_obsmode(destination, wait=True, timeout=60,
         log.debug('Skipping post condition checks')
     else:
         if wait is True:
-            endat = dt.utcnow() + tdelta(seconds=timeout)
+            endat = datetime.utcnow() + timedelta(seconds=timeout)
             obsmodekw = ktl.cache(service='mosfire', keyword='OBSMODE')
-            done = (obsmodekw.read().lower() == destination.lower())
-            while not done and dt.utcnow() < endat:
+            obsmodekw.monitor()
+            done = (obsmodekw.lower() == destination.lower())
+            while not done and datetime.utcnow() < endat:
                 sleep(1)
-                done = (obsmodekw.read().lower() == destination.lower())
+                done = (obsmodekw.lower() == destination.lower())
             if not done:
                 raise FailedCondition(f'Timeout exceeded on waiting for mode {destination}')
         grating_shim_ok()

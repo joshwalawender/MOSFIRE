@@ -1,6 +1,5 @@
 import inspect
-from datetime import datetime as dt
-from datetime import timedelta as tdelta
+from datetime import datetime, timedelta
 from time import sleep
 import re
 
@@ -21,7 +20,7 @@ def waitfor_exposure(timeout=240, shim=False):
     '''Block and wait for the current exposure to be complete.
     '''
     log.debug('Waiting for exposure to finish')
-    endat = dt.utcnow() + tdelta(seconds=timeout)
+    endat = datetime.utcnow() + timedelta(seconds=timeout)
     if shim is True:
         sleep(1)
     IMAGEDONEkw = ktl.cache(service='mds', keyword='IMAGEDONE')
@@ -30,7 +29,7 @@ def waitfor_exposure(timeout=240, shim=False):
     READYkw.monitor()
 
     done_and_ready = bool(IMAGEDONEkw) and bool(READYkw)
-    while dt.utcnow() < endat and not done_and_ready:
+    while datetime.utcnow() < endat and not done_and_ready:
         sleep(1)
         done_and_ready = bool(IMAGEDONEkw) and bool(READYkw)
     if not done_and_ready:

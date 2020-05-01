@@ -2,8 +2,8 @@
 
 ## Import General Tools
 import inspect
-from datetime import datetime as dt
-from datetime import timedelta as tdelta
+from datetime import datetime
+from datetime import timedelta
 from time import sleep
 from pathlib import Path
 import argparse

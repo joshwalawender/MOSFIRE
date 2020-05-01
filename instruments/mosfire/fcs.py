@@ -1,6 +1,5 @@
 import inspect
-from datetime import datetime as dt
-from datetime import timedelta as tdelta
+from datetime import datetime, timedelta
 from time import sleep
 
 try:
@@ -121,8 +120,8 @@ def update_FCS(skipprecond=False, skippostcond=False):
 #     if noshim is False:
 #         sleep(1)
 #     done = check_FCS(PAthreshold=PAthreshold, ELthreshold=ELthreshold)
-#     endat = dt.utcnow() + tdelta(seconds=timeout)
-#     while done is False and dt.utcnow() < endat:
+#     endat = datetime.utcnow() + timedelta(seconds=timeout)
+#     while done is False and datetime.utcnow() < endat:
 #         sleep(1)
 #         done = check_FCS(PAthreshold=PAthreshold, ELthreshold=ELthreshold)
 #     if done is False:

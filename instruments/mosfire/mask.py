@@ -1,7 +1,6 @@
 ## Import General Tools
 import inspect
-from datetime import datetime as dt
-from datetime import timedelta as tdelta
+from datetime import datetime, timedelta
 from time import sleep
 
 from pathlib import Path
@@ -131,8 +130,8 @@ class Mask(object):
                     msg = (f'  Bad rotator angle for "{self.name}" from '
                            f'{bad_start.strftime("%H:%M UT")} to '
                            f'{bad_end.strftime("%H:%M UT")} '
-                           f'({(bad_start-tdelta(hours=10)).strftime("%H:%M HST")} to '
-                           f'{(bad_end-tdelta(hours=10)).strftime("%H:%M HST")})')
+                           f'({(bad_start-timedelta(hours=10)).strftime("%H:%M HST")} to '
+                           f'{(bad_end-timedelta(hours=10)).strftime("%H:%M HST")})')
                     log.info(msg)
                 last_point_bad = False
         danger_times = Time(danger_times)
