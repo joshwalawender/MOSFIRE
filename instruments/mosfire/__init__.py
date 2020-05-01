@@ -7,3 +7,5 @@ from .csu import *
 from .mask import *
 from .detector import *
 from .rotator import *
+from .hatch import *
+from .power import *
