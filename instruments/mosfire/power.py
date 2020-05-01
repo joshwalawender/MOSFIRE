@@ -16,7 +16,7 @@ from .core import *
 
 
 ##-----------------------------------------------------------------------------
-## Control Power
+## Control Power Strips
 ##-----------------------------------------------------------------------------
 def power_strip(stripno, portno, onoff, skipprecond=False, skippostcond=False):
     '''Turns a power port on or off
@@ -117,3 +117,59 @@ def fcs_controller_power(onoff, skipprecond=False, skippostcond=False):
 def dewar_heater_power(onoff, skipprecond=False, skippostcond=False):
     return power_strip(2, 8, onoff, skipprecond=skipprecond, skippostcond=skippostcond)
 
+
+##-----------------------------------------------------------------------------
+## Control Dome Flat Lamps
+##-----------------------------------------------------------------------------
+def dome_flat_lamps(power, skipprecond=False, skippostcond=False):
+    '''Turns dome flat lamps on or off
+    '''
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
+
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        # Parse power input
+        default_power_levels = {'Y': 4,
+                                'J': 9,
+                                'H': 13.5,
+                                'K': 14,
+                                'on': 0,
+                                'off': None,
+                                }
+        if type(power) is str:
+            if power in default_power_levels.keys():
+                power = default_power_levels[power]
+            else:
+                raise FailedCondition(f'Unable to parse power "{power}"')
+        elif type(power) in [int, float]:
+            if float(power) > 20 or float(power) < 0:
+                raise FailedCondition(f'Unable to parse power "{power}"')
+        # Check that instrument is MOSFIRE
+        instrument_is_MOSFIRE()
+
+    ##-------------------------------------------------------------------------
+    ## Script Contents
+    fpower = ktl.cache(service='flat', keyword='fpower')
+    flamp = ktl.cache(service='flat', keyword='flamp')
+    mosfire_flatspec = ktl.cache(service='mosfire', keyword='flatspec')
+
+    if power in [None, 'off']:
+        flamp.write('off')
+        mosfire_flatspec.write(0)
+    else:
+        fpower.write(power)
+        flamp.write('on')
+        mosfire_flatspec.write(1)
+
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        pass
+
+    return None
