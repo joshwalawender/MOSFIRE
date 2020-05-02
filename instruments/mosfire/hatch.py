@@ -86,11 +86,15 @@ def open_hatch(skipprecond=False, skippostcond=False, wait=True, timeout=60):
     targname = ktl.cache(service='mmdcs', keyword='TARGNAME')
     posname = ktl.cache(service='mmdcs', keyword='POSNAME')
     posname.monitor()
-    log.info(f"Setting hatch to Open")
-    targname.write("Open", wait=wait)
-    sleep(3)
-    while posname != "Open" and datetime.utcnow() < endat:
-        sleep(1)
+
+    if posname == 'Open':
+        log.info('Hatich is open')
+    else:
+        log.info(f"Setting hatch to Open")
+        targname.write("Open", wait=wait)
+        sleep(3)
+        while posname != "Open" and datetime.utcnow() < endat:
+            sleep(1)
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -123,11 +127,15 @@ def close_hatch(skipprecond=False, skippostcond=False, wait=True, timeout=60):
     targname = ktl.cache(service='mmdcs', keyword='TARGNAME')
     posname = ktl.cache(service='mmdcs', keyword='POSNAME')
     posname.monitor()
-    log.info(f"Setting hatch to Closed")
-    targname.write("Closed", wait=wait)
-    sleep(3)
-    while posname != "Closed" and datetime.utcnow() < endat:
-        sleep(1)
+
+    if posname == 'Closed':
+        log.info('Hatch is closed')
+    else:
+        log.info(f"Setting hatch to Closed")
+        targname.write("Closed", wait=wait)
+        sleep(3)
+        while posname != "Closed" and datetime.utcnow() < endat:
+            sleep(1)
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
