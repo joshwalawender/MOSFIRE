@@ -139,6 +139,7 @@ def dome_flat_lamps(power, skipprecond=False, skippostcond=False):
                                 'K': 14,
                                 'on': 0,
                                 'off': None,
+                                'read': 'read'
                                 }
         if type(power) is str:
             if power in default_power_levels.keys():
@@ -148,22 +149,46 @@ def dome_flat_lamps(power, skipprecond=False, skippostcond=False):
         elif type(power) in [int, float]:
             if float(power) > 20 or float(power) < 0:
                 raise FailedCondition(f'Unable to parse power "{power}"')
+        else:
+            raise FailedCondition(f'Expecting string, int, or float, got "{power}"')
         # Check that instrument is MOSFIRE
         instrument_is_MOSFIRE()
 
+        # Hack to test code before flat service is added to MOSFIRE
+        from ktl import Exceptions as ktlExceptions
+        try:
+            fpower = ktl.cache(service='flat', keyword='fpower')
+        except ktlExceptions.ktlError as ke:
+            log.error('Could not access flat keywords')
+            log.error('Passing for code testing, rather than raising exception')
+            log.error(f'Not attempting to set dome flat lamps to {power}')
+            return None
+
     ##-------------------------------------------------------------------------
     ## Script Contents
-    fpower = ktl.cache(service='flat', keyword='fpower')
-    flamp = ktl.cache(service='flat', keyword='flamp')
-    mosfire_flatspec = ktl.cache(service='mosfire', keyword='flatspec')
 
-    if power in [None, 'off']:
-        flamp.write('off')
-        mosfire_flatspec.write(0)
+    if power == 'read':
+        # Read power and return
+        flamp1 = ktl.cache(service='flat', keyword='flamp1')
+        flamp2 = ktl.cache(service='flat', keyword='flamp2')
+        flamp1_on = not (flamp1.read() == 'off')
+        flamp2_on = not (flamp2.read() == 'off')
+        return flamp1_on or flamp2_on
     else:
-        fpower.write(power)
-        flamp.write('on')
-        mosfire_flatspec.write(1)
+        # Set power level and turn both lamps on
+        fpower = ktl.cache(service='flat', keyword='fpower')
+        flamp = ktl.cache(service='flat', keyword='flamp')
+        mosfire_flatspec = ktl.cache(service='mosfire', keyword='flatspec')
+
+        if power in [None, 'off']:
+            log.debug(f'Turning dome flat lamps off')
+            flamp.write('off')
+            mosfire_flatspec.write(0)
+        else:
+            log.debug(f'Turning dome flat lamps on at {power:.1f} power')
+            fpower.write(power)
+            flamp.write('on')
+            mosfire_flatspec.write(1)
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
