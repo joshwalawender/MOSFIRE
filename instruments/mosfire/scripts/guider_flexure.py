@@ -6,7 +6,10 @@ import argparse
 import logging
 from time import sleep
 
-from mosfire.core import *
+from ..core import *
+from ..fcs import *
+from ..detector import *
+from ..obsmode import *
 
 description = '''
 '''
@@ -66,10 +69,10 @@ log.addHandler(LogConsoleHandler)
 ## measure_single_guider_flexure
 ##-------------------------------------------------------------------------
 # def measure_single_guider_flexure(obsmode='Y-imaging'):
-#     m.update_FCS()
+#     update_FCS()
 #     sleep(2)
-#     m.waitfor_FCS()
-#     m.take_exposure(wait=True)
+#     waitfor_FCS()
+#     take_exposure(wait=True)
 
 
 ##-------------------------------------------------------------------------
@@ -102,7 +105,7 @@ log.addHandler(LogConsoleHandler)
 #     proceed = input('Take image? [y]')
 #     while proceed.lower() not in ['y', 'yes', 'ok', '']:
 #         proceed = input('Take image? [y]')
-#     m.set_obsmode(obsmode)
+#     set_obsmode(obsmode)
 #     measure_single_guider_flexure(obsmode=obsmode)
 # 
 #     for rotpposn in rotpposns:
@@ -112,7 +115,7 @@ log.addHandler(LogConsoleHandler)
 #         while proceed.lower() not in ['y', 'yes', 'ok', '']:
 #             proceed = input('Take image? [y]')
 #         measure_single_guider_flexure(obsmode=obsmode)
-#     m.go_dark(wait=False)
+#     go_dark(wait=False)
 
 
 if __name__ == '__main__':

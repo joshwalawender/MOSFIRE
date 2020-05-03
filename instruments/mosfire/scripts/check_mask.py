@@ -13,7 +13,8 @@ try:
 except ModuleNotFoundError as e:
     pass
 
-from instruments import mosfire
+from ..Mask import *
+
 
 description = '''
 '''
@@ -84,7 +85,7 @@ def check_mask_angles(maskfile, night=None, plot=False,
     ##-------------------------------------------------------------------------
     ## Script Contents
 
-    mask = mosfire.Mask(maskfile)
+    mask = Mask(maskfile)
     mask.find_bad_angles(night=night, plot=plot)
     
     ##-------------------------------------------------------------------------

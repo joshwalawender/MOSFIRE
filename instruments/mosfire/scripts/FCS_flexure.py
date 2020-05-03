@@ -1,6 +1,9 @@
-from instruments import mosfire as m
 from time import sleep
 
+from ..rotator import *
+from ..obsmode import *
+from ..fcs import *
+from ..detector import *
 
 ##-------------------------------------------------------------------------
 ## Parse Command Line Arguments
@@ -59,12 +62,12 @@ def measure_FCS_flexure(rotpposn, obsmode='H-spectroscopy', waitforfcs=True):
     * cross correlate the arc lamp spectra to determine how much image motion
       there is due to instrument flexure.
     '''
-    m.set_rotpposn(rotpposn)
-    m.set_obsmode(obsmode)
+    set_rotpposn(rotpposn)
+    set_obsmode(obsmode)
     if waitforfcs is True:
         waitfor_FCS()
-    m.take_exposure(wait=True)
-    m.go_dark(wait=False)
+    take_exposure(wait=True)
+    go_dark(wait=False)
 
 
 ##-------------------------------------------------------------------------
