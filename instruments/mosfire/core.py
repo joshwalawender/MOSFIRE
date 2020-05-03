@@ -37,8 +37,8 @@ filters = ['Y', 'J', 'H', 'K', 'J2', 'J3', 'NB']
 csu_bar_state_file = Path('/s/sdata1300/logs/server/mcsus/csu_bar_state')
 
 # Load default CSU coordinate transformations
-filepath = Path(__file__).parent
-with open(filepath.joinpath('MOSFIRE_transforms.txt'), 'r') as FO:
+mosfire_data_file_path = Path(__file__).parent
+with open(mosfire_data_file_path.joinpath('MOSFIRE_transforms.txt'), 'r') as FO:
     transforms = yaml.safe_load(FO.read())
 Aphysical_to_pixel = np.array(transforms['Aphysical_to_pixel'])
 Apixel_to_physical = np.array(transforms['Apixel_to_physical'])

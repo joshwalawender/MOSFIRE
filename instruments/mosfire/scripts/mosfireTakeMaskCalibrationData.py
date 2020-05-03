@@ -1,0 +1,151 @@
+#!kpython3
+
+## Import General Tools
+import argparse
+
+
+description = '''
+Example call:
+python mosfireTakeMaskCalibrationData.py 0 2 0 2 1 mos 14 0 0 2 0 2 1 mos 14 0 0 2 0 2 1 mos 10 0 0 2 0 2 1 mos 10 0 0 2 0 2 1 mos 10 0 0 /home/mosfire8/CSUmasks/BT_masks/CC_hiz_agn_9/CC_hiz_agn_9.xml 1 1 1 1
+
+0 2 0 2 1 mos 14 0
+0 2 0 2 1 mos 10 0
+0 2 0 2 1 mos 10 0
+0 2 0 2 1 mos 10 0
+0 2 0 2 1 mos 10 0
+0 /home/mosfire8/CSUmasks/BT_masks/CC_hiz_agn_9/CC_hiz_agn_9.xml 1 1 1 1
+'''
+
+##-------------------------------------------------------------------------
+## Parse Command Line Arguments
+##-------------------------------------------------------------------------
+## create a parser object for understanding command-line arguments
+p = argparse.ArgumentParser(description=description)
+## add arguments
+p.add_argument('YNeonCount', type=int, help='number of Ne exposures to acquire in Y band')
+p.add_argument('YNeonTime', type=int, help='exposures Time for Ne arcs in Y band')
+p.add_argument('YArgonCount', type=int, help='number of Ar exposures to acquire in Y band')
+p.add_argument('YArgonTime', type=int, help='exposures Time for Ar arcs in Y band')
+p.add_argument('YFlatCount', type=int, help='number of Flats to acquire in Y band')
+p.add_argument('YFlatLamp', type=str, help='lamp to use for Y-band flats')
+p.add_argument('YFlatTime', type=int, help='exposure Time for Flats in Y band')
+p.add_argument('YLampsOff', type=bool, help='flag indicating whether to acquire Lamps on/Lamps Off pair in Y band')
+p.add_argument('JNeonCount', type=int, help='number of Ne exposures to acquire in J band')
+p.add_argument('JNeonTime', type=int, help='exposures Time for Ne arcs in J band')
+p.add_argument('JArgonCount', type=int, help='number of Ar exposures to acquire in J band')
+p.add_argument('JArgonTime', type=int, help='exposures Time for Ar arcs in J band')
+p.add_argument('JFlatCount', type=int, help='number of Flats to acquire in J band')
+p.add_argument('JFlatLamp', type=str, help='lamp to use for J-band flats')
+p.add_argument('JFlatTime', type=int, help='exposure Time for Flats in J band')
+p.add_argument('JLampsOff', type=bool, help='flag indicating whether to acquire Lamps on/Lamps Off pair in J band')
+p.add_argument('HNeonCount', type=int, help='number of Ne exposures to acquire in H band')
+p.add_argument('HNeonTime', type=int, help='exposures Time for Ne arcs in H band')
+p.add_argument('HArgonCount', type=int, help='number of Ar exposures to acquire in H band')
+p.add_argument('HArgonTime', type=int, help='exposures Time for Ar arcs in H band')
+p.add_argument('HFlatCount', type=int, help='number of Flats to acquire in H band')
+p.add_argument('HFlatLamp', type=str, help='lamp to use for H-band flats')
+p.add_argument('HFlatTime', type=int, help='exposure Time for Flats in H band')
+p.add_argument('HLampsOff', type=bool, help='flag indicating whether to acquire Lamps on/Lamps Off pair in H band')
+p.add_argument('J2NeonCount', type=int, help='number of Ne exposures to acquire in J2 band')
+p.add_argument('J2NeonTime', type=int, help='exposures Time for Ne arcs in J2 band')
+p.add_argument('J2ArgonCount', type=int, help='number of Ar exposures to acquire in J2 band')
+p.add_argument('J2ArgonTime', type=int, help='exposures Time for Ar arcs in J2 band')
+p.add_argument('J2FlatCount', type=int, help='number of Flats to acquire in J2 band')
+p.add_argument('J2FlatLamp', type=str, help='lamp to use for J2-band flats')
+p.add_argument('J2FlatTime', type=int, help='exposure Time for Flats in J2 band')
+p.add_argument('J2LampsOff', type=bool, help='flag indicating whether to acquire Lamps on/Lamps Off pair in J band')
+p.add_argument('KNeonCount', type=int, help='number of Ne exposures to acquire in K band')
+p.add_argument('KNeonTime', type=int, help='exposure Time for Ne arcs in K band')
+p.add_argument('KArgonCount', type=int, help='number of Ar exposures to acquire in K band')
+p.add_argument('KArgonTime', type=int, help='exposures Time for Ar arc in K band')
+p.add_argument('KFlatCount', type=int, help='number of Flats to acquire in K band')
+p.add_argument('KFlatLamp', type=str, help='lamp to use for K-band flats')
+p.add_argument('KFlatTime', type=int, help='exposure Time for Flats in K band')
+p.add_argument('KLampsOff', type=bool, help='flag indicating whether to acquire Lamps on/Lamps Off pair in K band')
+p.add_argument('Shutdown', type=bool, help='flag whether to shut down MOSFIRE after completion')
+
+# The following set of params is repeated N times (once per mask):
+# p.add_argument('MaskPathN', type=str, help='path to mask N .xml file')
+# p.add_argument('YstatusN ', type=bool, help='calibrate mask N in Y band?')
+# p.add_argument('JstatusN ', type=bool, help='calibrate mask N in J band?')
+# p.add_argument('HstatusN ', type=bool, help='calibrate mask N in H band?')
+# p.add_argument('KstatusN ', type=bool, help='calibrate mask N in K band?')
+p.add_argument('masks', nargs='+',
+               help='Mask path and whether to take Y, J, H, K calibrations')
+
+args = p.parse_args()
+
+
+cfg = {'Y':
+        {'flat_count': args.YFlatCount,
+         'flat_exptime': args.YFlatTime,
+         'flatoff_count': args.YFlatCount if args.YLampsOff is True else 0,
+         'ne_arc_exptime': args.YNeonTime,
+         'ne_arc_count': args.YNeonCount,
+         'ar_arc_exptime': args.YArgonTime,
+         'ar_arc_count': args.YArgonCount,
+        },
+       'J':
+        {'flat_count': args.JFlatCount,
+         'flat_exptime': args.JFlatTime,
+         'flatoff_count': args.JFlatCount if args.JLampsOff is True else 0,
+         'ne_arc_exptime': args.JNeonTime,
+         'ne_arc_count': args.JNeonCount,
+         'ar_arc_exptime': args.JArgonTime,
+         'ar_arc_count': args.JArgonCount,
+        },
+       'H':
+        {'flat_count': args.HFlatCount,
+         'flat_exptime': args.HFlatTime,
+         'flatoff_count': args.HFlatCount if args.HLampsOff is True else 0,
+         'ne_arc_exptime': args.HNeonTime,
+         'ne_arc_count': args.HNeonCount,
+         'ar_arc_exptime': args.HArgonTime,
+         'ar_arc_count': args.HArgonCount,
+        },
+       'K':
+        {'flat_count': args.KFlatCount,
+         'flat_exptime': args.KFlatTime,
+         'flatoff_count': args.KFlatCount if args.KLampsOff is True else 0,
+         'ne_arc_exptime': args.KNeonTime,
+         'ne_arc_count': args.KNeonCount,
+         'ar_arc_exptime': args.KArgonTime,
+         'ar_arc_count': args.KArgonCount,
+        },
+       'J2':
+        {'flat_count': args.J2FlatCount,
+         'flat_exptime': args.J2FlatTime,
+         'flatoff_count': args.J2FlatCount if args.J2LampsOff is True else 0,
+         'ne_arc_exptime': args.J2NeonTime,
+         'ne_arc_count': args.J2NeonCount,
+         'ar_arc_exptime': args.J2ArgonTime,
+         'ar_arc_count': args.J2ArgonCount,
+        },
+      }
+
+assert len(args.masks) % 5 == 0
+masks = dict()
+for i in range(int(len(args.masks) / 5)):
+    maskfile = args.masks.pop(0)
+    masks[maskfile] = list()
+    takeY = (args.masks.pop(0) == '1')
+    if takeY is True:
+        masks[maskfile].append('Y')
+    takeJ = (args.masks.pop(0) == '1')
+    if takeJ is True:
+        masks[maskfile].append('J')
+    takeH = (args.masks.pop(0) == '1')
+    if takeH is True:
+        masks[maskfile].append('H')
+    takeK = (args.masks.pop(0) == '1')
+    if takeK is True:
+        masks[maskfile].append('K')
+
+print('Configuration:')
+print(cfg)
+print(f"Shutdown after: {args.Shutdown}")
+print('Masks:')
+print(masks)
+
+from instruments.mosfire.scripts import calibration
+calibration.take_all_calibrations(masks, config=cfg)
