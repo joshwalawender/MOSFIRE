@@ -133,14 +133,8 @@ def dome_flat_lamps(power, skipprecond=False, skippostcond=False):
         log.debug('Skipping pre condition checks')
     else:
         # Parse power input
-        default_power_levels = {'Y': 4,
-                                'J': 9,
-                                'H': 13.5,
-                                'K': 14,
-                                'on': 0,
-                                'off': None,
-                                'read': 'read'
-                                }
+        default_power_levels = {'Y': 4, 'J': 9, 'H': 13.5, 'K': 14,
+                                'on': 0, 'off': None, 'read': 'read'}
         if type(power) is str:
             if power in default_power_levels.keys():
                 power = default_power_levels[power]
@@ -148,9 +142,9 @@ def dome_flat_lamps(power, skipprecond=False, skippostcond=False):
                 raise FailedCondition(f'Unable to parse power "{power}"')
         elif type(power) in [int, float]:
             if float(power) > 20 or float(power) < 0:
-                raise FailedCondition(f'Unable to parse power "{power}"')
+                raise FailedCondition(f'Power {power} must be between 20 (low) and 0 (high)')
         else:
-            raise FailedCondition(f'Expecting string, int, or float, got "{power}"')
+            raise FailedCondition(f'Expecting str, int, or float, got {type(power)}')
         # Check that instrument is MOSFIRE
         instrument_is_MOSFIRE()
 
@@ -173,7 +167,12 @@ def dome_flat_lamps(power, skipprecond=False, skippostcond=False):
         flamp2 = ktl.cache(service='flat', keyword='flamp2')
         flamp1_on = not (flamp1.read() == 'off')
         flamp2_on = not (flamp2.read() == 'off')
-        return flamp1_on or flamp2_on
+        if flamp1_on and flamp2_on:
+            return 'on'
+        elif not flamp1_on and not flamp2_on:
+            return 'off'
+        else:
+            return 'partial'
     else:
         # Set power level and turn both lamps on
         fpower = ktl.cache(service='flat', keyword='fpower')
