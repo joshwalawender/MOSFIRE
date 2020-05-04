@@ -63,85 +63,69 @@ def trapdoor_unlocked():
 
 
 ##-----------------------------------------------------------------------------
-## Instrument Function
+## Open Hatch
 ##-----------------------------------------------------------------------------
+def set_hatch(destination, wait=True, timeout=90,
+              skipprecond=False, skippostcond=False):
+    '''Script to open or close hatch
+    '''
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
+
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        hatch_ok()
+        hatch_unlocked()
+        # Normalize destination
+        if destination.lower() in ['open']:
+            destination = 'Open'
+        elif destination.lower() in ['close', 'closed']:
+            destination = 'Closed'
+
+    ##-------------------------------------------------------------------------
+    ## Script Contents
+
+    endat = datetime.utcnow() + timedelta(seconds=timeout)
+    targname = ktl.cache(service='mmdcs', keyword='TARGNAME')
+    posname = ktl.cache(service='mmdcs', keyword='POSNAME')
+    posname.monitor()
+    if posname == destination:
+        log.info(f'Hatich is {posname}')
+    else:
+        log.info(f"Setting hatch to {destination}")
+        targname.write(destination)
+        if wait is True:
+            sleep(10)
+            while posname != destination and datetime.utcnow() < endat:
+                sleep(1)
+
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        hatch_ok()
+        if posname != destination:
+            raise FailedCondition(f"Hatch failed to reach destination")
+
+    return None
+
+
 def open_hatch(skipprecond=False, skippostcond=False, wait=True, timeout=60):
-    '''docstring
+    '''Alias for `set_hatch('Open')`
     '''
-    this_function_name = inspect.currentframe().f_code.co_name
-    log.debug(f"Executing: {this_function_name}")
-
-    ##-------------------------------------------------------------------------
-    ## Pre-Condition Checks
-    if skipprecond is True:
-        log.debug('Skipping pre condition checks')
-    else:
-        hatch_ok()
-        hatch_unlocked()
-    
-    ##-------------------------------------------------------------------------
-    ## Script Contents
-
-    endat = datetime.utcnow() + timedelta(seconds=timeout)
-    targname = ktl.cache(service='mmdcs', keyword='TARGNAME')
-    posname = ktl.cache(service='mmdcs', keyword='POSNAME')
-    posname.monitor()
-
-    if posname == 'Open':
-        log.info('Hatich is open')
-    else:
-        log.info(f"Setting hatch to Open")
-        targname.write("Open", wait=wait)
-        sleep(3)
-        while posname != "Open" and datetime.utcnow() < endat:
-            sleep(1)
-
-    ##-------------------------------------------------------------------------
-    ## Post-Condition Checks
-    if skippostcond is True:
-        log.debug('Skipping post condition checks')
-    else:
-        hatch_ok()
-
-    return None
+    set_hatch('Open', wait=wait, timeout=timeout,
+              skipprecond=skipprecond, skippostcond=skippostcond)
 
 
+##-----------------------------------------------------------------------------
+## Close Hatch
+##-----------------------------------------------------------------------------
 def close_hatch(skipprecond=False, skippostcond=False, wait=True, timeout=60):
-    '''docstring
+    '''Alias for `set_hatch('Closed')`
     '''
-    this_function_name = inspect.currentframe().f_code.co_name
-    log.debug(f"Executing: {this_function_name}")
-
-    ##-------------------------------------------------------------------------
-    ## Pre-Condition Checks
-    if skipprecond is True:
-        log.debug('Skipping pre condition checks')
-    else:
-        hatch_ok()
-        hatch_unlocked()
-    
-    ##-------------------------------------------------------------------------
-    ## Script Contents
-
-    endat = datetime.utcnow() + timedelta(seconds=timeout)
-    targname = ktl.cache(service='mmdcs', keyword='TARGNAME')
-    posname = ktl.cache(service='mmdcs', keyword='POSNAME')
-    posname.monitor()
-
-    if posname == 'Closed':
-        log.info('Hatch is closed')
-    else:
-        log.info(f"Setting hatch to Closed")
-        targname.write("Closed", wait=wait)
-        sleep(3)
-        while posname != "Closed" and datetime.utcnow() < endat:
-            sleep(1)
-
-    ##-------------------------------------------------------------------------
-    ## Post-Condition Checks
-    if skippostcond is True:
-        log.debug('Skipping post condition checks')
-    else:
-        hatch_ok()
-
-    return None
+    set_hatch('Closed', wait=wait, timeout=timeout,
+              skipprecond=skipprecond, skippostcond=skippostcond)
