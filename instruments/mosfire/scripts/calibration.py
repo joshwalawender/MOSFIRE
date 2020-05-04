@@ -157,7 +157,7 @@ def take_mask_calibrations(mask, filters, cfg,
 ##-------------------------------------------------------------------------
 ## Take Calibrations for All Masks
 ##-------------------------------------------------------------------------
-def take_all_calibrations(masks, config=None,
+def take_all_calibrations(filters, config=None,
                           skipprecond=False, skippostcond=True):
     '''Loops over masks and takes calibrations for each.
     
@@ -175,7 +175,7 @@ def take_all_calibrations(masks, config=None,
         log.debug('Skipping pre condition checks')
     else:
         # Configuration file exists
-        if config is None:
+        if config in [None, '']:
             log.debug('Using default configuration file')
             config = mosfire_data_file_path / 'scripts' / 'default_calibrations.cfg'
         elif type(config) == dict:
@@ -198,9 +198,9 @@ def take_all_calibrations(masks, config=None,
     elif type(config) == dict:
         cfg.read_dict(config)
 
-    for mask in masks.keys():
-        filters = masks[mask]
-        take_mask_calibrations(mask, filters, cfg,
+    # Iterate over masks and take cals
+    for mask in filters.keys():
+        take_mask_calibrations(mask, filters[mask], cfg,
                                skipprecond=skipprecond,
                                skippostcond=skippostcond)
     
@@ -223,7 +223,7 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser(description=description)
     ## add options
     p.add_argument("-c", "--config", dest="config", type=str,
-        default="default_calibrations.cfg",
+        default=None,
         help="The configuration file to use.")
     ## add arguments
     # p.add_argument('argument', type=int,
