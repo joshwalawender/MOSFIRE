@@ -8,11 +8,14 @@ from pathlib import Path
 import configparser
 
 from ..core import *
-from ..mask import *
-from ..filter import *
-from ..csu import *
-from ..hatch import *
-from ..detector import *
+from ..mask import Mask
+from ..filter import go_dark, waitfordark
+from ..obsmode import set_obsmode
+from ..csu import setup_mask, execute_mask, waitfor_CSU
+from ..hatch import open_hatch, close_hatch
+from ..detector import take_exposure
+from ..domelamps import dome_flat_lamps
+
 
 try:
     import ktl

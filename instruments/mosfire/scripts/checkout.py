@@ -6,12 +6,12 @@ import argparse
 import logging
 
 from ..core import *
-from ..mask import *
-from ..filter import *
-from ..obsmode import *
-from ..metadata import *
-from ..detector import *
-from ..csu import *
+from ..mask import Mask
+from ..filter import is_dark, go_dark, waitfordark
+from ..obsmode import set_obsmode
+from ..metadata import lastfile
+from ..detector import take_exposure, waitfor_exposure
+from ..csu import setup_mask, execute_mask, waitfor_CSU
 
 description = '''Perform a basic checkout of the MOSFIRE instrument.  The normal
 execution of this script performs a standard pre-run checkout.  The quick
@@ -118,11 +118,7 @@ def checkout(quick=False):
         return False
 
     log.info('Taking dark image')
-    set_exptime(2)
-    set_coadds(1)
-    set_sampmode('CDS')
-    sleep(5)
-    take_exposure()
+    take_exposure(exptime=2, coadds=1, sampmode='CDS')
     waitfor_exposure()
 
     log.info(f'Please verify that {lastfile()} looks normal for a dark image')
@@ -140,7 +136,7 @@ def checkout(quick=False):
         execute_mask()
         waitfor_CSU()
         set_obsmode('K-imaging', wait=True)
-        take_exposure()
+        take_exposure() # <-- add parameters
         waitfor_exposure()
         wideSlitFile = lastfile()
         go_dark()
