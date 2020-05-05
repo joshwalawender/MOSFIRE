@@ -161,39 +161,50 @@ def dome_flat_lamps(power, skipprecond=False, skippostcond=False):
     ##-------------------------------------------------------------------------
     ## Script Contents
 
+    flamp1 = ktl.cache(service='dcs', keyword='flamp1')
+    flamp2 = ktl.cache(service='dcs', keyword='flamp2')
+    fpower = ktl.cache(service='dcs', keyword='fpower')
+    fpower.monitor()
+
     if power == 'read':
-        # Read power and return
-        flamp1 = ktl.cache(service='flat', keyword='flamp1')
-        flamp2 = ktl.cache(service='flat', keyword='flamp2')
+        # Read status
         flamp1_on = not (flamp1.read() == 'off')
         flamp2_on = not (flamp2.read() == 'off')
         if flamp1_on and flamp2_on:
-            return 'on'
+            flatstate = ('on', fpower)
         elif not flamp1_on and not flamp2_on:
-            return 'off'
+            flatstate = ('off', fpower)
         else:
-            return 'partial'
+            flatstate = (f'partial: {flamp1_on} {flamp2_on}', fpower)
     else:
         # Set power level and turn both lamps on
-        fpower = ktl.cache(service='flat', keyword='fpower')
-        flamp = ktl.cache(service='flat', keyword='flamp')
         mosfire_flatspec = ktl.cache(service='mosfire', keyword='flatspec')
 
         if power in [None, 'off']:
             log.debug(f'Turning dome flat lamps off')
-            flamp.write('off')
+            flamp1.write('off')
+            flamp2.write('off')
             mosfire_flatspec.write(0)
         else:
             log.debug(f'Turning dome flat lamps on at {power:.1f} power')
             fpower.write(power)
-            flamp.write('on')
+            flamp1.write('on')
+            flamp2.write('on')
             mosfire_flatspec.write(1)
+        flatstate = dome_flat_lamps('read', skippostcond=True)
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
     if skippostcond is True:
         log.debug('Skipping post condition checks')
     else:
-        pass
+        if type(power) in [int, float]:
+            if abs(fpower - power) > 0.2:
+                raise FailedCondition(f'Flat lamps did not reach power: {fpower:.1f}')
+        elif power is None:
+            flamp1_on = not (flamp1.read() == 'off')
+            flamp2_on = not (flamp2.read() == 'off')
+            if flamp1_on or flamp2_on:
+                raise FailedCondition(f'Flat lamps did not turn off: {flamp1_on} {flamp2_on}')
 
-    return None
+    return flatstate
