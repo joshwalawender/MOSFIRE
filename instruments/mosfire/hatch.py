@@ -63,7 +63,7 @@ def trapdoor_unlocked():
 
 
 ##-----------------------------------------------------------------------------
-## Open Hatch
+## Control Hatch
 ##-----------------------------------------------------------------------------
 def set_hatch(destination, wait=True, timeout=90,
               skipprecond=False, skippostcond=False):
@@ -114,6 +114,9 @@ def set_hatch(destination, wait=True, timeout=90,
     return None
 
 
+##-----------------------------------------------------------------------------
+## Open Hatch
+##-----------------------------------------------------------------------------
 def open_hatch(skipprecond=False, skippostcond=False, wait=True, timeout=60):
     '''Alias for `set_hatch('Open')`
     '''
