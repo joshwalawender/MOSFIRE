@@ -13,7 +13,7 @@ try:
 except ModuleNotFoundError as e:
     pass
 
-from ..Mask import *
+from ..mask import Mask
 
 
 description = '''
