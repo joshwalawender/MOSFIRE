@@ -14,7 +14,7 @@ from astropy import units as u
 from astropy.time import Time
 # from astroplan import FixedTarget, Observer
 
-from .core import log
+from .core import *
 
 
 def parallactic_angle(time, target, location):

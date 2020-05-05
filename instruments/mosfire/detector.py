@@ -9,8 +9,7 @@ except ModuleNotFoundError as e:
     pass
 
 from .core import *
-from .metadata import *
-from .fcs import *
+from .metadata import lastfile
 
 
 ##-----------------------------------------------------------------------------

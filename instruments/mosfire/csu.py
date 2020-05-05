@@ -10,7 +10,7 @@ except ModuleNotFoundError as e:
     pass
 
 from .core import *
-from .mask import *
+from .mask import Mask
 
 
 ##-----------------------------------------------------------------------------
