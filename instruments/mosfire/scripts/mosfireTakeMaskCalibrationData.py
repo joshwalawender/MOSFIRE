@@ -3,6 +3,7 @@
 ## Import General Tools
 import argparse
 
+from ..core import end_of_night_shutdown
 
 description = '''
 Example call:
@@ -149,3 +150,6 @@ print(masks)
 
 from instruments.mosfire.scripts import calibration
 calibration.take_all_calibrations(masks, config=cfg)
+
+if args.Shutdown is True:
+    end_of_night_shutdown()
