@@ -30,11 +30,15 @@ def hatch_unlocked():
     keywords are locked.
     '''
 # NOTE --> This is commented out until we fix the keyword config files to reveal the LOCKALL keyword
-    pass
 #     lockedkw = bool(ktl.cache(service='mmdcs', keyword='LOCKALL'))
 #     locked = int(lockedkw.read())
 #     if locked == 1:
 #         raise FailedCondition(f'Trap door keywords are locked (LOCKALL=1)')
+    output = subprocess.run(['show', '-s', 'mmdcs', 'lockall'], check=True,
+                            stdout=subprocess.PIPE)
+    output = output.decode()
+    if (output == '1') is True:
+        raise FailedCondition('Hatch is locked')
 
 
 def dustcover_ok():
@@ -60,6 +64,82 @@ def trapdoor_unlocked():
     '''
     return hatch_unlocked()
 
+
+##-----------------------------------------------------------------------------
+## Lock/Unlock Hatch
+##-----------------------------------------------------------------------------
+def lock_hatch(skipprecond=False, skippostcond=False):
+    '''Lock hatch.
+    
+    Note: Currently uses subprocess to call to command line show/modify as the
+    lockall keyword is not KTL compatible.  -JW (2020-05-11)
+    '''
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
+
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        pass
+    
+    ##-------------------------------------------------------------------------
+    ## Script Contents
+    log.info('Locking hatch')
+    log.warning('Using subprocess to call to command line show/modify as the '
+                'lockall keyword is not KTL compatible.')
+    output = subprocess.run(['modify', '-s', 'mmdcs', 'lockall=1'], check=True,
+                            stdout=subprocess.PIPE)
+    output = output.decode()
+    
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        output = subprocess.run(['show', '-s', 'mmdcs', 'lockall'], check=True,
+                                stdout=subprocess.PIPE)
+        output = output.decode()
+        if (output == '1') is False:
+            raise FailedCondition('Hatch is not locked')
+
+    return None
+
+
+def unlock_hatch(skipprecond=False, skippostcond=False):
+    '''Unlock hatch
+
+    Note: Currently uses subprocess to call to command line show/modify as the
+    lockall keyword is not KTL compatible.  -JW (2020-05-11)
+    '''
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
+
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        pass
+    
+    ##-------------------------------------------------------------------------
+    ## Script Contents
+    log.info('Unlocking hatch')
+    log.warning('Using subprocess to call to command line show/modify as the '
+                'lockall keyword is not KTL compatible.')
+    output = subprocess.run(['modify', '-s', 'mmdcs', 'lockall=0'], check=True,
+                            stdout=subprocess.PIPE)
+    output = output.decode()
+    
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        hatch_unlocked()
+
+    return None
 
 
 ##-----------------------------------------------------------------------------
