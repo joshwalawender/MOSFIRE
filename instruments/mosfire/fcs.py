@@ -103,6 +103,41 @@ def update_FCS(skipprecond=False, skippostcond=False):
     return done
 
 
+##-------------------------------------------------------------------------
+## Park FCS
+##-------------------------------------------------------------------------
+def park_FCS(skipprecond=False, skippostcond=False):
+    '''Park the FCS in a "nice location" at roughly 4 % range.
+    '''
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        FCS_ok()
+    
+    ##-------------------------------------------------------------------------
+    ## Script Contents
+    pa_el = ktl.cache(service='mfcs', keyword='pa_el')
+    pa_el.write("0.0 43.0")
+    sleep(1)
+    
+    log.info('Disable FCS and pupil rotation')
+    fcs_enable = ktl.cache(service='mfcs', keyword='enable')
+    fcs_enable.write(0)
+
+
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        FCS_ok()
+    
+    return done
+
 
 
 
