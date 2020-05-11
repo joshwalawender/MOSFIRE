@@ -156,16 +156,16 @@ def end_of_night_shutdown(skipprecond=False, skippostcond=False):
     ##-------------------------------------------------------------------------
     ## Script Contents
 
-    print("****************************************************")
-    print("You have started the end-of-night shutdown script.")
-    print("This script will do the following.")
-    print(" - close the dust cover and disable motion.")
-    print(" - configure for dark-spectroscopy")
-    print(" - disable FCS")
-    print(" - halt watch processes")
-    print(" - shutdown all guis")
-    print("**********************************************")
-    print()
+    log.info("****************************************************")
+    log.info("You have started the end-of-night shutdown script.")
+    log.info("This script will do the following.")
+    log.info(" - close the dust cover and disable motion.")
+    log.info(" - configure for dark-spectroscopy")
+    log.info(" - disable FCS")
+    log.info(" - halt watch processes")
+    log.info(" - shutdown all guis")
+    log.info("**********************************************")
+    log.info()
 
     # Insert the dark filter
     go_dark()
