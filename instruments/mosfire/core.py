@@ -45,10 +45,11 @@ Apixel_to_physical = np.array(transforms['Apixel_to_physical'])
 
 log = create_log(name, loglevel='DEBUG')
 
-from .fcs import *
-from .filter import *
-from .hatch import *
-from .obsmode import *
+from .fcs import park_FCS
+from .hatch import close_hatch, lock_hatch
+from .obsmode import go_dark
+from .domelamps import dome_flat_lamps
+from .power import Ne_lamp, Ar_lamp
 
 
 ##-----------------------------------------------------------------------------
@@ -101,3 +102,99 @@ def mechanisms_ok():
     for mech in mechs:
         statusfn = getattr(sys.modules[__name__], f'{mech}_ok')
         statusfn()
+
+
+##-----------------------------------------------------------------------------
+## Stop MOSFIRE Software
+##-----------------------------------------------------------------------------
+def stop_mosfire_software(skipprecond=False, skippostcond=False):
+    '''Stop MOSFIRE Software.  Calls `mosfireStop`
+    '''
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
+
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        pass
+    
+    ##-------------------------------------------------------------------------
+    ## Script Contents
+
+    output = subprocess.run(['mosfireStop'], check=True,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output = output.decode()
+
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        pass
+
+    return None
+
+
+##-----------------------------------------------------------------------------
+## End of Night Shutdown
+##-----------------------------------------------------------------------------
+def end_of_night_shutdown(skipprecond=False, skippostcond=False):
+    '''End of night shutdown
+    '''
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
+
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        pass
+    
+    ##-------------------------------------------------------------------------
+    ## Script Contents
+
+    print("****************************************************")
+    print("You have started the end-of-night shutdown script.")
+    print("This script will do the following.")
+    print(" - close the dust cover and disable motion.")
+    print(" - configure for dark-spectroscopy")
+    print(" - disable FCS")
+    print(" - halt watch processes")
+    print(" - shutdown all guis")
+    print("**********************************************")
+    print()
+
+    # Insert the dark filter
+    go_dark()
+    # Close the dust cover
+    close_hatch()
+    # Put FCS in a nice location and disableFCS&pupil rotation
+    park_FCS()
+    # Stop the MOSFIRE software
+    stop_mosfire_software()
+    # Disable the hatch
+    lock_hatch()
+    # Ensure the internal MOSFIRE lamps are off
+    Ne_lamp('off')
+    Ar_lamp('off')
+    # If MOSFIRE is the current instrument, ensure the dome lamps are off
+    INSTRUMEkw = ktl.cache(service='dcs', keyword='INSTRUME')
+    if INSTRUMEkw.read() == 'MOSFIRE':
+        dome_flat_lamps('off')
+
+    log.info('-------------------------------------------------------------')
+    log.info('     MOSFIRE Instrument End-of-Night shutdown complete')
+    log.info('-------------------------------------------------------------')
+
+
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        pass
+
+    return None
