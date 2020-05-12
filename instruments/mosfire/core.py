@@ -47,7 +47,7 @@ log = create_log(name, loglevel='DEBUG')
 
 from .fcs import park_FCS
 from .hatch import close_hatch, lock_hatch
-from .obsmode import go_dark
+from .filter import go_dark
 from .domelamps import dome_flat_lamps
 from .power import Ne_lamp, Ar_lamp
 
@@ -123,6 +123,7 @@ def stop_mosfire_software(skipprecond=False, skippostcond=False):
     ##-------------------------------------------------------------------------
     ## Script Contents
 
+    log.info('Calling the mosfireStop command line script')
     output = subprocess.run(['mosfireStop'], check=True,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output = output.decode()
@@ -156,7 +157,7 @@ def end_of_night_shutdown(skipprecond=False, skippostcond=False):
     ##-------------------------------------------------------------------------
     ## Script Contents
 
-    log.info("****************************************************")
+    log.info('-------------------------------------------------------------')
     log.info("You have started the end-of-night shutdown script.")
     log.info("This script will do the following.")
     log.info(" - close the dust cover and disable motion.")
@@ -164,25 +165,31 @@ def end_of_night_shutdown(skipprecond=False, skippostcond=False):
     log.info(" - disable FCS")
     log.info(" - halt watch processes")
     log.info(" - shutdown all guis")
-    log.info("**********************************************")
-    log.info()
+    log.info('-------------------------------------------------------------')
 
     # Insert the dark filter
+    log.info('Going dark')
     go_dark()
     # Close the dust cover
+    log.info('Closing hatch')
     close_hatch()
     # Put FCS in a nice location and disableFCS&pupil rotation
+    log.info('Parking FCS')
     park_FCS()
     # Stop the MOSFIRE software
+    log.info('Stopping MOSFIRE software')
     stop_mosfire_software()
     # Disable the hatch
+    log.info('Locking mechanisms')
     lock_hatch()
     # Ensure the internal MOSFIRE lamps are off
+    log.info('Internal lamps (Ne, Ar) off')
     Ne_lamp('off')
     Ar_lamp('off')
     # If MOSFIRE is the current instrument, ensure the dome lamps are off
     INSTRUMEkw = ktl.cache(service='dcs', keyword='INSTRUME')
     if INSTRUMEkw.read() == 'MOSFIRE':
+        log.info('Turning off dome lamps')
         dome_flat_lamps('off')
 
     log.info('-------------------------------------------------------------')
