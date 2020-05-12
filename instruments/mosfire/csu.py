@@ -29,14 +29,16 @@ def CSUbar_ok(barnum):
 def CSUbars_ok():
     '''Simple loop to check all bars in the CSU.
     '''
+    log.debug('Checking CSU bars status')
     for barnum in range(1,93,1):
         CSUbar_ok(barnum)
 
 
-def CSU_ok():
+def CSUready():
     '''Commonly used pre- and post- condition to check whether the CSU is in an
     error state.
     '''
+    log.debug('Checking CSU status')
     csureadykw = ktl.cache(keyword='CSUREADY', service='mcsus')
     csuready = int(csureadykw.read())
     translation = {0: 'Unknown',
@@ -52,23 +54,10 @@ def CSU_ok():
         raise FailedCondition(f'CSU is not ready: {translation}')
 
 
-def CSUready():
-    '''Commonly used pre- and post- condition to check whether the CSU is ready
-    for a move.
+def CSU_ok():
+    '''Alias for CSUready
     '''
-    csureadykw = ktl.cache(keyword='CSUREADY', service='mcsus')
-    csuready = int(csureadykw.read())
-    translation = {0: 'Unknown',
-                   1: 'System Started',
-                   2: 'Ready for Move',
-                   3: 'Moving',
-                   4: 'Configuring',
-                   -1: 'Error',
-                   -2: 'System Stopped'}[csuready]
-    if csuready == -1:
-        raise CSUFatalError
-    if csuready != 2:
-        raise FailedCondition(f'CSU is not ready: {translation}')
+    CSUready()
 
 
 ##-----------------------------------------------------------------------------
@@ -84,6 +73,7 @@ def setup_mask(mask, skipprecond=False, skippostcond=False):
     if skipprecond is True:
         log.debug('Skipping pre condition checks')
     else:
+        log.debug('Verifying input')
         if type(mask) != Mask:
             raise FailedCondition(f"Input {mask} is not a Mask object")
         CSU_ok()
@@ -109,15 +99,19 @@ def setup_mask(mask, skipprecond=False, skippostcond=False):
     mcsus['SETUPGO'].write(1)
     mcsus['SETUPNAME'].write(mask.name)
 
+    log.debug('Waiting for setup to complete')
+    csustat = ktl.cache(keyword='CSUSTAT', service='mcsus')
+    csustat.monitor()
+    while str(csustat) == 'Creating Group.':
+        sleep(1)
+
+
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
     if skippostcond is True:
         log.debug('Skipping post condition checks')
     else:
-        csustat = ktl.cache(keyword='CSUSTAT', service='mcsus')
-        csustat.monitor()
-        while str(csustat) == 'Creating Group.':
-            sleep(1)
+        log.debug('Checking for aborted setup')
         if re.search('Setup aborted.  Collision detected at row (\d+)', str(csustat)):
             raise FailedCondition(str(csustat))
         CSU_ok()
@@ -129,7 +123,7 @@ def setup_mask(mask, skipprecond=False, skippostcond=False):
 ##-----------------------------------------------------------------------------
 ## execute_mask
 ##-----------------------------------------------------------------------------
-def execute_mask(skipprecond=False, skippostcond=False):
+def execute_mask(skipprecond=False, skippostcond=False, wait=False):
     '''Execute a mask which has already been set up.
     '''
     this_function_name = inspect.currentframe().f_code.co_name
@@ -147,6 +141,8 @@ def execute_mask(skipprecond=False, skippostcond=False):
     csugokw = ktl.cache(service='mcsus', keyword='SETUPGO')
     csugokw.write(1)
     sleep(3) # shim needed because CSUREADY keyword doesn't update fast enough
+    if wait is True:
+        waitfor_CSU(skipprecond=True)
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -161,12 +157,12 @@ def execute_mask(skipprecond=False, skippostcond=False):
 ##-----------------------------------------------------------------------------
 ## Initialize Bars
 ##-----------------------------------------------------------------------------
-def initialise_bars(bars=None, skipprecond=False, skippostcond=False):
+def initialise_bars(bars, skipprecond=False, skippostcond=False):
     '''Initialize one or more CSU bars.
     
-    To initialize all bars, no arguments are needed (bars=None).  To initialize
-    a single bar, set bars equal to the ID number of the bar (1-92).  To
-    initialize a subset of bars, set bars equal to a list of bar ID numbers.
+    To initialize all bars, use "all" as the input.  To initialize
+    a single bar, use the ID number of the bar (1-92) as the input.  To
+    initialize a subset of bars, use a list of bar ID numbers as the input.
     '''
     this_function_name = inspect.currentframe().f_code.co_name
     log.debug(f"Executing: {this_function_name}")
@@ -175,11 +171,12 @@ def initialise_bars(bars=None, skipprecond=False, skippostcond=False):
     if skipprecond is True:
         log.debug('Skipping pre condition checks')
     else:
-        if bars is None:
-            return
-        if type(bars) == int:
+        if type(bars) == str:
+            if bars.lower() != 'all':
+                raise FailedCondition(f'Input "{bars}" not parsed')
+        elif type(bars) == int:
             bars = list(bars)
-        if type(bars) != list:
+        elif type(bars) != list:
             raise FailedCondition(f'Input {bars} not parsed')
         for bar in bars:
             if type(bar) != int:
@@ -190,9 +187,10 @@ def initialise_bars(bars=None, skipprecond=False, skippostcond=False):
     ##-------------------------------------------------------------------------
     ## Script Contents
     CSUINITBARkw = ktl.cache(keyword='INITBAR', service='mcsus')
-    if bars is None:
-        log.info('Initializing all bars')
-        CSUINITBARkw.write(0)
+    if type(bars) == str:
+        if bars.lower() == 'all':
+            log.info('Initializing all bars')
+            CSUINITBARkw.write(0)
     if type(bars) == int:
         bars = list(bars)
     for bar in bars:
@@ -439,19 +437,3 @@ def physical_to_pixel(x):
     result = unpad(np.dot(pad(x), Aphysical_to_pixel))
     return result
 
-
-## Set up initial transforms for pixel and physical space
-# pixelfile = filepath.joinpath('MOSFIRE_pixels.txt')
-# with open(pixelfile, 'r') as FO:
-#     contents = FO.read()
-#     pixels = yaml.safe_load(contents)
-# physicalfile = filepath.joinpath('MOSFIRE_physical.txt')
-# with open(physicalfile, 'r') as FO:
-#     contents = FO.read()
-#     physical = yaml.safe_load(contents)
-# Apixel_to_physical, Aphysical_to_pixel = fit_transforms(pixels, physical)
-## Convert from numpy arrays to list for simpler YAML
-# Apixel_to_physical = [[float(val) for val in l] for l in Apixel_to_physical]
-# Aphysical_to_pixel = [[float(val) for val in l] for l in Aphysical_to_pixel]
-# with open('MOSFIRE_transforms.txt', 'w') as FO:
-#     FO.write(yaml.dump([Aphysical_to_pixel, Apixel_to_physical]))
