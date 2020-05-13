@@ -56,7 +56,7 @@ from .power import Ne_lamp, Ar_lamp
 ## pre- and post- conditions
 ##-----------------------------------------------------------------------------
 def instrument_is_MOSFIRE():
-    '''Checks whether MOSFIRE is the currently selected instrument.
+    '''Verifies that MOSFIRE is the currently selected instrument.
     '''
     INSTRUMEkw = ktl.cache(service='dcs', keyword='INSTRUME')
     if INSTRUMEkw.read() != 'MOSFIRE':
@@ -94,7 +94,8 @@ def pupil_rotator_ok():
 
 
 def mechanisms_ok():
-    '''Simple loop to check all mechanisms.
+    '''Simple loop to check whether there are errors in the status of all
+    mechanisms.
     '''
     log.info('Checking mechanisms')
     mechs = ['filter1', 'filter2', 'FCS', 'grating_shim', 'grating_turret',
@@ -108,7 +109,7 @@ def mechanisms_ok():
 ## Stop MOSFIRE Software
 ##-----------------------------------------------------------------------------
 def stop_mosfire_software(skipprecond=False, skippostcond=False):
-    '''Stop MOSFIRE Software.  Calls `mosfireStop`
+    '''Stop MOSFIRE Software.  Calls `mosfireStop` script via subprocess.
     '''
     this_function_name = inspect.currentframe().f_code.co_name
     log.debug(f"Executing: {this_function_name}")
