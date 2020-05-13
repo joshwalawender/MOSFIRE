@@ -54,12 +54,6 @@ def CSUready():
         raise FailedCondition(f'CSU is not ready: {translation}')
 
 
-def CSU_ok():
-    '''Alias for CSUready
-    '''
-    CSUready()
-
-
 ##-----------------------------------------------------------------------------
 ## Setup Mask
 ##-----------------------------------------------------------------------------
@@ -437,3 +431,8 @@ def physical_to_pixel(x):
     result = unpad(np.dot(pad(x), Aphysical_to_pixel))
     return result
 
+
+##-----------------------------------------------------------------------------
+# Aliases
+##-----------------------------------------------------------------------------
+CSU_ok = CSUready

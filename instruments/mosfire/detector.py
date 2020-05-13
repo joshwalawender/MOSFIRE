@@ -135,7 +135,7 @@ def coadds(skipprecond=False, skippostcond=False):
 
 
 ##-----------------------------------------------------------------------------
-## set OUTDIR
+## set coadds
 ##-----------------------------------------------------------------------------
 def set_coadds(input, skipprecond=False, skippostcond=False):
     '''Set coadds
@@ -299,15 +299,6 @@ def take_exposure(exptime=None, coadds=None, sampmode=None, wait=True,
 
 
 ##-------------------------------------------------------------------------
-## MOSFIRE Exposure Control Functions
+## Aliases
 ##-------------------------------------------------------------------------
-def goi(exptime=None, coadds=None, sampmode=None, wait=True,
-        waitforFCS=True, updateFCS=True,
-        skipprecond=False, skippostcond=False):
-    '''Alias take_exposure to goi
-    '''
-    take_exposure(exptime=exptime, coadds=coadds, sampmode=sampmode, wait=wait,
-                  waitforFCS=waitforFCS, updateFCS=updateFCS,
-                  skipprecond=skipprecond, skippostcond=skippostcond)
-
-
+goi = take_exposure
