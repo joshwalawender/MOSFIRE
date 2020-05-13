@@ -44,12 +44,6 @@ def rotpposn(skipprecond=False, skippostcond=False):
     return ROTPPOSN
 
 
-def drive_angle(skipprecond=False, skippostcond=False):
-    '''Alias for rotpposn
-    '''
-    return rotpposn(skipprecond=skipprecond, skippostcond=skippostcond)
-
-
 def _set_rotpposn(rotpposn, skipprecond=False, skippostcond=False):
     '''Set the rotator position in stationary mode.
     
@@ -104,4 +98,10 @@ def set_rotpposn(rotpposn):
         sleep(2)
         log.info('Trying again ...')
         _set_rotpposn(rotpposn)
+
+
+##-----------------------------------------------------------------------------
+## Aliases
+##-----------------------------------------------------------------------------
+drive_angle = rotpposn
 

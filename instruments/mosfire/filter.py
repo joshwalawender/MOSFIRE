@@ -260,13 +260,7 @@ def quick_dark(wait=False, timeout=30,
     return None
 
 
-##-----------------------------------------------------------------------------
-## go_dark
-##-----------------------------------------------------------------------------
-def go_dark(wait=False, timeout=30,
-             skipprecond=False, skippostcond=False):
-    '''Alias for quick_dark
-    '''
-    quick_dark(wait=wait, timeout=timeout,
-               skipprecond=skipprecond, skippostcond=skippostcond)
-
+##-------------------------------------------------------------------------
+## Aliases
+##-------------------------------------------------------------------------
+go_dark = quick_dark

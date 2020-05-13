@@ -35,12 +35,6 @@ def waitfor_exposure(timeout=240, shim=False):
         raise FailedCondition('Timeout exceeded on waitfor_exposure to finish')
 
 
-def wfgo(timeout=240, shim=False):
-    '''Alias waitfor_exposure to wfgo
-    '''
-    waitfor_exposure(timeout=timeout, shim=shim)
-
-
 ##-----------------------------------------------------------------------------
 ## exptime
 ##-----------------------------------------------------------------------------
@@ -301,4 +295,5 @@ def take_exposure(exptime=None, coadds=None, sampmode=None, wait=True,
 ##-------------------------------------------------------------------------
 ## Aliases
 ##-------------------------------------------------------------------------
+wfgo = waitfor_exposure
 goi = take_exposure

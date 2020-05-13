@@ -41,30 +41,6 @@ def hatch_unlocked():
         raise FailedCondition('Hatch is locked')
 
 
-def dustcover_ok():
-    '''Alias for hatch_ok
-    '''
-    return hatch_ok()
-
-
-def dustcover_unlocked():
-    '''Alias for hatch_unlocked
-    '''
-    return hatch_unlocked()
-
-
-def trapdoor_ok():
-    '''Alias for hatch_ok
-    '''
-    return hatch_ok()
-
-
-def trapdoor_unlocked():
-    '''Alias for hatch_unlocked
-    '''
-    return hatch_unlocked()
-
-
 ##-----------------------------------------------------------------------------
 ## Lock/Unlock Hatch
 ##-----------------------------------------------------------------------------
@@ -212,3 +188,13 @@ def close_hatch(skipprecond=False, skippostcond=False, wait=True, timeout=60):
     '''
     set_hatch('Closed', wait=wait, timeout=timeout,
               skipprecond=skipprecond, skippostcond=skippostcond)
+
+
+
+##-----------------------------------------------------------------------------
+## Aliases
+##-----------------------------------------------------------------------------
+dustcover_ok = hatch_ok
+dustcover_unlocked = hatch_unlocked
+trapdoor_ok = hatch_ok
+trapdoor_unlocked = hatch_unlocked
