@@ -66,7 +66,48 @@ def FCS_in_position(PAthreshold=0.5, ELthreshold=0.5,
 
 
 ##-------------------------------------------------------------------------
-## FCS_up_to_date
+## Wait For FCS
+##-------------------------------------------------------------------------
+def waitfor_FCS(timeout=60, PAthreshold=0.5, ELthreshold=0.5, noshim=False,
+                skipprecond=False, skippostcond=False):
+    '''Wait for FCS to get close to actual PA and EL.
+    '''
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
+
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        FCS_ok()
+    
+    ##-------------------------------------------------------------------------
+    ## Script Contents
+
+    log.info('Waiting for FCS to reach destination')
+    if noshim is False:
+        sleep(0.5)
+    done = FCS_in_position(PAthreshold=PAthreshold, ELthreshold=ELthreshold)
+    endat = datetime.utcnow() + timedelta(seconds=timeout)
+    while done is False and datetime.utcnow() < endat:
+        sleep(0.5)
+        done = check_FCS(PAthreshold=PAthreshold, ELthreshold=ELthreshold)
+    if done is False:
+        log.warning(f'Timeout exceeded on waitfor_FCS to finish')
+    
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        FCS_ok()
+
+    return done
+
+
+##-------------------------------------------------------------------------
+## Update FCS
 ##-------------------------------------------------------------------------
 def update_FCS(skipprecond=False, skippostcond=False):
     '''Check whether the current FCS position is correcting for the current
@@ -138,27 +179,3 @@ def park_FCS(skipprecond=False, skippostcond=False):
     
     return done
 
-
-
-
-
-
-
-
-
-
-
-# def waitfor_FCS(timeout=60, PAthreshold=0.5, ELthreshold=0.5, noshim=False):
-#     '''Wait for FCS to get close to actual PA and EL.
-#     '''
-#     log.info('Waiting for FCS to reach destination')
-#     if noshim is False:
-#         sleep(1)
-#     done = check_FCS(PAthreshold=PAthreshold, ELthreshold=ELthreshold)
-#     endat = datetime.utcnow() + timedelta(seconds=timeout)
-#     while done is False and datetime.utcnow() < endat:
-#         sleep(1)
-#         done = check_FCS(PAthreshold=PAthreshold, ELthreshold=ELthreshold)
-#     if done is False:
-#         log.warning(f'Timeout exceeded on waitfor_FCS to finish')
-#     return done
