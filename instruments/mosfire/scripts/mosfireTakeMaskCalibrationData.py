@@ -3,8 +3,6 @@
 ## Import General Tools
 import argparse
 
-from ..core import end_of_night_shutdown
-
 description = '''
 Example call:
 python mosfireTakeMaskCalibrationData.py 0 2 0 2 1 mos 14 0 0 2 0 2 1 mos 14 0 0 2 0 2 1 mos 10 0 0 2 0 2 1 mos 10 0 0 2 0 2 1 mos 10 0 0 /home/mosfire8/CSUmasks/BT_masks/CC_hiz_agn_9/CC_hiz_agn_9.xml 1 1 1 1
@@ -125,31 +123,29 @@ cfg = {'Y':
       }
 
 assert len(args.masks) % 5 == 0
+
 masks = dict()
-for i in range(int(len(args.masks) / 5)):
-    maskfile = args.masks.pop(0)
+for masknumber in range(int(len(args.masks) / 5)):
+    maskfile = args.masks[masknumber*5]
     masks[maskfile] = list()
-    takeY = (args.masks.pop(0) == '1')
-    if takeY is True:
-        masks[maskfile].append('Y')
-    takeJ = (args.masks.pop(0) == '1')
-    if takeJ is True:
-        masks[maskfile].append('J')
-    takeH = (args.masks.pop(0) == '1')
-    if takeH is True:
-        masks[maskfile].append('H')
-    takeK = (args.masks.pop(0) == '1')
-    if takeK is True:
-        masks[maskfile].append('K')
+    for filtno,filt in enumerate(['Y', 'J', 'H', 'K']):
+        idx = masknumber*5 + filtno + 1
+        if args.masks[idx] == '1':
+            masks[maskfile].append(filt)
 
 print('Configuration:')
-print(cfg)
-print(f"Shutdown after: {args.Shutdown}")
+for filt in cfg.keys():
+    print(filt, cfg[filt])
 print('Masks:')
-print(masks)
+for maskname in masks.keys():
+    print(maskname, masks[maskname])
+print(f"Shutdown after: {args.Shutdown}")
 
-from instruments.mosfire.scripts import calibration
-calibration.take_all_calibrations(masks, config=cfg)
-
-if args.Shutdown is True:
-    end_of_night_shutdown()
+# from .calibration import take_all_calibrations
+# 
+# take_all_calibrations(masks, config=cfg)
+# 
+# from ..core import end_of_night_shutdown
+# 
+# if args.Shutdown is True:
+#     end_of_night_shutdown()
