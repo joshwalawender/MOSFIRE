@@ -219,12 +219,12 @@ def waitfor_CSU(timeout=480, noshim=False, skipprecond=False, skippostcond=False
     ##-------------------------------------------------------------------------
     ## Script Contents
     csureadykw = ktl.cache(keyword='CSUREADY', service='mcsus')
-    csureadykw.monitor()
+
     endat = datetime.utcnow() + timedelta(seconds=timeout)
     if noshim is False:
         sleep(1)
-    while int(csureadykw) != 2 and datetime.utcnow() < endat:
-        if int(csureadykw) == -1:
+    while int(csureadykw.read()) != 2 and datetime.utcnow() < endat:
+        if int(csureadykw.read()) == -1:
             raise CSUFatalError()
         sleep(2)
 
@@ -234,7 +234,7 @@ def waitfor_CSU(timeout=480, noshim=False, skipprecond=False, skippostcond=False
         log.debug('Skipping post condition checks')
     else:
         CSU_ok()
-        if int(csureadykw) != 2:
+        if int(csureadykw.read()) != 2:
             raise FailedCondition('Timeout exceeded on waitfor_CSU')
     
     return None

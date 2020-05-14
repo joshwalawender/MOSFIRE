@@ -45,14 +45,13 @@ def power_strip(stripno, portno, onoff, skipprecond=False, skippostcond=False):
     log.debug(f'Strip {stripno}, port {portno} is {pwname}')
 
     pwstat = ktl.cache(keyword=f'PWSTAT{portno:d}', service=f'mp{stripno:d}s')
-    pwstat.monitor()
 
     if onoff in [0, 1]:
         log.debug(f'Setting mp{stripno:d}s PWSTAT{portno:d} to {onoff}')
-        if int(pwstat) != onoff:
+        if int(pwstat.read()) != onoff:
             pwstat.write(onoff)
 
-    pwstat_str = {1: 'on', 0: 'off'}[int(pwstat)]
+    pwstat_str = {1: 'on', 0: 'off'}[int(pwstat.read())]
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -60,7 +59,7 @@ def power_strip(stripno, portno, onoff, skipprecond=False, skippostcond=False):
         log.debug('Skipping post condition checks')
     else:
         if onoff in [0, 1]:
-            if int(pwstat) != onoff:
+            if int(pwstat.read()) != onoff:
                 raise FailedCondition(f'{pwname} state is "{onoff}"')
 
     return pwstat_str
