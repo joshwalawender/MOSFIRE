@@ -166,21 +166,24 @@ def initialise_bars(bars, skipprecond=False, skippostcond=False):
     if skipprecond is True:
         log.debug('Skipping pre condition checks')
     else:
-        if type(bars) == str:
-            if bars.lower() != 'all':
-                raise FailedCondition(f'Input "{bars}" not parsed')
-        elif type(bars) == int:
-            bars = list(bars)
-        elif type(bars) != list:
-            raise FailedCondition(f'Input {bars} not parsed')
-        for bar in bars:
-            if type(bar) != int:
-                raise FailedCondition(f'Bar {bar} is not integer')
-            if bar < 1 or bar > 92:
-                raise FailedCondition(f'Bar {bar} is not in range 1-92')
-    
+        pass
+
     ##-------------------------------------------------------------------------
     ## Script Contents
+    if type(bars) == str:
+        if bars.lower() != 'all':
+            raise FailedCondition(f'Input "{bars}" not parsed')
+    elif type(bars) == int:
+        bars = [bars]
+    elif type(bars) != list:
+        raise FailedCondition(f'Input {bars} not parsed')
+    for bar in bars:
+        if type(bar) != int:
+            raise FailedCondition(f'Bar {bar} is not integer')
+        if bar < 1 or bar > 92:
+            raise FailedCondition(f'Bar {bar} is not in range 1-92')
+
+
     CSUINITBARkw = ktl.cache(keyword='INITBAR', service='mcsus')
     if type(bars) == str:
         if bars.lower() == 'all':
@@ -191,6 +194,8 @@ def initialise_bars(bars, skipprecond=False, skippostcond=False):
     for bar in bars:
         log.info(f'Initializing bar {bar}')
         CSUINITBARkw.write(bar)
+        log.debug('Waiting for bar to finish initializing')
+        waitfor_CSU()
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
