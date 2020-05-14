@@ -5,6 +5,8 @@ try:
 except ModuleNotFoundError as e:
     pass
 
+from .core import *
+
 
 ##-----------------------------------------------------------------------------
 ## Control Dome Flat Lamps
@@ -70,7 +72,7 @@ def dome_flat_lamps(power, skipprecond=False, skippostcond=False):
             flamp1.write('on')
             flamp2.write('on')
             mosfire_flatspec.write(1)
-        flatstate = dome_flat_lamps('read', skippostcond=True)
+        flatstate = dome_flat_lamps('read', skipprecond=skipprecond, skippostcond=True)
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
