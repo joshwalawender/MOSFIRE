@@ -68,30 +68,32 @@ def take_arcs(filt, cfg):
 ## Sub-function: Take Flats
 ##-------------------------------------------------------------------------
 def take_flats(filt, cfg):
-    log.info('Taking flats')
-    # Open Hatch
-    open_hatch()
-    # Turn on dome flat lamps
-    dome_flat_lamps(filt)
-    # Set mode
-    set_obsmode(f"{filt}-spectroscopy")
-    # Take flats
-    exptime = cfg[filt].getfloat("flat_exptime", 10)
-    for i in range(cfg[filt].getint("flat_count", 9)):
-        take_exposure(exptime=exptime,
-                      coadds=cfg[filt].getint("flat_coadds", 1),
-                      sampmode=cfg[filt].get("flat_sampmode", 'CDS'),
-                      wait=True)
-    # Turn off dome flat lamps
-    if cfg[filt].getint("flatoff_count", 0) > 0:
-        dome_flat_lamps('off')
-    # Take lamp off flats
-    for i in range(cfg[filt].getint("flatoff_count", 0)):
-        take_exposure(exptime=exptime,
-                      coadds=cfg[filt].getint("flat_coadds", 1),
-                      sampmode=cfg[filt].get("flat_sampmode", 'CDS'),
-                      wait=True)
-    go_dark()
+
+    if cfg[filt].getint("flat_count", 9) > 0:
+        log.info('Taking flats')
+        # Open Hatch
+        open_hatch()
+        # Turn on dome flat lamps
+        dome_flat_lamps(filt)
+        # Set mode
+        set_obsmode(f"{filt}-spectroscopy")
+        # Take flats
+        exptime = cfg[filt].getfloat("flat_exptime", 10)
+        for i in range(cfg[filt].getint("flat_count", 9)):
+            take_exposure(exptime=exptime,
+                          coadds=cfg[filt].getint("flat_coadds", 1),
+                          sampmode=cfg[filt].get("flat_sampmode", 'CDS'),
+                          wait=True)
+        # Turn off dome flat lamps
+        if cfg[filt].getint("flatoff_count", 0) > 0:
+            dome_flat_lamps('off')
+        # Take lamp off flats
+        for i in range(cfg[filt].getint("flatoff_count", 0)):
+            take_exposure(exptime=exptime,
+                          coadds=cfg[filt].getint("flat_coadds", 1),
+                          sampmode=cfg[filt].get("flat_sampmode", 'CDS'),
+                          wait=True)
+        go_dark()
 
 
 ##-------------------------------------------------------------------------
