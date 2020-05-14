@@ -93,14 +93,18 @@ class Mask(object):
             raise ValueError(f'Unable to parse "{input}"')
 
 
-    def find_bad_angles(self, night='2020-02-25', nhours=6, plot=False):
-        log.info(f'Checking for bad angles for mask "{self.name}" on {night}')
+    def find_bad_angles(self, night=None, nhours=6, plot=False):
         if self.PA is None:
             log.error("No PA defined for this mask.")
             return None
         if not isinstance(self.center, c.SkyCoord):
             log.error("No central coordinate defined for this mask")
             return None
+        if night is None:
+            now = datetime.utcnow()
+            night = now.strftime('%Y-%m-%d')
+            log.debug(f'Assuming current UT date')
+        log.info(f'Checking for bad angles for mask "{self.name}" on {night}')
 
         keck = c.EarthLocation.of_site('keck')
         time = Time(f'{night}T10:00:00', format='isot', scale='utc', location=keck) + np.arange(-nhours, nhours, 1/60)*u.hour
