@@ -1,3 +1,4 @@
+import inspect
 from pathlib import Path
 import yaml
 import numpy as np
@@ -89,7 +90,7 @@ def pupil_rotator_ok():
     '''
     mmprs_statuskw = ktl.cache(keyword='STATUS', service='mmprs')
     pupil_status = mmprs_statuskw.read()
-    if pupil_status != 'OK':
+    if pupil_status not in ['OK', 'TRACKING']:
         raise FailedCondition(f'Pupil rotator status is {pupil_status}')
 
 

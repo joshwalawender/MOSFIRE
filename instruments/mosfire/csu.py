@@ -1,6 +1,7 @@
 import inspect
 from datetime import datetime, timedelta
 from time import sleep
+import re
 import numpy as np
 from astropy.table import Table, Column, Row
 
@@ -22,7 +23,7 @@ def CSUbar_ok(barnum):
     '''
     bstatkw = ktl.cache(keyword=f"B{int(barnum):02d}STAT", service='mcsus')
     bar_status = bstatkw.read()
-    if bar_status != 'OK':
+    if bar_status not in ['OK', 'SETUP']:
         raise FailedCondition(f'Bar {int(barnum):02d} status is {bar_status}')
 
 
@@ -90,7 +91,7 @@ def setup_mask(mask, skipprecond=False, skippostcond=False):
         mcsus[f"B{lbn:02d}TARG"].write(lbp)
 
     log.debug('Invoke SETUP process on CSU')
-    mcsus['SETUPGO'].write(1)
+    mcsus['SETUPINIT'].write(1)
     mcsus['SETUPNAME'].write(mask.name)
 
     log.debug('Waiting for setup to complete')

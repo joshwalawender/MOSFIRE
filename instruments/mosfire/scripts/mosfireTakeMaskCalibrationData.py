@@ -61,7 +61,7 @@ p.add_argument('KFlatCount', type=int, help='number of Flats to acquire in K ban
 p.add_argument('KFlatLamp', type=str, help='lamp to use for K-band flats')
 p.add_argument('KFlatTime', type=int, help='exposure Time for Flats in K band')
 p.add_argument('KLampsOff', type=int, help='flag indicating whether to acquire Lamps on/Lamps Off pair in K band')
-p.add_argument('Shutdown', type=bool, help='flag whether to shut down MOSFIRE after completion')
+p.add_argument('Shutdown', type=int, help='flag whether to shut down MOSFIRE after completion')
 
 # The following set of params is repeated N times (once per mask):
 # p.add_argument('MaskPathN', type=str, help='path to mask N .xml file')

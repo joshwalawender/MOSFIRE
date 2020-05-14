@@ -268,6 +268,7 @@ def lastfile(skipprecond=False, skippostcond=False):
                 trypath = trypath.joinpath(part)
             if trypath.exists():
                 log.debug(f'Found file at {trypath}')
+                return trypath
             else:
                 raise FailedCondition(f'Could not find last file on disk: {lastfile_path}')
 

@@ -20,24 +20,25 @@ def dome_flat_lamps(power, skipprecond=False, skippostcond=False):
     if skipprecond is True:
         log.debug('Skipping pre condition checks')
     else:
-        # Parse power input
-        default_power_levels = {'Y': 4, 'J': 9, 'H': 13.5, 'K': 14,
-                                'on': 0, 'off': None, 'read': 'read'}
-        if type(power) is str:
-            if power in default_power_levels.keys():
-                power = default_power_levels[power]
-            else:
-                raise FailedCondition(f'Unable to parse power "{power}"')
-        elif type(power) in [int, float]:
-            if float(power) > 20 or float(power) < 0:
-                raise FailedCondition(f'Power {power} must be between 20 (low) and 0 (high)')
-        else:
-            raise FailedCondition(f'Expecting str, int, or float, got {type(power)}')
         # Check that instrument is MOSFIRE
         instrument_is_MOSFIRE()
 
     ##-------------------------------------------------------------------------
     ## Script Contents
+
+    # Parse power input
+    default_power_levels = {'Y': 4, 'J': 9, 'H': 13.5, 'K': 14,
+                            'on': 0, 'off': None, 'read': 'read'}
+    if type(power) is str:
+        if power in default_power_levels.keys():
+            power = default_power_levels[power]
+        else:
+            raise FailedCondition(f'Unable to parse power "{power}"')
+    elif type(power) in [int, float]:
+        if float(power) > 20 or float(power) < 0:
+            raise FailedCondition(f'Power {power} must be between 20 (low) and 0 (high)')
+    else:
+        raise FailedCondition(f'Expecting str, int, or float, got {type(power)}')
 
     flamp1 = ktl.cache(service='dcs', keyword='flamp1')
     flamp2 = ktl.cache(service='dcs', keyword='flamp2')
@@ -49,11 +50,11 @@ def dome_flat_lamps(power, skipprecond=False, skippostcond=False):
         flamp1_on = not (flamp1.read() == 'off')
         flamp2_on = not (flamp2.read() == 'off')
         if flamp1_on and flamp2_on:
-            flatstate = ('on', fpower)
+            flatstate = ('on', float(fpower))
         elif not flamp1_on and not flamp2_on:
-            flatstate = ('off', fpower)
+            flatstate = ('off', float(fpower))
         else:
-            flatstate = (f'partial: {flamp1_on} {flamp2_on}', fpower)
+            flatstate = (f'partial: {flamp1_on} {flamp2_on}', float(fpower))
     else:
         # Set power level and turn both lamps on
         mosfire_flatspec = ktl.cache(service='mosfire', keyword='flatspec')

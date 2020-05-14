@@ -12,7 +12,6 @@ from astropy.table import Table, Column
 from astropy import coordinates as c
 from astropy import units as u
 from astropy.time import Time
-# from astroplan import FixedTarget, Observer
 
 from .core import *
 
@@ -57,10 +56,10 @@ class Mask(object):
         self.PA = None
         self.mascgenArguments = None
 
-        try_input_as_path = Path(input).expanduser()
         if input is None:
-            pass
-        if try_input_as_path.exists():
+            return
+        elif Path(input).expanduser().exists():
+            try_input_as_path = Path(input).expanduser()
             log.debug(f'Found mask file "{try_input_as_path}" on disk')
             self.read_xml(try_input_as_path)
         elif isinstance(input, Path):

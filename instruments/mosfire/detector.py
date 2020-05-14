@@ -10,6 +10,7 @@ except ModuleNotFoundError as e:
 
 from .core import *
 from .metadata import lastfile
+from .fcs import update_FCS, waitfor_FCS
 
 
 ##-----------------------------------------------------------------------------
