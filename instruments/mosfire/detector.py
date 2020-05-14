@@ -155,7 +155,7 @@ def set_coadds(input, skipprecond=False, skippostcond=False):
     if skippostcond is True:
         log.debug('Skipping post condition checks')
     else:
-        nCOADDS = COADDSkw.read()
+        nCOADDS = int(COADDSkw.read())
         log.debug(f'Number of coadds is now {nCOADDS}')
         if nCOADDS != int(input):
             raise FailedCondition('Failed to set COADDS')
