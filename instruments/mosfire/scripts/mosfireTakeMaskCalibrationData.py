@@ -141,11 +141,10 @@ for maskname in masks.keys():
     print(maskname, masks[maskname])
 print(f"Shutdown after: {args.Shutdown}")
 
-# from .calibration import take_all_calibrations
-# 
-# take_all_calibrations(masks, config=cfg)
-# 
-# from ..core import end_of_night_shutdown
-# 
-# if args.Shutdown is True:
-#     end_of_night_shutdown()
+from .calibration import take_all_calibrations
+
+take_all_calibrations(masks, config=cfg)
+
+if args.Shutdown == 1:
+    from ..core import end_of_night_shutdown
+    end_of_night_shutdown()
