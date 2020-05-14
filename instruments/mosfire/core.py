@@ -127,7 +127,11 @@ def stop_mosfire_software(skipprecond=False, skippostcond=False):
     log.info('Calling the mosfireStop command line script')
     output = subprocess.run(['mosfireStop'], check=True,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    output = output.decode()
+
+    for line in output.stdout.decode().split('\n'):
+        log.debug(f'STDOUT: {line}')
+    for line in output.stderr.decode().split('\n'):
+        log.debug(f'STDERR: {line}')
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks

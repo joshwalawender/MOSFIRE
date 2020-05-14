@@ -34,10 +34,9 @@ def hatch_unlocked():
 #     locked = int(lockedkw.read())
 #     if locked == 1:
 #         raise FailedCondition(f'Trap door keywords are locked (LOCKALL=1)')
-    output = subprocess.run(['show', '-s', 'mmdcs', 'lockall'], check=True,
+    output = subprocess.run(['show', '-terse', '-s', 'mmdcs', 'lockall'], check=True,
                             stdout=subprocess.PIPE)
-    output = output.decode()
-    if (output == '1') is True:
+    if (output.stdout.decode().strip() == '0') is False:
         raise FailedCondition('Hatch is locked')
 
 
@@ -67,17 +66,15 @@ def lock_hatch(skipprecond=False, skippostcond=False):
                 'lockall keyword is not KTL compatible.')
     output = subprocess.run(['modify', '-s', 'mmdcs', 'lockall=1'], check=True,
                             stdout=subprocess.PIPE)
-    output = output.decode()
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
     if skippostcond is True:
         log.debug('Skipping post condition checks')
     else:
-        output = subprocess.run(['show', '-s', 'mmdcs', 'lockall'], check=True,
+        output = subprocess.run(['show', '-terse', '-s', 'mmdcs', 'lockall'], check=True,
                                 stdout=subprocess.PIPE)
-        output = output.decode()
-        if (output == '1') is False:
+        if (output.returncode == 0) is False:
             raise FailedCondition('Hatch is not locked')
 
     return None
@@ -106,7 +103,6 @@ def unlock_hatch(skipprecond=False, skippostcond=False):
                 'lockall keyword is not KTL compatible.')
     output = subprocess.run(['modify', '-s', 'mmdcs', 'lockall=0'], check=True,
                             stdout=subprocess.PIPE)
-    output = output.decode()
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
