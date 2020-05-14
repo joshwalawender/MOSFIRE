@@ -221,7 +221,13 @@ class Mask(object):
                         self.mascgenArguments[el.tag] = el.attrib
             elif child.tag == 'mechanicalSlitConfig':
                 data = [el.attrib for el in child.getchildren()]
-                self.slitpos = Table(data)
+                self.slitpos = Table(names=('slitNumber', 'leftBarNumber',
+                                     'rightBarNumber', 'leftBarPositionMM',
+                                     'rightBarPositionMM', 'centerPositionArcsec',
+                                     'slitWidthArcsec', 'target'),
+                                     dtype=(int, int, int, float, float, float,
+                                            float, np.dtype('U80')))
+                data = [self.slitpos.add_row(el.attrib) for el in child.getchildren()]
             elif child.tag == 'scienceSlitConfig':
                 data = [el.attrib for el in child.getchildren()]
                 self.scienceTargets = Table(data)
