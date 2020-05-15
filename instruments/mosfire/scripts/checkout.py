@@ -7,11 +7,13 @@ import logging
 
 from ..core import *
 from ..mask import Mask
-from ..filter import is_dark, go_dark, waitfordark
+from ..filter import is_dark, go_dark
 from ..obsmode import set_obsmode
 from ..metadata import lastfile
-from ..detector import take_exposure, waitfor_exposure
-from ..csu import setup_mask, execute_mask, waitfor_CSU
+from ..detector import take_exposure
+from ..csu import setup_mask, execute_mask, initialize_bars
+from ..rotator import safe_angle
+
 
 description = '''Perform a basic checkout of the MOSFIRE instrument.  The normal
 execution of this script performs a standard pre-run checkout.  The quick
@@ -89,37 +91,31 @@ def checkout(quick=False):
     * Quick Dark
     * Message user to verify sidecar logging
     '''
+
     intromsg = ('This script will do a quick checkout of MOSFIRE.  It should '
                 'take about ?? minutes to complete.  Please confirm that you '
-                'have started the MOSFIRE software AND that the instrument '
-                'rotator is not within 10 degrees of a multiple of 180.')
-    log.info(intromsg)
+                'have started the MOSFIRE software.')
+    print(intromsg)
     print()
     proceed = input('Continue? [y]')
     if proceed.lower() not in ['y', 'yes', 'ok', '']:
         log.info('Exiting script.')
         return False
+
+    instrument_is_MOSFIRE()
+    safe_angle()
     log.info(f'Executing checkout script.')
     
     log.info('Checking that instrument is dark')
     if not is_dark():
+        log.info('Going dark')
         go_dark()
-        waitfor_dark()
-    if not is_dark():
-        log.error('Could not make instrument dark')
-        return False
-    log.info('Instrument is dark')
 
     log.info('Checking mechanisms')
-    if check_mechanisms() is True:
-        log.info('  Mechanisms ok')
-    else:
-        log.error('  Mechanism check failed')
-        return False
+    mechanisms_ok()
 
     log.info('Taking dark image')
     take_exposure(exptime=2, coadds=1, sampmode='CDS')
-    waitfor_exposure()
 
     log.info(f'Please verify that {lastfile()} looks normal for a dark image')
     proceed = input('Continue? [y]')
@@ -131,26 +127,24 @@ def checkout(quick=False):
     if quick is True:
         log.info('Setup 2.7x46 long slit mask')
         setup_mask(Mask('2.7x46'))
-        waitfor_CSU()
         log.info('Execute mask')
         execute_mask()
-        waitfor_CSU()
-        set_obsmode('K-imaging', wait=True)
-        take_exposure() # <-- add parameters
-        waitfor_exposure()
+        log.info('Taking 2.7" wide long slit image')
+        set_obsmode('K-imaging')
+        take_exposure(exptime=6, coadds=1, sampmode='CDS')
         wideSlitFile = lastfile()
+        log.info('Going dark')
         go_dark()
 
         log.info('Setup 0.7x46 long slit mask')
         setup_mask(Mask('0.7x46'))
-        waitfor_CSU()
         log.info('Execute mask')
         execute_mask()
-        waitfor_CSU()
-        set_obsmode('K-imaging', wait=True)
-        take_exposure()
-        waitfor_exposure()
-        wideSlitFile = lastfile()
+        log.info('Taking long slit image')
+        set_obsmode('K-imaging')
+        take_exposure(exptime=6, coadds=1, sampmode='CDS')
+        narrowSlitFile = lastfile()
+        log.info('Going dark')
         go_dark()
 
 
@@ -158,9 +152,25 @@ def checkout(quick=False):
     if quick is False:
         log.info('Setup OPEN mask')
         setup_mask(Mask('OPEN'))
-        waitfor_CSU()
         execute_mask()
-        waitfor_CSU()
+        log.info('Initializing all bars')
+        initialize_bars('all')
+
+        log.info('Taking open mask image')
+        set_obsmode('K-imaging', wait=True)
+        take_exposure(exptime=6, coadds=1, sampmode='CDS')
+        openMaskFile = lastfile()
+        go_dark()
+        
+        log.info('Setup 0.7x46 long slit mask')
+        setup_mask(Mask('0.7x46'))
+        log.info('Execute mask')
+        execute_mask()
+        log.info('Taking long slit image')
+        set_obsmode('K-imaging')
+        take_exposure(exptime=6, coadds=1, sampmode='CDS')
+        narrowSlitFile = lastfile()
+        go_dark()
 
 
 
