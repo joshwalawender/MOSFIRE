@@ -2,12 +2,27 @@ import inspect
 from datetime import datetime
 from time import sleep
 
+from astropy import units as u
+from astropy.coordinates import Angle
+
 try:
     import ktl
 except ModuleNotFoundError as e:
     pass
 
 from .core import *
+
+
+##-----------------------------------------------------------------------------
+## pre- and post- conditions
+##-----------------------------------------------------------------------------
+def safe_angle():
+    drive_angle = Angle(rotpposn()*u.deg)
+    log.debug(f"Current rotator angle is {drive_angle:.1f}")
+    drive_angle.wrap_at(180*u.deg)
+    if (abs(drive_angle) <= 10*u.deg) or (abs(drive_angle) >= 170*u.deg):
+        log.warning(f'Current rotator drive angle ({drive_angle:.1f}) is not in safe range.')
+        raise FailedCondition(f'Current rotator drive angle ({drive_angle:.1f}) is not in safe range.')
 
 
 ##-----------------------------------------------------------------------------
@@ -104,4 +119,4 @@ def set_rotpposn(rotpposn):
 ## Aliases
 ##-----------------------------------------------------------------------------
 drive_angle = rotpposn
-
+set_drive_angle = set_rotpposn
