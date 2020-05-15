@@ -12,6 +12,7 @@ except ModuleNotFoundError as e:
 
 from .core import *
 from .mask import Mask
+from .rotator import safe_angle
 
 
 ##-----------------------------------------------------------------------------
@@ -96,10 +97,8 @@ def setup_mask(mask, skipprecond=False, skippostcond=False):
 
     log.debug('Waiting for setup to complete')
     csustat = ktl.cache(keyword='CSUSTAT', service='mcsus')
-    csustat.monitor()
-    while str(csustat) == 'Creating Group.':
-        sleep(1)
-
+    while str(csustat.read()) == 'Creating Group.':
+        sleep(0.5)
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -107,8 +106,9 @@ def setup_mask(mask, skipprecond=False, skippostcond=False):
         log.debug('Skipping post condition checks')
     else:
         log.debug('Checking for aborted setup')
-        if re.search('Setup aborted.  Collision detected at row (\d+)', str(csustat)):
-            raise FailedCondition(str(csustat))
+        final_status = str(csustat.read())
+        if re.search('Setup aborted.  Collision detected at row (\d+)', final_status):
+            raise FailedCondition(final_status)
         CSU_ok()
         CSUbars_ok()
     
@@ -118,7 +118,7 @@ def setup_mask(mask, skipprecond=False, skippostcond=False):
 ##-----------------------------------------------------------------------------
 ## execute_mask
 ##-----------------------------------------------------------------------------
-def execute_mask(skipprecond=False, skippostcond=False, wait=False):
+def execute_mask(wait=True, skipprecond=False, skippostcond=False):
     '''Execute a mask which has already been set up.
     '''
     this_function_name = inspect.currentframe().f_code.co_name
@@ -130,6 +130,7 @@ def execute_mask(skipprecond=False, skippostcond=False, wait=False):
     else:
         CSUbars_ok()
         CSUready()
+        safe_angle()
     
     ##-------------------------------------------------------------------------
     ## Script Contents
