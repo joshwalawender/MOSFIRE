@@ -7,27 +7,20 @@ from time import sleep
 from pathlib import Path
 import configparser
 
-from ..core import *
-from ..mask import Mask
-from ..filter import go_dark, waitfordark
-from ..obsmode import set_obsmode
-from ..csu import setup_mask, execute_mask, waitfor_CSU
-from ..hatch import open_hatch, close_hatch
-from ..detector import take_exposure
-from ..domelamps import dome_flat_lamps
+from .core import *
+from .mask import Mask
+from .filter import go_dark, waitfordark
+from .obsmode import set_obsmode
+from .csu import setup_mask, execute_mask, waitfor_CSU
+from .hatch import open_hatch, close_hatch
+from .detector import take_exposure
+from .domelamps import dome_flat_lamps
 
 
 try:
     import ktl
 except ModuleNotFoundError as e:
     pass
-
-description = '''
-This script is intended to replace the mosfireTakeMaskCalibrationData.py script.
-
-Script behavior is powered by a configuration file which contains:
-
-'''
 
 
 ##-------------------------------------------------------------------------
@@ -219,20 +212,12 @@ def take_all_calibrations(filters, config=None,
     return None
 
 
-if __name__ == '__main__':
-    import argparse
-    ##-------------------------------------------------------------------------
-    ## Parse Command Line Arguments
-    ##-------------------------------------------------------------------------
-    ## create a parser object for understanding command-line arguments
-    p = argparse.ArgumentParser(description=description)
-    ## add options
-    p.add_argument("-c", "--config", dest="config", type=str,
-        default=None,
-        help="The configuration file to use.")
-    ## add arguments
-    # p.add_argument('argument', type=int,
-    #                help="A single argument")
-    # p.add_argument('allothers', nargs='*',
-    #                help="All other arguments")
-    args = p.parse_args()
+# if __name__ == '__main__':
+#     import argparse
+#     ## Parse Command Line Arguments
+#     p = argparse.ArgumentParser(description=description)
+#     ## add options
+#     p.add_argument("-c", "--config", dest="config", type=str,
+#         default=None,
+#         help="The configuration file to use.")
+#     args = p.parse_args()

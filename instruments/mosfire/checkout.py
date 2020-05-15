@@ -2,68 +2,27 @@
 
 ## Import General Tools
 from pathlib import Path
-import argparse
-import logging
 
-from ..core import *
-from ..mask import Mask
-from ..filter import is_dark, go_dark
-from ..obsmode import set_obsmode
-from ..metadata import lastfile
-from ..detector import take_exposure
-from ..csu import setup_mask, execute_mask, initialize_bars
-from ..rotator import safe_angle
-
-
-description = '''Perform a basic checkout of the MOSFIRE instrument.  The normal
-execution of this script performs a standard pre-run checkout.  The quick
-version performs a shorter, less complete checkout to be used when there is
-limited time.
-'''
-
-##-------------------------------------------------------------------------
-## Parse Command Line Arguments
-##-------------------------------------------------------------------------
-## create a parser object for understanding command-line arguments
-p = argparse.ArgumentParser(description=description)
-## add flags
-p.add_argument("-v", "--verbose", dest="verbose",
-    default=False, action="store_true",
-    help="Be verbose! (default = False)")
-p.add_argument("-q", "--quick", dest="quick",
-    default=False, action="store_true",
-    help="Do a quick checkout instead of a full checkout.")
-args = p.parse_args()
-
-
-##-------------------------------------------------------------------------
-## Create logger object
-##-------------------------------------------------------------------------
-log = logging.getLogger('MOSFIRE_checkout')
-log.setLevel(logging.DEBUG)
-## Set up console output
-LogConsoleHandler = logging.StreamHandler()
-if args.verbose:
-    LogConsoleHandler.setLevel(logging.DEBUG)
-else:
-    LogConsoleHandler.setLevel(logging.INFO)
-LogFormat = logging.Formatter('%(asctime)s %(levelname)8s: %(message)s',
-                              datefmt='%Y-%m-%d %H:%M:%S')
-LogConsoleHandler.setFormatter(LogFormat)
-log.addHandler(LogConsoleHandler)
-## Set up file output
-# LogFileName = None
-# LogFileHandler = logging.FileHandler(LogFileName)
-# LogFileHandler.setLevel(logging.DEBUG)
-# LogFileHandler.setFormatter(LogFormat)
-# log.addHandler(LogFileHandler)
+from .core import *
+from .mask import Mask
+from .filter import is_dark, go_dark
+from .obsmode import set_obsmode
+from .metadata import lastfile
+from .detector import take_exposure
+from .csu import setup_mask, execute_mask, initialize_bars
+from .rotator import safe_angle
+from .domelamps import dome_flat_lamps
 
 
 ##-------------------------------------------------------------------------
 ## MOSFIRE Checkout
 ##-------------------------------------------------------------------------
 def checkout(quick=False):
-    '''
+    '''Perform a basic checkout of the MOSFIRE instrument.  The normal
+    execution of this script performs a standard pre-run checkout.  The quick
+    version performs a shorter, less complete checkout to be used when there is
+    limited time.
+
     * Confirm the physical drive angle. It should not be within 10 degrees of a
          multiple of 180 degrees
     * Start the observing software as moseng or the account for the night
@@ -130,6 +89,7 @@ def checkout(quick=False):
         log.info('Execute mask')
         execute_mask()
         log.info('Taking 2.7" wide long slit image')
+        dome_flat_lamps(4)
         set_obsmode('K-imaging')
         take_exposure(exptime=6, coadds=1, sampmode='CDS')
         wideSlitFile = lastfile()
@@ -146,6 +106,8 @@ def checkout(quick=False):
         narrowSlitFile = lastfile()
         log.info('Going dark')
         go_dark()
+        log.info('Turning dome flat lamps off')
+        dome_flat_lamps('off')
 
 
     # Normal (long) checkout
@@ -157,6 +119,7 @@ def checkout(quick=False):
         initialize_bars('all')
 
         log.info('Taking open mask image')
+        dome_flat_lamps(4)
         set_obsmode('K-imaging', wait=True)
         take_exposure(exptime=6, coadds=1, sampmode='CDS')
         openMaskFile = lastfile()
@@ -171,8 +134,18 @@ def checkout(quick=False):
         take_exposure(exptime=6, coadds=1, sampmode='CDS')
         narrowSlitFile = lastfile()
         go_dark()
+        log.info('Turning dome flat lamps off')
+        dome_flat_lamps('off')
 
 
 
 if __name__ == '__main__':
+    import argparse
+    ## Parse Command Line Arguments
+    p = argparse.ArgumentParser(description=description)
+    p.add_argument("-q", "--quick", dest="quick",
+        default=False, action="store_true",
+        help="Do a quick checkout instead of a full checkout.")
+    args = p.parse_args()
+
     checkout(quick=args.quick)
