@@ -3,11 +3,6 @@ from datetime import datetime
 from time import sleep
 from pathlib import Path
 
-try:
-    import ktl
-except ModuleNotFoundError as e:
-    pass
-
 from .core import *
 
 

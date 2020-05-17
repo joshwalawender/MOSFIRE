@@ -3,11 +3,6 @@ from datetime import datetime, timedelta
 from time import sleep
 import re
 
-try:
-    import ktl
-except ModuleNotFoundError as e:
-    pass
-
 from .core import *
 from .metadata import lastfile
 from .fcs import update_FCS, waitfor_FCS

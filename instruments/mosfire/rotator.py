@@ -5,11 +5,6 @@ from time import sleep
 from astropy import units as u
 from astropy.coordinates import Angle
 
-try:
-    import ktl
-except ModuleNotFoundError as e:
-    pass
-
 from .core import *
 
 

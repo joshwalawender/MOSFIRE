@@ -3,12 +3,6 @@ import inspect
 from datetime import datetime, timedelta
 from time import sleep
 
-try:
-    import ktl
-except ModuleNotFoundError as e:
-    pass
-
-
 from .core import *
 
 

@@ -5,11 +5,6 @@ import re
 import numpy as np
 from astropy.table import Table, Column, Row
 
-try:
-    import ktl
-except ModuleNotFoundError as e:
-    pass
-
 from .core import *
 from .mask import Mask
 from .rotator import safe_angle

@@ -1,10 +1,5 @@
 import inspect
 
-try:
-    import ktl
-except ModuleNotFoundError as e:
-    pass
-
 from .core import *
 
 

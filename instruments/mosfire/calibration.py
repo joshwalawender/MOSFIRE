@@ -17,12 +17,6 @@ from .detector import take_exposure
 from .domelamps import dome_flat_lamps
 
 
-try:
-    import ktl
-except ModuleNotFoundError as e:
-    pass
-
-
 ##-------------------------------------------------------------------------
 ## Sub-function: Take Arcs
 ##-------------------------------------------------------------------------

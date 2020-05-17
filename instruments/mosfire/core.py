@@ -9,7 +9,7 @@ import sys
 try:
     import ktl
 except ModuleNotFoundError as e:
-    pass
+    from instruments import dummy_ktl as ktl
 
 from instruments import create_log
 
