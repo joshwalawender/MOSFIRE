@@ -46,11 +46,13 @@ Apixel_to_physical = np.array(transforms['Apixel_to_physical'])
 
 log = create_log(name, loglevel='DEBUG')
 
-from .fcs import park_FCS
-from .hatch import close_hatch, lock_hatch
+from .fcs import park_FCS, FCS_ok
+from .hatch import close_hatch, lock_hatch, hatch_ok
 from .filter import go_dark
 from .domelamps import dome_flat_lamps
 from .power import Ne_lamp, Ar_lamp
+from .filter import filter1_ok, filter2_ok
+from .obsmode import grating_shim_ok, grating_turret_ok
 
 
 ##-----------------------------------------------------------------------------
