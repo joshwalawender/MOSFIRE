@@ -201,7 +201,7 @@ def filter2(skipprecond=False, skippostcond=False):
 ##-----------------------------------------------------------------------------
 ## quick_dark
 ##-----------------------------------------------------------------------------
-def quick_dark(wait=False, timeout=30,
+def go_dark(wait=True, timeout=30,
                skipprecond=False, skippostcond=False):
     '''Set the instrument to a dark mode which is close to the specified filter.
     Modeled after darkeff script.
@@ -258,4 +258,4 @@ def quick_dark(wait=False, timeout=30,
 ##-------------------------------------------------------------------------
 ## Aliases
 ##-------------------------------------------------------------------------
-go_dark = quick_dark
+quick_dark = go_dark
