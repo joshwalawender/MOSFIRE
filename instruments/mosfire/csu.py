@@ -54,7 +54,7 @@ def CSUready():
 ##-----------------------------------------------------------------------------
 ## Setup Mask
 ##-----------------------------------------------------------------------------
-def setup_mask(mask, skipprecond=False, skippostcond=False):
+def setup_mask(mask, wait=True, skipprecond=False, skippostcond=False):
     '''Setup the given mask.  Accepts a Mask object.
     '''
     this_function_name = inspect.currentframe().f_code.co_name
@@ -90,10 +90,11 @@ def setup_mask(mask, skipprecond=False, skippostcond=False):
     mcsus['SETUPINIT'].write(1)
     mcsus['SETUPNAME'].write(mask.name)
 
-    log.debug('Waiting for setup to complete')
-    csustat = ktl.cache(keyword='CSUSTAT', service='mcsus')
-    while str(csustat.read()) == 'Creating Group.':
-        sleep(0.5)
+    if wait is True:
+        log.debug('Waiting for setup to complete')
+        csustat = ktl.cache(keyword='CSUSTAT', service='mcsus')
+        while str(csustat.read()) in ['Creating Group.', 'Adding bars to Group.']:
+            sleep(0.5)
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
