@@ -79,7 +79,7 @@ class Mask(object):
                 self.build_random_mask()
             else:
                 try:
-                    width, length = input.split('x')
+                    length, width = input.split('x')
                     width = float(width)
                     length = int(length)
                     assert length <= 46
@@ -254,7 +254,7 @@ class Mask(object):
         '''Build a longslit mask
         '''
         # parse input string assuming format similar to 0.7x46
-        width, length = input.split('x')
+        length, width = input.split('x')
         width = float(width)
         length = int(length)
         assert length <= 46
