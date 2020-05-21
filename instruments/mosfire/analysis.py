@@ -1,17 +1,54 @@
-from .core import *
-from .csu import *
+from pathlib import Path
 
 import matplotlib as mpl
 mpl.use('Agg')
 from matplotlib import pyplot as plt
-from astropy import visualization as viz
 plt.ioff()
+
+import numpy as np
+from scipy import ndimage
+from astropy.io import fits
+from astropy import visualization as viz
+from astropy.modeling import models, fitting
+
+from .core import *
+from .csu import slit_to_bars, physical_to_pixel, bar_to_slit
+
+
+## ------------------------------------------------------------------
+##  Compare Image to Mask Design
+## ------------------------------------------------------------------
+def verify_mask_with_image(mask, imagefile, tolerance=2):
+    log.info('Finding bar positions')
+    foundbars = find_bar_positions_from_image(imagefile)
+    log.info('Verifying bar positions')
+    barsok = list()
+    for bar in range(1,93):
+        found = foundbars[bar]
+        if bar %2 == 0:
+            slitinfo = mask.slitpos[mask.slitpos['leftBarNumber'] == bar]
+            expected_mm = float(slitinfo['leftBarPositionMM'])
+        else:
+            slitinfo = mask.slitpos[mask.slitpos['rightBarNumber'] == bar]
+            expected_mm = float(slitinfo['rightBarPositionMM'])
+        expected = physical_to_pixel([[expected_mm, bar_to_slit(bar)]])[0][0][0]
+
+        if not np.isclose(found, expected, atol=tolerance):
+            diff = abs(found - expected)
+            log.warning(f'Bar {bar} out of tolerance: got {found:.1f} '
+                        f'expected {expected:.1f} (difference = {diff:.1f})')
+            barsok.append(False)
+        else:
+            log.debug(f'Bar {bar} is within tolerance')
+            barsok.append(True)
+    if not np.all(barsok):
+        raise FailedCondition('Image did not match mask design')
 
 
 ## ------------------------------------------------------------------
 ##  Analyze Image to Determine Bar Positions
 ## ------------------------------------------------------------------
-def analyze_mask_image(imagefile, filtersize=7, plot=False):
+def find_bar_positions_from_image(imagefile, filtersize=7, plot=False):
     '''Loop over all slits in the image and using the affine transformation
     determined by `fit_transforms`, select the Y pixel range over which this
     slit should be found.  Take a median filtered version of that image and
@@ -41,8 +78,8 @@ def analyze_mask_image(imagefile, filtersize=7, plot=False):
     for slit in range(1,47):
         b1, b2 = slit_to_bars(slit)
         ## Determine y pixel range
-        y1 = int(np.ceil((physical_to_pixel(np.array([(4.0, slit+0.5)])))[0][1]))
-        y2 = int(np.floor((physical_to_pixel(np.array([(270.4, slit-0.5)])))[0][1]))
+        y1 = int(np.ceil((physical_to_pixel(np.array([(4.0, slit+0.5)])))[0][0][1]))
+        y2 = int(np.floor((physical_to_pixel(np.array([(270.4, slit-0.5)])))[0][0][1]))
         ypos[b1] = [y1, y2]
         ypos[b2] = [y1, y2]
         gradx = np.gradient(medimage[y1:y2,:], axis=1)
@@ -63,7 +100,6 @@ def analyze_mask_image(imagefile, filtersize=7, plot=False):
             plt.plot(bars[bar], np.mean(ypos[bar]), 'rx', alpha=0.5)
         plt.savefig(str(plotfile))
 
-    
     return bars
 
 
