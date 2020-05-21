@@ -4,7 +4,7 @@ from time import sleep
 import re
 
 from .core import *
-from .metadata import lastfile
+from .metadata import lastfile, set_object
 from .fcs import update_FCS, waitfor_FCS
 
 
@@ -235,8 +235,8 @@ def set_sampmode(input, skipprecond=False, skippostcond=False):
 ##-----------------------------------------------------------------------------
 ## take exposure
 ##-----------------------------------------------------------------------------
-def take_exposure(exptime=None, coadds=None, sampmode=None, wait=True,
-                  waitforFCS=True, updateFCS=True,
+def take_exposure(exptime=None, coadds=None, sampmode=None, object=None,
+                  wait=True, waitforFCS=True, updateFCS=True,
                   skipprecond=False, skippostcond=False):
     '''Take an exposure.
     
@@ -261,6 +261,8 @@ def take_exposure(exptime=None, coadds=None, sampmode=None, wait=True,
         set_coadds(coadds)
     if sampmode is not None:
         set_sampmode(sampmode)
+    if object is not None:
+        set_object(object)
     if updateFCS is True:
         update_FCS()
         sleep(1)
