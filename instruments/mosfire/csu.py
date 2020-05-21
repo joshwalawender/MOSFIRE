@@ -149,7 +149,7 @@ def execute_mask(wait=True, skipprecond=False, skippostcond=False):
 ##-----------------------------------------------------------------------------
 ## Initialize Bars
 ##-----------------------------------------------------------------------------
-def initialise_bars(bars, skipprecond=False, skippostcond=False):
+def initialize_bars(bars, skipprecond=False, skippostcond=False):
     '''Initialize one or more CSU bars.
     
     To initialize all bars, use "all" as the input.  To initialize
