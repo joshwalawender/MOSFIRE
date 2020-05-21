@@ -384,7 +384,7 @@ def pad(x):
 def unpad(x):
     '''Unpad array for affine transformation.
     '''
-    return x[:,:-1]
+    return x[:,:,:-1]
 
 
 def fit_transforms(pixels, physical):
@@ -423,6 +423,7 @@ def pixel_to_physical(x):
     slit).
     '''
     x = np.array(x)
+    Apixel_to_physical = np.array(transforms['Apixel_to_physical'])
     result = unpad(np.dot(pad(x), Apixel_to_physical))
     return result
 
@@ -433,6 +434,7 @@ def physical_to_pixel(x):
     (X, Y).
     '''
     x = np.array(x)
+    Aphysical_to_pixel = np.array(transforms['Aphysical_to_pixel'])
     result = unpad(np.dot(pad(x), Aphysical_to_pixel))
     return result
 
