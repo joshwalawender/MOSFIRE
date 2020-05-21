@@ -114,7 +114,8 @@ def setup_mask(mask, wait=True, skipprecond=False, skippostcond=False):
 ##-----------------------------------------------------------------------------
 ## execute_mask
 ##-----------------------------------------------------------------------------
-def execute_mask(wait=True, skipprecond=False, skippostcond=False):
+def execute_mask(wait=True, override=False,
+                 skipprecond=False, skippostcond=False):
     '''Execute a mask which has already been set up.
     '''
     this_function_name = inspect.currentframe().f_code.co_name
@@ -126,7 +127,8 @@ def execute_mask(wait=True, skipprecond=False, skippostcond=False):
     else:
         CSUbars_ok()
         CSUready()
-        safe_angle()
+        if override is False:
+            safe_angle()
     
     ##-------------------------------------------------------------------------
     ## Script Contents
