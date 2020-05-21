@@ -147,9 +147,9 @@ for maskname in masks.keys():
 if args.Shutdown == 1:
     log.info(f"Shutdown when done requested")
 
-from instruments.mosfire.calibration import take_all_calibrations
+from instruments.mosfire.calibration import take_calibrations
 log.info('Taking calibrations')
-take_all_calibrations(masks, config=cfg)
+take_calibrations(masks, config=cfg)
 
 if args.Shutdown == 1:
     from instruments.mosfire.core import end_of_night_shutdown

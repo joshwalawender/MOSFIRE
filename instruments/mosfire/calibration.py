@@ -18,6 +18,26 @@ from .domelamps import dome_flat_lamps
 
 
 ##-------------------------------------------------------------------------
+## Sub-function: Read Configuration
+##-------------------------------------------------------------------------
+def read_calibration_config(input):
+    cfg = configparser.ConfigParser()
+    if input is None:
+        log.debug('Using default config file')
+        cfg.read(mosfire_data_file_path.joinpath('default_calibrations.cfg'))
+    elif isinstance(input, str):
+        input = Path(input)
+        cfg.read(input)
+    elif isinstance(input, Path):
+        cfg.read(input)
+    elif isinstance(input, dict):
+        cfg.read_dict(input)
+    else:
+        raise FailedCondition(f"Unable to interpret {input} as configuration")
+    return cfg
+
+
+##-------------------------------------------------------------------------
 ## Sub-function: Take Arcs
 ##-------------------------------------------------------------------------
 def take_arcs(filt, cfg):
@@ -86,8 +106,8 @@ def take_flats(filt, cfg):
 ##-------------------------------------------------------------------------
 ## Take Calibrations for a Single Mask for a List of Bands
 ##-------------------------------------------------------------------------
-def take_mask_calibrations(mask, filters, cfg,
-                           skipprecond=False, skippostcond=True):
+def take_calibrations_for_a_mask(mask, filters, cfg,
+                                 skipprecond=False, skippostcond=True):
     '''Takes calibrations for a single mask in a list of filters.
     '''
     this_script_name = inspect.currentframe().f_code.co_name
@@ -149,8 +169,8 @@ def take_mask_calibrations(mask, filters, cfg,
 ##-------------------------------------------------------------------------
 ## Take Calibrations for All Masks
 ##-------------------------------------------------------------------------
-def take_all_calibrations(filters, config=None,
-                          skipprecond=False, skippostcond=True):
+def take_calibrations(filters, config=None,
+                      skipprecond=False, skippostcond=True):
     '''Loops over masks and takes calibrations for each.
     
     All masks must have the same calibration configuration file.
@@ -166,35 +186,17 @@ def take_all_calibrations(filters, config=None,
     if skipprecond is True:
         log.debug('Skipping pre condition checks')
     else:
-        # Configuration file exists
-        if config in [None, '']:
-            log.debug('Using default configuration file')
-            config = mosfire_data_file_path / 'scripts' / 'default_calibrations.cfg'
-        elif type(config) == dict:
-            log.debug('Interpreting configuration input as dict')
-        elif type(config) in [str, Path]:
-            log.debug('Interpreting configuration input as path')
-            config = Path(config).expanduser()
-            if config.exists() is not True:
-                raise FailedCondition(f'Could not find configuration file: {config}')
-        else:
-            raise FailedCondition(f'Could not interpret configuration: {config}')
+        pass
 
     ##-------------------------------------------------------------------------
     ## Script Contents
-
-    # Read calibration configuration file
-    cfg = configparser.ConfigParser()
-    if type(config) in [str, Path]:
-        cfg.read(config)
-    elif type(config) == dict:
-        cfg.read_dict(config)
+    cfg = read_calibration_config(config)
 
     # Iterate over masks and take cals
     for mask in filters.keys():
-        take_mask_calibrations(mask, filters[mask], cfg,
-                               skipprecond=skipprecond,
-                               skippostcond=skippostcond)
+        take_calibrations_for_a_mask(mask, filters[mask], cfg,
+                                     skipprecond=skipprecond,
+                                     skippostcond=skippostcond)
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
