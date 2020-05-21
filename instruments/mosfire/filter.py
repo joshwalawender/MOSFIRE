@@ -69,9 +69,9 @@ def filter(skipprecond=False, skippostcond=False):
 
 
 ##-----------------------------------------------------------------------------
-## isdark
+## is_dark
 ##-----------------------------------------------------------------------------
-def isdark(skipprecond=False, skippostcond=False):
+def is_dark(skipprecond=False, skippostcond=False):
     '''Return True if the current observing mode is dark
     '''
     this_function_name = inspect.currentframe().f_code.co_name
@@ -218,10 +218,10 @@ def go_dark(wait=True, timeout=30,
     
     ##-------------------------------------------------------------------------
     ## Script Contents
-    if isdark():
-        log.info('Instrument is dark')
+    if is_dark():
+        log.debug('Instrument is dark')
     else:
-        log.info('Setting quick dark')
+        log.debug('Setting quick dark')
         filter_combo = {'Y': ['H2', 'Y'],
                         'J': ['NB1061', 'J'],
                         'H': ['NB1061', 'H'],
