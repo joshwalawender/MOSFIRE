@@ -92,7 +92,7 @@ def pupil_rotator_ok():
     '''
     mmprs_statuskw = ktl.cache(keyword='STATUS', service='mmprs')
     pupil_status = mmprs_statuskw.read()
-    if pupil_status not in ['OK', 'TRACKING']:
+    if pupil_status not in ['OK', 'Tracking']:
         raise FailedCondition(f'Pupil rotator status is {pupil_status}')
 
 
