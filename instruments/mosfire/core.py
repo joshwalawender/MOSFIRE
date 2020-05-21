@@ -36,15 +36,13 @@ name = 'MOSFIRE'
 modes = ['dark-imaging', 'dark-spectroscopy', 'imaging', 'spectroscopy']
 filters = ['Y', 'J', 'H', 'K', 'J2', 'J3', 'NB']
 csu_bar_state_file = Path('/s/sdata1300/logs/server/mcsus/csu_bar_state')
-
-# Load default CSU coordinate transformations
 mosfire_data_file_path = Path(__file__).parent
+# Load default CSU coordinate transformations
 with open(mosfire_data_file_path.joinpath('MOSFIRE_transforms.txt'), 'r') as FO:
     transforms = yaml.safe_load(FO.read())
-Aphysical_to_pixel = np.array(transforms['Aphysical_to_pixel'])
-Apixel_to_physical = np.array(transforms['Apixel_to_physical'])
 
-log = create_log(name, loglevel='DEBUG')
+
+log = create_log(name, loglevel='INFO')
 
 from .fcs import park_FCS, FCS_ok
 from .hatch import close_hatch, lock_hatch, hatch_ok
@@ -100,7 +98,7 @@ def mechanisms_ok():
     '''Simple loop to check whether there are errors in the status of all
     mechanisms.
     '''
-    log.info('Checking mechanisms')
+    log.debug('Checking mechanisms')
     mechs = ['filter1', 'filter2', 'FCS', 'grating_shim', 'grating_turret',
              'pupil_rotator', 'hatch']
     for mech in mechs:
