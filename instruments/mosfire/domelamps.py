@@ -40,29 +40,28 @@ def dome_flat_lamps(power, skipprecond=False, skippostcond=False):
     flamp1 = ktl.cache(service='dcs', keyword='flamp1')
     flamp2 = ktl.cache(service='dcs', keyword='flamp2')
     fpower = ktl.cache(service='dcs', keyword='fpower')
-    fpower.monitor()
 
     if power == 'read':
         # Read status
         flamp1_on = not (flamp1.read() == 'off')
         flamp2_on = not (flamp2.read() == 'off')
         if flamp1_on and flamp2_on:
-            flatstate = ('on', float(fpower))
+            flatstate = ('on', float(fpower.read()))
         elif not flamp1_on and not flamp2_on:
-            flatstate = ('off', float(fpower))
+            flatstate = ('off', float(fpower.read()))
         else:
-            flatstate = (f'partial: {flamp1_on} {flamp2_on}', float(fpower))
+            flatstate = (f'partial: {flamp1_on} {flamp2_on}', float(fpower.read()))
     else:
         # Set power level and turn both lamps on
         mosfire_flatspec = ktl.cache(service='mosfire', keyword='flatspec')
 
         if power in [None, 'off']:
-            log.debug(f'Turning dome flat lamps off')
+            log.info(f'Turning dome flat lamps off')
             flamp1.write('off')
             flamp2.write('off')
             mosfire_flatspec.write(0)
         else:
-            log.debug(f'Turning dome flat lamps on at {power:.1f} power')
+            log.info(f'Turning dome flat lamps on at {power:.1f} power')
             fpower.write(power)
             flamp1.write('on')
             flamp2.write('on')
@@ -75,8 +74,8 @@ def dome_flat_lamps(power, skipprecond=False, skippostcond=False):
         log.debug('Skipping post condition checks')
     else:
         if type(power) in [int, float]:
-            if abs(fpower - power) > 0.2:
-                raise FailedCondition(f'Flat lamps did not reach power: {fpower:.1f}')
+            if abs(fpower.read() - power) > 0.2:
+                raise FailedCondition(f'Flat lamps did not reach power: {fpower.read():.1f}')
         elif power is None:
             flamp1_on = not (flamp1.read() == 'off')
             flamp2_on = not (flamp2.read() == 'off')

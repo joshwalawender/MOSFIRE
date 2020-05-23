@@ -19,14 +19,12 @@ def waitfor_exposure(timeout=240, shim=False):
     if shim is True:
         sleep(1)
     IMAGEDONEkw = ktl.cache(service='mds', keyword='IMAGEDONE')
-    IMAGEDONEkw.monitor()
     READYkw = ktl.cache(service='mds', keyword='READY')
-    READYkw.monitor()
 
-    done_and_ready = bool(IMAGEDONEkw) and bool(READYkw)
+    done_and_ready = bool(IMAGEDONEkw.read()) and bool(READYkw.read())
     while datetime.utcnow() < endat and not done_and_ready:
         sleep(1)
-        done_and_ready = bool(IMAGEDONEkw) and bool(READYkw)
+        done_and_ready = bool(IMAGEDONEkw.read()) and bool(READYkw.read())
     if not done_and_ready:
         raise FailedCondition('Timeout exceeded on waitfor_exposure to finish')
 
@@ -236,7 +234,7 @@ def set_sampmode(input, skipprecond=False, skippostcond=False):
 ## take exposure
 ##-----------------------------------------------------------------------------
 def take_exposure(exptime=None, coadds=None, sampmode=None, object=None,
-                  wait=True, waitforFCS=True, updateFCS=True,
+                  wait=True, waitforFCS=False, updateFCS=False,
                   skipprecond=False, skippostcond=False):
     '''Take an exposure.
     

@@ -39,10 +39,10 @@ def rotpposn(skipprecond=False, skippostcond=False):
     ##-------------------------------------------------------------------------
     ## Script Contents
     ROTMODEkw = ktl.cache(service='dcs', keyword='ROTMODE')
-    log.info(f'Rotator mode is {ROTMODEkw.read()}')
+    log.debug(f'Rotator mode is {ROTMODEkw.read()}')
     ROTPPOSNkw = ktl.cache(service='dcs', keyword='ROTPPOSN')
     ROTPPOSN = float(ROTPPOSNkw.read())
-    log.info(f'Drive angle (ROTPPOSN) = {ROTPPOSN:.1f} deg')
+    log.debug(f'Drive angle (ROTPPOSN) = {ROTPPOSN:.1f} deg')
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -88,9 +88,8 @@ def _set_rotpposn(rotpposn, skipprecond=False, skippostcond=False):
     else:
         log.info(f'Waiting for rotator to be "in position"')
         ROTSTATkw = ktl.cache(service='dcs', keyword='ROTSTAT')
-        ROTSTATkw.monitor()
-        while str(ROTSTATkw) != 'in position':
-            log.debug(f'ROTSTAT = "{ROTSTATkw}"')
+        while str(ROTSTATkw.read()) != 'in position':
+            log.debug(f'ROTSTAT = "{ROTSTATkw.read()}"')
             sleep(2)
 
     return None

@@ -97,11 +97,10 @@ def set_obsmode(destination, wait=True, timeout=60,
         if wait is True:
             endat = datetime.utcnow() + timedelta(seconds=timeout)
             obsmodekw = ktl.cache(service='mosfire', keyword='OBSMODE')
-            obsmodekw.monitor()
-            done = (obsmodekw.lower() == destination.lower())
+            done = (obsmodekw.read().lower() == destination.lower())
             while not done and datetime.utcnow() < endat:
                 sleep(1)
-                done = (obsmodekw.lower() == destination.lower())
+                done = (obsmodekw.read().lower() == destination.lower())
             if not done:
                 raise FailedCondition(f'Timeout exceeded on waiting for mode {destination}')
         grating_shim_ok()

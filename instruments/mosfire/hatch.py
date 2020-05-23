@@ -124,7 +124,6 @@ def set_hatch(destination, wait=True, timeout=90,
         log.debug('Skipping pre condition checks')
     else:
         hatch_ok()
-        hatch_unlocked()
         # Normalize destination
         if destination.lower() in ['open']:
             destination = 'Open'
@@ -137,15 +136,15 @@ def set_hatch(destination, wait=True, timeout=90,
     endat = datetime.utcnow() + timedelta(seconds=timeout)
     targname = ktl.cache(service='mmdcs', keyword='TARGNAME')
     posname = ktl.cache(service='mmdcs', keyword='POSNAME')
-    posname.monitor()
-    if posname == destination:
-        log.info(f'Hatich is {posname}')
+    if posname.read() == destination:
+        log.info(f'Hatch is {posname.read()}')
     else:
         log.info(f"Setting hatch to {destination}")
+        hatch_unlocked()
         targname.write(destination)
         if wait is True:
             sleep(10)
-            while posname != destination and datetime.utcnow() < endat:
+            while posname.read() != destination and datetime.utcnow() < endat:
                 sleep(1)
 
     ##-------------------------------------------------------------------------
@@ -154,7 +153,7 @@ def set_hatch(destination, wait=True, timeout=90,
         log.debug('Skipping post condition checks')
     else:
         hatch_ok()
-        if posname != destination:
+        if posname.read() != destination:
             raise FailedCondition(f"Hatch failed to reach destination")
 
     return None

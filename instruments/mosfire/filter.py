@@ -55,7 +55,6 @@ def filter(skipprecond=False, skippostcond=False):
     ##-------------------------------------------------------------------------
     ## Script Contents
     filterkw = ktl.cache(service='mosfire', keyword='FILTER')
-    filterkw.monitor()
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -65,7 +64,7 @@ def filter(skipprecond=False, skippostcond=False):
         filter1_ok()
         filter2_ok()
 
-    return str(filterkw)
+    return str(filterkw.read())
 
 
 ##-----------------------------------------------------------------------------
@@ -87,7 +86,6 @@ def is_dark(skipprecond=False, skippostcond=False):
     ##-------------------------------------------------------------------------
     ## Script Contents
     filterkw = ktl.cache(service='mosfire', keyword='FILTER')
-    filterkw.monitor()
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -97,7 +95,7 @@ def is_dark(skipprecond=False, skippostcond=False):
         filter1_ok()
         filter2_ok()
 
-    return (str(filterkw) == 'Dark')
+    return (str(filterkw.read()) == 'Dark')
 
 
 ##-----------------------------------------------------------------------------
@@ -120,11 +118,10 @@ def waitfordark(timeout=60, skipprecond=False, skippostcond=False):
     ## Script Contents
     endat = datetime.utcnow() + timedelta(seconds=timeout)
     filterkw = ktl.cache(service='mosfire', keyword='FILTER')
-    filterkw.monitor()
 
-    while datetime.utcnow() < endat and str(filterkw) != 'Dark':
+    while datetime.utcnow() < endat and str(filterkw.read()) != 'Dark':
         sleep(1)
-    if str(filterkw) != 'Dark':
+    if str(filterkw.read()) != 'Dark':
         raise TimeoutError('Timed out waiting for instrument to be dark')
 
     ##-------------------------------------------------------------------------
@@ -156,7 +153,6 @@ def filter1(skipprecond=False, skippostcond=False):
     ##-------------------------------------------------------------------------
     ## Script Contents
     filter1kw = ktl.cache(service='mmf1s', keyword='POSNAME')
-    filter1kw.monitor()
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -165,7 +161,7 @@ def filter1(skipprecond=False, skippostcond=False):
     else:
         filter1_ok()
     
-    return str(filter1kw)
+    return str(filter1kw.read())
 
 
 ##-----------------------------------------------------------------------------
@@ -186,7 +182,6 @@ def filter2(skipprecond=False, skippostcond=False):
     ##-------------------------------------------------------------------------
     ## Script Contents
     filter2kw = ktl.cache(service='mmf2s', keyword='POSNAME')
-    filter2kw.monitor()
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -195,29 +190,16 @@ def filter2(skipprecond=False, skippostcond=False):
     else:
         filter2_ok()
     
-    return str(filter2kw)
+    return str(filter2kw.read())
 
 
 ##-----------------------------------------------------------------------------
-## quick_dark
+## Go Dark
 ##-----------------------------------------------------------------------------
-def go_dark(wait=True, timeout=30,
-               skipprecond=False, skippostcond=False):
+def _go_dark(wait=True, timeout=30):
     '''Set the instrument to a dark mode which is close to the specified filter.
     Modeled after darkeff script.
     '''
-    this_function_name = inspect.currentframe().f_code.co_name
-    log.debug(f"Executing: {this_function_name}")
-    ##-------------------------------------------------------------------------
-    ## Pre-Condition Checks
-    if skipprecond is True:
-        log.debug('Skipping pre condition checks')
-    else:
-        filter1_ok()
-        filter2_ok()
-    
-    ##-------------------------------------------------------------------------
-    ## Script Contents
     if is_dark():
         log.debug('Instrument is dark')
     else:
@@ -241,6 +223,30 @@ def go_dark(wait=True, timeout=30,
         if filter2() != f2dest:
             f2targkw = ktl.cache(service='mmf2s', keyword='TARGNAME')
             f2targkw.write(f2dest)
+
+
+def go_dark(wait=True, timeout=30,
+            skipprecond=False, skippostcond=False):
+    '''Set the instrument to a dark mode which is close to the specified filter.
+    Modeled after darkeff script.
+    '''
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        filter1_ok()
+        filter2_ok()
+    
+    ##-------------------------------------------------------------------------
+    ## Script Contents
+    try:
+        _go_dark()
+    except:
+        # A single retry
+        _go_dark()
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
