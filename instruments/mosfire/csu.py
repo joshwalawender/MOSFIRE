@@ -132,6 +132,7 @@ def execute_mask(wait=True, override=False,
     
     ##-------------------------------------------------------------------------
     ## Script Contents
+    log.info('Executing mask')
     csugokw = ktl.cache(service='mcsus', keyword='SETUPGO')
     csugokw.write(1)
     sleep(3) # shim needed because CSUREADY keyword doesn't update fast enough

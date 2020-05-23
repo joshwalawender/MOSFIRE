@@ -80,7 +80,7 @@ def waitfor_FCS(timeout=60, PAthreshold=0.5, ELthreshold=0.5, noshim=False,
     ##-------------------------------------------------------------------------
     ## Script Contents
 
-    log.info('Waiting for FCS to reach destination')
+    log.debug('Waiting for FCS to reach destination')
     if noshim is False:
         sleep(0.5)
     done = FCS_in_position(PAthreshold=PAthreshold, ELthreshold=ELthreshold)

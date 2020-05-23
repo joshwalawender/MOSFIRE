@@ -9,7 +9,7 @@ from .detector import *
 from .rotator import *
 from .hatch import *
 from .power import *
-from .domelamps import *
 from .calibration import *
 from .checkout import *
 from .analysis import *
+from .shutdown import *
