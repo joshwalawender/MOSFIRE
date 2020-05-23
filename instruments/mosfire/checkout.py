@@ -17,28 +17,31 @@ from .analysis import verify_mask_with_image
 ##-------------------------------------------------------------------------
 ## MOSFIRE Checkout
 ##-------------------------------------------------------------------------
-def checkout(quick=False, tolerance=3.2):
+def checkout(quick=False, safeangleoverride=False, tolerance=5):
     '''Perform a basic checkout of the MOSFIRE instrument.  The normal
     execution of this script performs a standard pre-run checkout.  The quick
     version performs a shorter, less complete checkout to be used when there is
     limited time.
     '''
-    # Check if MOSFIRE is the selected instrument and if we are at a safe angle
-    INSTRUMEkw = ktl.cache(service='dcs', keyword='INSTRUME')
-    if INSTRUMEkw.read() == 'MOSFIRE':
-        safe_angle()
+    if safeangleoverride is not True:
+        # Check if MOSFIRE is the selected instrument and if we are at a safe angle
+        INSTRUMEkw = ktl.cache(service='dcs', keyword='INSTRUME')
+        if INSTRUMEkw.read() == 'MOSFIRE':
+            safe_angle()
+        else:
+            log.warning("MOSFIRE is not the selected instrument.")
+            log.warning("Will ask user to verify safe angle before proceeding.")
+            print("  --------------------------------------------------------")
+            print("  This checkout script moves CSU bars, please confirm that")
+            print("  the instrument is at a safe rotator angle.")
+            print("  --------------------------------------------------------")
+            print()
+            result = input('Is MOSFIRE at a safe angle? [y/n] ')
+            if result.lower() not in ['y', 'yes']:
+                log.critical('Exiting script.')
+                return False
     else:
-        log.warning("MOSFIRE is not the selected instrument.")
-        log.warning("Will ask user to verify safe angle before proceeding.")
-        print("  --------------------------------------------------------")
-        print("  This checkout script moves CSU bars, please confirm that")
-        print("  the instrument is at a safe rotator angle.")
-        print("  --------------------------------------------------------")
-        print()
-        result = input('Is MOSFIRE at a safe angle? [y/n] ')
-        if result.lower() not in ['y', 'yes']:
-            log.critical('Exiting script.')
-            return False
+        log.warning('The safe angle override was set. Assuming safe angle.')
 
     log.info(f'Executing checkout script.')
 
