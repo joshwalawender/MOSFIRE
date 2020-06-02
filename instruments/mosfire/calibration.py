@@ -84,32 +84,41 @@ def take_arcs(filt, cfg):
 ##-------------------------------------------------------------------------
 ## Sub-function: Take Flats
 ##-------------------------------------------------------------------------
-def take_flats(filt, cfg):
-    nflats = cfg[filt].getint("flat_count", 9)
+def take_flats(filt, cfg, imaging=False):
+
+    if imaging is False:
+        config = cfg[filt]
+    elif imaging is True:
+        config = cfg[f"{filt}-imaging"]
+
+    nflats = config.getint("flat_count", 9)
     if nflats > 0:
         log.info(f'Taking {nflats} flats')
         # Open Hatch
         open_hatch()
         # Turn on dome flat lamps
-        dome_flat_lamps(filt)
+        dome_flat_lamps(config.getfloat('flat_power'))
         # Set mode
-        set_obsmode(f"{filt}-spectroscopy")
+        if imaging is False:
+            set_obsmode(f"{filt}-spectroscopy")
+        elif imaging is True:
+            set_obsmode(f"{filt}-imaging")
         # Take flats
-        exptime = cfg[filt].getfloat("flat_exptime", 10)
-        for i in range(cfg[filt].getint("flat_count", 9)):
+        exptime = config.getfloat("flat_exptime", 10)
+        for i in range(config.getint("flat_count", 9)):
             take_exposure(exptime=exptime,
-                          coadds=cfg[filt].getint("flat_coadds", 1),
-                          sampmode=cfg[filt].get("flat_sampmode", 'CDS'),
+                          coadds=config.getint("flat_coadds", 1),
+                          sampmode=config.get("flat_sampmode", 'CDS'),
                           object='Dome Flat',
                           wait=True)
         # Turn off dome flat lamps
-        if cfg[filt].getint("flatoff_count", 0) > 0:
+        if config.getint("flatoff_count", 0) > 0:
             dome_flat_lamps('off')
         # Take lamp off flats
-        for i in range(cfg[filt].getint("flatoff_count", 0)):
+        for i in range(config.getint("flatoff_count", 0)):
             take_exposure(exptime=exptime,
-                          coadds=cfg[filt].getint("flat_coadds", 1),
-                          sampmode=cfg[filt].get("flat_sampmode", 'CDS'),
+                          coadds=config.getint("flat_coadds", 1),
+                          sampmode=config.get("flat_sampmode", 'CDS'),
                           object='Dome Flat (lamps off)',
                           wait=True)
     log.info('Going dark')
@@ -119,7 +128,7 @@ def take_flats(filt, cfg):
 ##-------------------------------------------------------------------------
 ## Take Calibrations for a Single Mask for a List of Bands
 ##-------------------------------------------------------------------------
-def take_calibrations_for_a_mask(mask, filters, cfg,
+def take_calibrations_for_a_mask(mask, filters, cfg, imaging=False,
                                  skipprecond=False, skippostcond=True):
     '''Takes calibrations for a single mask in a list of filters.
     '''
@@ -140,12 +149,15 @@ def take_calibrations_for_a_mask(mask, filters, cfg,
             filters = [filters]
         # Filters are in congifuration
         for filt in filters:
-            if filt not in cfg.keys():
+            if imaging is False and filt not in cfg.keys():
                 raise FailedCondition(f'Filter "{filt}" not in configuration')
+            if imaging is True and f"{filt}-imaging" not in cfg.keys():
+                raise FailedCondition(f'Filter "{filt}-imaging" not in configuration')
 
     ##-------------------------------------------------------------------------
     ## Script Contents
-    log.info(f'Taking calibrations for {mask.name} in {", ".join(filters)}')
+    imstring = {False: '', True: ' imaging'}[imaging]
+    log.info(f'Taking{imstring} calibrations for {mask.name} in {", ".join(filters)}')
 
     # Go Dark
     go_dark()
@@ -157,12 +169,12 @@ def take_calibrations_for_a_mask(mask, filters, cfg,
         hatch_posname = ktl.cache(service='mmdcs', keyword='POSNAME')
         if hatch_posname.read() == 'Closed':
             # Start with Arcs
-            take_arcs(filt, cfg)
-            take_flats(filt, cfg)
+            if imaging is False: take_arcs(filt, cfg)
+            take_flats(filt, cfg, imaging=imaging)
         elif hatch_posname.read() == 'Open':
             # Start with Flats
-            take_flats(filt, cfg)
-            take_arcs(filt, cfg)
+            take_flats(filt, cfg, imaging=imaging)
+            if imaging is False: take_arcs(filt, cfg, imaging=imaging)
         else:
             raise FailedCondition(f'Hatch in unknown state: "{hatch_posname}"')
 
@@ -181,7 +193,7 @@ def take_calibrations_for_a_mask(mask, filters, cfg,
 ##-------------------------------------------------------------------------
 ## Take Calibrations for All Masks
 ##-------------------------------------------------------------------------
-def take_calibrations(filters, config=None,
+def take_calibrations(filters, config=None, imaging=False,
                       skipprecond=False, skippostcond=True):
     '''Loops over masks and takes calibrations for each.
     
@@ -207,7 +219,7 @@ def take_calibrations(filters, config=None,
     # Iterate over masks and take cals
     for i,mask in enumerate(filters.keys()):
         log.info(f"Taking calibrations for mask {i+1}/{len(filters)}")
-        take_calibrations_for_a_mask(mask, filters[mask], cfg,
+        take_calibrations_for_a_mask(mask, filters[mask], cfg, imaging=imaging,
                                      skipprecond=skipprecond,
                                      skippostcond=skippostcond)
     dome_flat_lamps('off')
