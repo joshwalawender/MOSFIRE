@@ -91,7 +91,8 @@ def take_flats(filt, cfg, imaging=False):
     elif imaging is True:
         config = cfg[f"{filt}-imaging"]
 
-    nflats = config.getint("flat_count", 9)
+    nflats = config.getint("flat_count", 0)
+    exptime = config.getfloat("flat_exptime", 11)
     if nflats > 0:
         log.info(f'Taking {nflats} flats')
         # Open Hatch
@@ -104,18 +105,20 @@ def take_flats(filt, cfg, imaging=False):
         elif imaging is True:
             set_obsmode(f"{filt}-imaging")
         # Take flats
-        exptime = config.getfloat("flat_exptime", 11)
-        for i in range(config.getint("flat_count", 9)):
+        for i in range(nflats):
             take_exposure(exptime=exptime,
                           coadds=config.getint("flat_coadds", 1),
                           sampmode=config.get("flat_sampmode", 'CDS'),
                           object='Dome Flat',
                           wait=True)
+
+    nflatoff = config.getint("flatoff_count", 0)
+    if nflatoff > 0:
+        log.info(f'Taking {nflatoff} lamp off flats')
         # Turn off dome flat lamps
-        if config.getint("flatoff_count", 0) > 0:
-            dome_flat_lamps('off')
+        dome_flat_lamps('off')
         # Take lamp off flats
-        for i in range(config.getint("flatoff_count", 0)):
+        for i in range(nflatoff):
             take_exposure(exptime=exptime,
                           coadds=config.getint("flat_coadds", 1),
                           sampmode=config.get("flat_sampmode", 'CDS'),
