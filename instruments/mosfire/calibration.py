@@ -50,7 +50,7 @@ def take_arcs(filt, cfg):
         go_dark()
         close_hatch()
         set_obsmode(f"{filt}-spectroscopy")
-        exptime = cfg[filt].getfloat("ne_arc_exptime", 1)
+        exptime = cfg[filt].getfloat("ne_arc_exptime", 2)
         Ne_lamp('on')
         for i in range(cfg[filt].getint("ne_arc_count", 0)):
             take_exposure(exptime=exptime,
@@ -68,7 +68,7 @@ def take_arcs(filt, cfg):
         go_dark()
         close_hatch()
         set_obsmode(f"{filt}-spectroscopy")
-        exptime = cfg[filt].getfloat("ar_arc_exptime", 1)
+        exptime = cfg[filt].getfloat("ar_arc_exptime", 2)
         Ar_lamp('on')
         for i in range(cfg[filt].getint("ar_arc_count", 0)):
             take_exposure(exptime=exptime,
@@ -104,7 +104,7 @@ def take_flats(filt, cfg, imaging=False):
         elif imaging is True:
             set_obsmode(f"{filt}-imaging")
         # Take flats
-        exptime = config.getfloat("flat_exptime", 10)
+        exptime = config.getfloat("flat_exptime", 11)
         for i in range(config.getint("flat_count", 9)):
             take_exposure(exptime=exptime,
                           coadds=config.getint("flat_coadds", 1),
