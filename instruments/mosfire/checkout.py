@@ -1,6 +1,8 @@
 #!kpython3
 
 import numpy as np
+from astropy.io import fits
+from astropy import stats
 
 from .core import *
 from .mask import Mask
@@ -51,8 +53,33 @@ def checkout(quick=False, safeangleoverride=False, tolerance=5):
     log.info('Checking mechanisms')
     mechanisms_ok()
 
-    log.info('Taking dark image')
+    log.info('Taking dark images')
     take_exposure(exptime=2, coadds=1, sampmode='CDS', object='Test Dark')
+    hdul1 = fits.open(lastfile())
+    take_exposure(exptime=2, coadds=1, sampmode='CDS', object='Test Dark')
+    hdul2 = fits.open(lastfile())
+    # Difference dark images and verify statistics
+    mean, med, std = stats.sigma_clipped_stats(hdul1[0].data - hdul2[0].data,
+                           sigma_lower=2, sigma_upper=2, iters=5)
+#                          sigma=2, maxiters=5) # this line works in astropy 4.X
+    expected_mean = -35
+    expected_mean_range = 5
+    expected_med = -35
+    expected_med_range = 5
+    expected_std = 9.2
+    expected_std_range = 0.5
+    if abs(mean - expected_mean) < expected_mean_range and\
+       abs(med - expected_med) < expected_med_range and\
+       abs(std - expected_std) < expected_std_range:
+        log.info(f'Image Statistics:')
+        log.info(f"  mean = {mean:.1f} (expected {expected_mean:.1f} +/- {expected_mean_range:.1f})")
+        log.info(f"  median = {med:.1f} (expected {expected_med:.1f} +/- {expected_med_range:.1f})")
+        log.info(f"  stddev = {std:.1f} (expected {expected_std:.1f} +/- {expected_std_range:.1f})")
+    else:
+        log.warning(f"Dark difference statistics out of range")
+        log.warning(f"  mean = {mean:.1f} (expected {expected_mean:.1f} +/- {expected_mean_range:.1f})")
+        log.warning(f"  median = {med:.1f} (expected {expected_med:.1f} +/- {expected_med_range:.1f})")
+        log.warning(f"  stddev = {std:.1f} (expected {expected_std:.1f} +/- {expected_std_range:.1f})")
 
     log.info(f'Please verify that {lastfile()} looks normal for a dark image')
     proceed = input('Continue? [y] ')
