@@ -32,13 +32,17 @@ def stop_mosfire_software(skipprecond=False, skippostcond=False):
     ## Script Contents
 
     log.info('Calling the mosfireStop command line script')
-    output = subprocess.run(['mosfireStop'], check=True,
+#     cmd = ['mosfireStop'] # Runs on VNC host (vm-mosfire)
+    cmd = ['ssh', 'mosfireserver.keck.hawaii.edu', 'mosfireStop']
+    output = subprocess.run(cmd, check=True,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     for line in output.stdout.decode().split('\n'):
         log.debug(f'STDOUT: {line}')
+        print(f'STDOUT: {line}')
     for line in output.stderr.decode().split('\n'):
         log.debug(f'STDERR: {line}')
+        print(f'STDERR: {line}')
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
