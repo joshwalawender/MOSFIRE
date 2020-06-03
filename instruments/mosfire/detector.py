@@ -21,10 +21,14 @@ def waitfor_exposure(timeout=240, shim=False):
     IMAGEDONEkw = ktl.cache(service='mds', keyword='IMAGEDONE')
     READYkw = ktl.cache(service='mds', keyword='READY')
 
-    done_and_ready = bool(IMAGEDONEkw.read()) and bool(READYkw.read())
+    imagedone = bool(int(IMAGEDONEkw.read()))
+    mdsready = bool(int(READYkw.read()))
+    done_and_ready = imagedone and mdsready
     while datetime.utcnow() < endat and not done_and_ready:
-        sleep(1)
-        done_and_ready = bool(IMAGEDONEkw.read()) and bool(READYkw.read())
+        sleep(0.5)
+        imagedone = bool(int(IMAGEDONEkw.read()))
+        mdsready = bool(int(READYkw.read()))
+        done_and_ready = imagedone and mdsready
     if not done_and_ready:
         raise FailedCondition('Timeout exceeded on waitfor_exposure to finish')
 
@@ -277,8 +281,7 @@ def take_exposure(exptime=None, coadds=None, sampmode=None, object=None,
         log.debug('Skipping post condition checks')
     else:
         if wait is True:
-            sleep(2)
-            waitfor_exposure()
+            waitfor_exposure(shim=True)
         imagefile = lastfile()
         if imagefile.exists():
             log.info(f'  Found last file {imagefile.name}')
