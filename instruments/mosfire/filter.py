@@ -99,7 +99,7 @@ def is_dark(skipprecond=False, skippostcond=False):
         filter1_ok()
         filter2_ok()
 
-    return (str(filterkw.read()) == 'Dark')
+    return (str(filterkw.read()) in ['Dark', 'NB1061'])
 
 
 ##-----------------------------------------------------------------------------
@@ -123,9 +123,9 @@ def waitfordark(timeout=60, skipprecond=False, skippostcond=False):
     endat = datetime.utcnow() + timedelta(seconds=timeout)
     filterkw = ktl.cache(service='mosfire', keyword='FILTER')
 
-    while datetime.utcnow() < endat and str(filterkw.read()) != 'Dark':
+    while datetime.utcnow() < endat and str(filterkw.read()) not in ['Dark', 'NB1061']:
         sleep(1)
-    if str(filterkw.read()) != 'Dark':
+    if str(filterkw.read()) not in ['Dark', 'NB1061']:
         raise TimeoutError('Timed out waiting for instrument to be dark')
 
     ##-------------------------------------------------------------------------
