@@ -181,17 +181,17 @@ def initialize_bars(bars, timeout=360, skipprecond=False, skippostcond=False):
         for bar in bars:
             if type(bar) != int:
                 raise FailedCondition(f'Bar {bar} is not integer')
-            if bar < 1 or bar > 92:
+            if bar < 0 or bar > 92:
                 raise FailedCondition(f'Bar {bar} is not in range 1-92')
 
-    if bars == 0:
+    if bars == [0]:
         log.info('Initializing all bars')
 
     endat = datetime.utcnow() + timedelta(seconds=timeout*len(bars))
     for bar in bars:
-        log.info(f'Initializing bar {bar}')
+        if bar != 0: log.info(f'Initializing bar {bar}')
         CSUINITBARkw.write(bar)
-        log.debug('Waiting for bar to finish initializing')
+        log.debug('Waiting for CSU to finish initializing')
         while int(csureadykw.read()) != 1 and datetime.utcnow() < endat:
             if int(csureadykw.read()) == -1:
                 raise CSUFatalError()
