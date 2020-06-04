@@ -9,9 +9,9 @@ import configparser
 
 from .core import *
 from .mask import Mask
-from .filter import go_dark, waitfordark
+from .filter import go_dark
 from .obsmode import set_obsmode
-from .csu import setup_mask, execute_mask, waitfor_CSU
+from .csu import setup_mask, execute_mask
 from .hatch import open_hatch, close_hatch
 from .detector import take_exposure
 from .domelamps import dome_flat_lamps
@@ -116,10 +116,11 @@ def take_flats(filt, cfg, imaging=False, lampsoff=False):
             set_obsmode(f"{filt}-imaging")
         # Take flats
         for i in range(nflats):
+            log.info(f"Taking flat {i+1}/{nflats} (exptime = {exptime:.0f})")
             take_exposure(exptime=exptime,
                           coadds=config.getint("flat_coadds", 1),
                           sampmode=config.get("flat_sampmode", 'CDS'),
-                          object='Dome Flat{lamps_string}',
+                          object=f'Dome Flat{lamps_string}',
                           wait=True)
 
     log.info('Going dark')
@@ -177,7 +178,7 @@ def take_calibrations_for_a_mask(mask, filters, cfg, imaging=False,
             # Start with Flats
             take_flats(filt, cfg, imaging=imaging)
             take_flats(filt, cfg, imaging=imaging, lampsoff=True)
-            if imaging is False: take_arcs(filt, cfg, imaging=imaging)
+            if imaging is False: take_arcs(filt, cfg)
         else:
             raise FailedCondition(f'Hatch in unknown state: "{hatch_posname}"')
 

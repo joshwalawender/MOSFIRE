@@ -74,7 +74,7 @@ def dome_flat_lamps(power, skipprecond=False, skippostcond=False):
         log.debug('Skipping post condition checks')
     else:
         if type(power) in [int, float]:
-            if abs(fpower.read() - power) > 0.2:
+            if abs(float(fpower.read()) - power) > 0.2:
                 raise FailedCondition(f'Flat lamps did not reach power: {fpower.read():.1f}')
         elif power is None:
             flamp1_on = not (flamp1.read() == 'off')
