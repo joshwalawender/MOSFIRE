@@ -8,27 +8,31 @@ from .core import *
 ##-----------------------------------------------------------------------------
 ## pre- and post- conditions
 ##-----------------------------------------------------------------------------
-def filter1_ok():
+def filter1_ok(timeout=3):
     '''Commonly used pre- and post- condition to check whether there are errors
     in the filter wheel status.
     '''
     # Check filter wheel 1 status
+    endat = datetime.utcnow() + timedelta(seconds=timeout)
     mmf1s_status = ktl.cache(service='mmf1s', keyword='STATUS')
-    filter1_status = mmf1s_status.read()
-    log.debug(f'Filter1 status is "{filter1_status}"')
-    if filter1_status not in ['OK', 'Moving']:
+    while datetime.utcnow() < endat and mmf1s_status.read() not in ['OK', 'Moving']:
+        log.debug(f'Filter1 status is "{mmf1s_status.read()}"')
+        sleep(0.5)
+    if mmf1s_status.read() not in ['OK', 'Moving']:
         raise FailedCondition(f'Filter 1 status is not OK: "{filter1_status}"')
 
 
-def filter2_ok():
+def filter2_ok(timeout=3):
     '''Commonly used pre- and post- condition to check whether there are errors
     in the filter wheel status.
     '''
     # Check filter wheel 2 status
+    endat = datetime.utcnow() + timedelta(seconds=timeout)
     mmf2s_status = ktl.cache(service='mmf2s', keyword='STATUS')
-    filter2_status = mmf2s_status.read()
-    log.debug(f'Filter2 status is "{filter2_status}"')
-    if filter2_status not in ['OK', 'Moving']:
+    while datetime.utcnow() < endat and mmf2s_status.read() not in ['OK', 'Moving']:
+        log.debug(f'Filter2 status is "{mmf2s_status.read()}"')
+        sleep(0.5)
+    if mmf2s_status.read() not in ['OK', 'Moving']:
         raise FailedCondition(f'Filter 2 status is not OK: "{filter2_status}"')
 
 
