@@ -152,7 +152,7 @@ def execute_mask(wait=True, override=False,
 ##-----------------------------------------------------------------------------
 ## Initialize Bars
 ##-----------------------------------------------------------------------------
-def initialize_bars(bars, skipprecond=False, skippostcond=False):
+def initialize_bars(bars, timeout=360, skipprecond=False, skippostcond=False):
     '''Initialize one or more CSU bars.
     
     To initialize all bars, use "all" as the input.  To initialize
@@ -170,32 +170,32 @@ def initialize_bars(bars, skipprecond=False, skippostcond=False):
 
     ##-------------------------------------------------------------------------
     ## Script Contents
-    if type(bars) == str:
-        if bars.lower() != 'all':
-            raise FailedCondition(f'Input "{bars}" not parsed')
-    elif type(bars) == int:
-        bars = [bars]
-    elif type(bars) != list:
-        raise FailedCondition(f'Input {bars} not parsed')
-    for bar in bars:
-        if type(bar) != int:
-            raise FailedCondition(f'Bar {bar} is not integer')
-        if bar < 1 or bar > 92:
-            raise FailedCondition(f'Bar {bar} is not in range 1-92')
-
-
     CSUINITBARkw = ktl.cache(keyword='INITBAR', service='mcsus')
-    if type(bars) == str:
-        if bars.lower() == 'all':
-            log.info('Initializing all bars')
-            CSUINITBARkw.write(0)
+    csureadykw = ktl.cache(keyword='CSUREADY', service='mcsus')
+
+    if bars == 'all':
+        bars = 0
     if type(bars) == int:
-        bars = list(bars)
+        bars = [bars]
+    if type(bars) == list:
+        for bar in bars:
+            if type(bar) != int:
+                raise FailedCondition(f'Bar {bar} is not integer')
+            if bar < 1 or bar > 92:
+                raise FailedCondition(f'Bar {bar} is not in range 1-92')
+
+    if bars == 0:
+        log.info('Initializing all bars')
+
+    endat = datetime.utcnow() + timedelta(seconds=timeout*len(bars))
     for bar in bars:
         log.info(f'Initializing bar {bar}')
         CSUINITBARkw.write(bar)
         log.debug('Waiting for bar to finish initializing')
-        waitfor_CSU()
+        while int(csureadykw.read()) != 1 and datetime.utcnow() < endat:
+            if int(csureadykw.read()) == -1:
+                raise CSUFatalError()
+            sleep(2)
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
