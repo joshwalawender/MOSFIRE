@@ -14,6 +14,7 @@ from .csu import setup_mask, execute_mask, initialize_bars, physical_to_pixel
 from .rotator import safe_angle
 from .domelamps import dome_flat_lamps
 from .analysis import verify_mask_with_image
+from .hatch import unlock_hatch, open_hatch, close_hatch
 
 
 ##-------------------------------------------------------------------------
@@ -138,6 +139,19 @@ def checkout(quick=False, safeangleoverride=False, tolerance=5):
         take_exposure(exptime=6, coadds=1, sampmode='CDS')
         narrowSlitFile = lastfile()
         go_dark()
+
+    # Set Imaging mode to exercise mechanisms
+    set_obsmode('J-imaging')
+    sleep(1)
+    go_dark()
+    sleep(1)
+    mechanisms_ok()
+    
+    # Open and close the hatch
+    unlock_hatch()
+    open_hatch()
+    sleep(1)
+    close_hatch()
 
 
 ## ------------------------------------------------------------------
