@@ -18,9 +18,10 @@ from .csu import slit_to_bars, physical_to_pixel, bar_to_slit
 ## ------------------------------------------------------------------
 ##  Compare Image to Mask Design
 ## ------------------------------------------------------------------
-def verify_mask_with_image(mask, imagefile, tolerance=2):
+def verify_mask_with_image(mask, imagefile, tolerance=2, plot=False, filtersize=7):
     log.info('Finding bar positions')
-    foundbars = find_bar_positions_from_image(imagefile)
+    foundbars = find_bar_positions_from_image(imagefile,
+                        filtersize=filtersize, plot=plot)
     log.info('Verifying bar positions')
     barsok = list()
     for bar in range(1,93):
@@ -32,23 +33,27 @@ def verify_mask_with_image(mask, imagefile, tolerance=2):
             slitinfo = mask.slitpos[mask.slitpos['rightBarNumber'] == bar]
             expected_mm = float(slitinfo['rightBarPositionMM'])
         expected = physical_to_pixel([[expected_mm, bar_to_slit(bar)]])[0][0][0]
+        diff = abs(found - expected)
 
         if not np.isclose(found, expected, atol=tolerance):
-            diff = abs(found - expected)
             log.warning(f'Bar {bar} out of tolerance: got {found:.1f} '
                         f'expected {expected:.1f} (difference = {diff:.1f})')
             barsok.append(False)
         else:
-            log.debug(f'Bar {bar} is within tolerance')
+            log.debug(f'Bar {bar} is within tolerance: got {found:.1f} '
+                      f'expected {expected:.1f} (difference = {diff:.1f})')
             barsok.append(True)
     if not np.all(barsok):
         raise FailedCondition('Image did not match mask design')
+    else:
+        log.info(f'Bars all verified within {tolerance} pixels')
 
 
 ## ------------------------------------------------------------------
 ##  Analyze Image to Determine Bar Positions
 ## ------------------------------------------------------------------
-def find_bar_positions_from_image(imagefile, filtersize=7, plot=False):
+def find_bar_positions_from_image(imagefile, filtersize=5, plot=False,
+                                  pixel_shim=10):
     '''Loop over all slits in the image and using the affine transformation
     determined by `fit_transforms`, select the Y pixel range over which this
     slit should be found.  Take a median filtered version of that image and
@@ -78,8 +83,8 @@ def find_bar_positions_from_image(imagefile, filtersize=7, plot=False):
     for slit in range(1,47):
         b1, b2 = slit_to_bars(slit)
         ## Determine y pixel range
-        y1 = int(np.ceil((physical_to_pixel(np.array([(4.0, slit+0.5)])))[0][0][1]))
-        y2 = int(np.floor((physical_to_pixel(np.array([(270.4, slit-0.5)])))[0][0][1]))
+        y1 = int(np.ceil((physical_to_pixel(np.array([(4.0, slit+0.5)])))[0][0][1])) + pixel_shim
+        y2 = int(np.floor((physical_to_pixel(np.array([(270.4, slit-0.5)])))[0][0][1])) - pixel_shim
         ypos[b1] = [y1, y2]
         ypos[b2] = [y1, y2]
         gradx = np.gradient(medimage[y1:y2,:], axis=1)
@@ -89,16 +94,21 @@ def find_bar_positions_from_image(imagefile, filtersize=7, plot=False):
     # Generate plot if called for
     if plot is True:
         plotfile = imagefile.with_name(f"{imagefile.stem}.png")
+        print(f'Creating PNG image {plotfile}')
         if plotfile.exists(): plotfile.unlink()
-        plt.figure(figsize=(16,16))
-        norm = viz.ImageNormalize(data, interval=viz.PercentileInterval(99),
+        plt.figure(figsize=(16,16), dpi=300)
+        norm = viz.ImageNormalize(data, interval=viz.PercentileInterval(99.9),
                                   stretch=viz.LinearStretch())
         plt.imshow(data, norm=norm, origin='lower', cmap='Greys')
         for bar in bars.keys():
-            plt.plot([0,2048], [ypos[bar][0], ypos[bar][0]], 'r-', alpha=0.1)
-            plt.plot([0,2048], [ypos[bar][1], ypos[bar][1]], 'r-', alpha=0.1)
-            plt.plot(bars[bar], np.mean(ypos[bar]), 'rx', alpha=0.5)
-        plt.savefig(str(plotfile))
+#             plt.plot([0,2048], [ypos[bar][0], ypos[bar][0]], 'r-', alpha=0.1)
+#             plt.plot([0,2048], [ypos[bar][1], ypos[bar][1]], 'r-', alpha=0.1)
+            plt.plot([bars[bar],bars[bar]], ypos[bar], 'r-', alpha=0.75)
+            offset = {0: -20, 1:+20}[bar % 2]
+            plt.text(bars[bar]+offset, np.mean(ypos[bar]), bar,
+                     fontsize=8, color='r', alpha=0.75,
+                     horizontalalignment='center', verticalalignment='center')
+        plt.savefig(str(plotfile), bbox_inches='tight')
 
     return bars
 
