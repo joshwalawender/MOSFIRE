@@ -102,3 +102,19 @@ def mechanisms_ok():
         statusfn()
 
 
+##-----------------------------------------------------------------------------
+## scriptrun functions
+##-----------------------------------------------------------------------------
+def start_scriptrun():
+    scriptrun = ktl.cache(keyword='scriptrun', service='mosfire')
+    if int(scriptrun.read()) == 1:
+        raise FailedCondition('SCRIPTRUN is already set')
+    scriptrun.write(1, wait=True)
+
+
+def stop_scriptrun():
+    scriptrun = ktl.cache(keyword='scriptrun', service='mosfire')
+    scriptrun.write(0, wait=True)
+
+
+reset_scriptrun = stop_scriptrun
