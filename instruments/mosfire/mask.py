@@ -58,11 +58,8 @@ class Mask(object):
 
         if input is None:
             return
-        elif Path(input).expanduser().exists():
-            try_input_as_path = Path(input).expanduser()
-            log.debug(f'Found mask file "{try_input_as_path}" on disk')
-            self.read_xml(try_input_as_path)
-        elif isinstance(input, Path):
+
+        if isinstance(input, Path):
             input = input.expanduser()
             if input.exists() is True:
                 log.debug(f'Found mask file "{input}" on disk')
@@ -71,24 +68,40 @@ class Mask(object):
                 log.error(f'Failed to find "{input}" on disk')
                 return None
         elif isinstance(input, str):
-            if input.upper() in ['OPEN', 'OPEN MASK']:
-                log.debug(f'"{input}" interpreted as OPEN')
-                self.build_open_mask()
-            elif input.upper() in ['RAND', 'RANDOM']:
-                log.debug(f'"{input}" interpreted as RANDOM')
-                self.build_random_mask()
+            # input could be a special string such as OPEN, or a path to an
+            # XML file or a path to a FITS file
+            p = Path(input).expanduser()
+            if p.is_file() is False:
+                # Parse this as a descriptive string
+                if input.upper() in ['OPEN', 'OPEN MASK']:
+                    log.debug(f'"{input}" interpreted as OPEN')
+                    self.build_open_mask()
+                elif input.upper() in ['RAND', 'RANDOM']:
+                    log.debug(f'"{input}" interpreted as RANDOM')
+                    self.build_random_mask()
+                else:
+                    try:
+                        length, width = input.split('x')
+                        width = float(width)
+                        length = int(length)
+                        assert length <= 46
+                        assert width > 0
+                        log.debug(f'"{input}" interpreted as long slit. '
+                                  f'Length={length} bars, width={width:.2f}"')
+                        self.build_longslit(input)
+                    except:
+                        log.debug(f'Unable to parse "{input}" as long slit')
+                        log.error(f'Unable to parse "{input}"')
+                        raise ValueError(f'Unable to parse "{input}"')
             else:
-                try:
-                    length, width = input.split('x')
-                    width = float(width)
-                    length = int(length)
-                    assert length <= 46
-                    assert width > 0
-                    self.build_longslit(input)
-                except:
-                    log.debug(f'Unable to parse "{input}" as long slit')
-                    log.error(f'Unable to parse "{input}"')
-                    raise ValueError(f'Unable to parse "{input}"')
+                if p.suffix.lower() == '.xml':
+                    # This is an XML file
+                    log.debug(f'Found XML file "{p}" on disk')
+                    self.read_xml(p)
+                elif p.suffix.lower() in ['.fits', '.fit']:
+                    # This is a FITS file
+                    log.debug(f'Found FITS file "{p}" on disk')
+                    self.read_fits_header(p)
         else:
             raise ValueError(f'Unable to parse "{input}"')
 
