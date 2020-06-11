@@ -8,6 +8,7 @@ import random
 import xml.etree.ElementTree as ET
 import numpy as np
 
+from astropy.io import fits
 from astropy.table import Table, Column
 from astropy import coordinates as c
 from astropy import units as u
@@ -197,6 +198,36 @@ class Mask(object):
         c4 = slit_center.directional_offset_by(m.PA*u.deg - (np.tan(slitW/slitL)*u.radian).to(u.deg) + 180*u.deg,
                                                ((slitL/2)**2 + (slitW/2)**2)**0.5*u.arcsec )
         return (c1, c2, c3, c4)
+
+
+    def read_fits_header(self, fitsfile):
+        '''Read the FITS header keywords in the first extension.
+        '''
+        fitsfile = Path(fitsfile).expanduser()
+        hdul = fits.open(fitsfile)
+        if len(hdul) == 1:
+            # this is an imaging file, so we will read the bar positions from
+            # the header keywords is the first extension.
+            slits_list = []
+            for slitno in range(1,47,1):
+                leftbar = slitno*2
+                leftmm = float(hdul[0].header.get(f"B{leftbar:02d}POS"))
+                rightbar = slitno*2-1
+                rightmm = float(hdul[0].header.get(f"B{rightbar:02d}POS"))
+                slitcent = (slitno-23) * .490454545
+                width = (leftmm-rightmm) * 0.35795
+                slits_list.append( {'centerPositionArcsec': slitcent,
+                                    'leftBarNumber': leftbar,
+                                    'leftBarPositionMM': leftmm,
+                                    'rightBarNumber': rightbar,
+                                    'rightBarPositionMM': rightmm,
+                                    'slitNumber': slitno,
+                                    'slitWidthArcsec': width,
+                                    'target': ''} )
+                print(slits_list[-1])
+            self.slitpos = Table(slits_list)
+            self.slitpos.sort('slitNumber')
+
 
 
     def read_xml(self, xml):
