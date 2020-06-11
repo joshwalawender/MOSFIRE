@@ -3,6 +3,7 @@
 import numpy as np
 from astropy.io import fits
 from astropy import stats
+from time import sleep
 
 from .core import *
 from .mask import Mask
@@ -20,7 +21,7 @@ from .hatch import unlock_hatch, open_hatch, close_hatch
 ##-------------------------------------------------------------------------
 ## MOSFIRE Checkout
 ##-------------------------------------------------------------------------
-def checkout(quick=False, safeangleoverride=False, tolerance=5):
+def checkout(quick=False, safeangleoverride=False, tolerance=2):
     '''Perform a basic checkout of the MOSFIRE instrument.  The normal
     execution of this script performs a standard pre-run checkout.  The quick
     version performs a shorter, less complete checkout to be used when there is
@@ -63,12 +64,12 @@ def checkout(quick=False, safeangleoverride=False, tolerance=5):
     mean, med, std = stats.sigma_clipped_stats(hdul1[0].data - hdul2[0].data,
                            sigma_lower=2, sigma_upper=2, iters=5)
 #                          sigma=2, maxiters=5) # this line works in astropy 4.X
-    expected_mean = -35
-    expected_mean_range = 5
-    expected_med = -35
-    expected_med_range = 5
-    expected_std = 9.2
-    expected_std_range = 0.5
+    expected_mean = 0
+    expected_mean_range = 3
+    expected_med = 0
+    expected_med_range = 3
+    expected_std = 10.5
+    expected_std_range = 1
     if abs(mean - expected_mean) < expected_mean_range and\
        abs(med - expected_med) < expected_med_range and\
        abs(std - expected_std) < expected_std_range:
@@ -101,7 +102,7 @@ def checkout(quick=False, safeangleoverride=False, tolerance=5):
         wideSlitFile = lastfile()
         log.info('Going dark')
         go_dark()
-        verify_mask_with_image(wideslit, wideSlitFile, tolerance=tolerance)
+        verify_mask_with_image(wideslit, wideSlitFile, tolerance=tolerance, plot=True)
 
         log.info('Setup 46x0.7 long slit mask')
         longslit = Mask('46x0.7')
@@ -114,7 +115,7 @@ def checkout(quick=False, safeangleoverride=False, tolerance=5):
         narrowSlitFile = lastfile()
         log.info('Going dark')
         go_dark()
-        verify_mask_with_image(longslit, narrowSlitFile, tolerance=tolerance)
+        verify_mask_with_image(longslit, narrowSlitFile, tolerance=tolerance, plot=True)
 
     # Normal (long) checkout
     if quick is False:

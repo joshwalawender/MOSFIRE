@@ -94,7 +94,7 @@ def find_bar_positions_from_image(imagefile, filtersize=5, plot=False,
     # Generate plot if called for
     if plot is True:
         plotfile = imagefile.with_name(f"{imagefile.stem}.png")
-        print(f'Creating PNG image {plotfile}')
+        log.info(f'Creating PNG image {plotfile}')
         if plotfile.exists(): plotfile.unlink()
         plt.figure(figsize=(16,16), dpi=300)
         norm = viz.ImageNormalize(data, interval=viz.PercentileInterval(99.9),
