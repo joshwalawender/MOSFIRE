@@ -63,7 +63,7 @@ def obsmode(skipprecond=False, skippostcond=False):
 ##-----------------------------------------------------------------------------
 ## set obsmode
 ##-----------------------------------------------------------------------------
-def set_obsmode(destination, wait=True, timeout=60,
+def _set_obsmode(destination, wait=True, timeout=60,
                 skipprecond=False, skippostcond=False):
     '''Set the observing mode
     '''
@@ -107,3 +107,16 @@ def set_obsmode(destination, wait=True, timeout=60,
         grating_turret_ok()
 
     return None
+
+
+def set_obsmode(destination, wait=True, timeout=60,
+                skipprecond=False, skippostcond=False):
+    '''Set the observing mode with one retry.
+    '''
+    try:
+        _set_obsmode(destination, wait=wait, timeout=timeout,
+                     skipprecond=skipprecond, skippostcond=skippostcond)
+    except FailedCondition as e:
+        log.warning(f'Timed out waiting for set_obsmode to complete.  Retrying.')
+        _set_obsmode(destination, wait=wait, timeout=timeout,
+                     skipprecond=skipprecond, skippostcond=skippostcond)
