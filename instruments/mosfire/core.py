@@ -34,7 +34,7 @@ class CSUFatalError(Exception):
 ##-------------------------------------------------------------------------
 name = 'MOSFIRE'
 modes = ['dark-imaging', 'dark-spectroscopy', 'imaging', 'spectroscopy']
-filters = ['Y', 'J', 'H', 'K', 'J2', 'J3', 'nb1061']
+filters = ['Y', 'J', 'H', 'K', 'Ks', 'J2', 'J3', 'nb1061']
 csu_bar_state_file = Path('/s/sdata1300/logs/server/mcsus/csu_bar_state')
 mosfire_data_file_path = Path(__file__).parent
 # Load default CSU coordinate transformations
