@@ -205,29 +205,25 @@ class Mask(object):
         '''
         fitsfile = Path(fitsfile).expanduser()
         hdul = fits.open(fitsfile)
-        if len(hdul) == 1:
-            # this is an imaging file, so we will read the bar positions from
-            # the header keywords is the first extension.
-            slits_list = []
-            for slitno in range(1,47,1):
-                leftbar = slitno*2
-                leftmm = float(hdul[0].header.get(f"B{leftbar:02d}POS"))
-                rightbar = slitno*2-1
-                rightmm = float(hdul[0].header.get(f"B{rightbar:02d}POS"))
-                slitcent = (slitno-23) * .490454545
-                width = (leftmm-rightmm) * 0.35795
-                slits_list.append( {'centerPositionArcsec': slitcent,
-                                    'leftBarNumber': leftbar,
-                                    'leftBarPositionMM': leftmm,
-                                    'rightBarNumber': rightbar,
-                                    'rightBarPositionMM': rightmm,
-                                    'slitNumber': slitno,
-                                    'slitWidthArcsec': width,
-                                    'target': ''} )
-                print(slits_list[-1])
-            self.slitpos = Table(slits_list)
-            self.slitpos.sort('slitNumber')
 
+        slits_list = []
+        for slitno in range(1,47,1):
+            leftbar = slitno*2
+            leftmm = float(hdul[0].header.get(f"B{leftbar:02d}POS"))
+            rightbar = slitno*2-1
+            rightmm = float(hdul[0].header.get(f"B{rightbar:02d}POS"))
+            slitcent = (slitno-23) * .490454545
+            width = (leftmm-rightmm) * 0.35795
+            slits_list.append( {'centerPositionArcsec': slitcent,
+                                'leftBarNumber': leftbar,
+                                'leftBarPositionMM': leftmm,
+                                'rightBarNumber': rightbar,
+                                'rightBarPositionMM': rightmm,
+                                'slitNumber': slitno,
+                                'slitWidthArcsec': width,
+                                'target': ''} )
+        self.slitpos = Table(slits_list)
+        self.slitpos.sort('slitNumber')
 
 
     def read_xml(self, xml):
@@ -367,14 +363,14 @@ class Mask(object):
         self.slitpos = Table(slits_list)
 
 
-    def build_random_mask(self, slitwidth=0.7):
+    def build_random_mask(self, slitwidth=0.7, range=[54,220]):
         '''Build a Mask with randomly placed, non contiguous slits
         '''
         self.name = 'RANDOM'
         slits_list = []
         for i in range(46):
             slitno = i+1
-            cent = random.randrange(54,220)
+            cent = random.randrange(range[0], range[1])
             # check if it is the same as the previous slit
             if i > 0:
                 while cent == slits_list[i-1]['centerPositionArcsec']:
