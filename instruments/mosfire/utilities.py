@@ -32,8 +32,9 @@ def generate_mask_starlist(masks, filename=None,
 
     if filename.exists(): filename.unlink()
     with open(filename, 'a') as starlist:
-        for entry in masks:
-            mask = Mask(entry)
+        for mask in masks:
+            if not isinstance(mask, Mask):
+                mask = Mask(mask)
             equinox = mask.equinox if mask.equinox is not None else 2000
             starlist_line = (f'{mask.name:15s}'
                              f'{mask.center.to_string("hmsdms", sep=" ")} '
