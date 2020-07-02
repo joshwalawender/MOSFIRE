@@ -41,7 +41,7 @@ def generate_mask_starlist(masks, filename=None,
                              f'{equinox:7.2f} '
                              f'rotdest={mask.PA:.2f} rotmode=PA')
             print(starlist_line)
-            starlist.write(starlist_line)
+            starlist.write(f'{starlist_line}\n')
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
