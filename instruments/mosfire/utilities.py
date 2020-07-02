@@ -35,7 +35,7 @@ def generate_mask_starlist(masks, filename=None,
         for mask in masks:
             if not isinstance(mask, Mask):
                 mask = Mask(mask)
-            equinox = mask.equinox if mask.equinox is not None else 2000
+            equinox = mask.equinox if hasattr(mask, 'equinox') else 2000
             starlist_line = (f'{mask.name:15s}'
                              f'{mask.center.to_string("hmsdms", sep=" ")} '
                              f'{equinox:7.2f} '
