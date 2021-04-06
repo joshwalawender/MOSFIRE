@@ -270,22 +270,30 @@ class Mask(object):
                 data = [self.slitpos.add_row(el.attrib) for el in child.getchildren()]
             elif child.tag == 'scienceSlitConfig':
                 data = [el.attrib for el in child.getchildren()]
-                self.scienceTargets = Table(data)
-                ra = [f"{star['targetRaH']}:{star['targetRaM']}:{star['targetRaS']}"
-                      for star in self.scienceTargets]
-                dec = [f"{star['targetDecD']}:{star['targetDecM']}:{star['targetDecS']}"
-                       for star in self.scienceTargets]
-                self.scienceTargets.add_columns([Column(ra, name='RA'),
-                                                 Column(dec, name='DEC')])
+                try:
+                    self.scienceTargets = Table(data)
+                    if len(data) > 0:
+                        ra = [f"{star['targetRaH']}:{star['targetRaM']}:{star['targetRaS']}"
+                              for star in self.scienceTargets]
+                        dec = [f"{star['targetDecD']}:{star['targetDecM']}:{star['targetDecS']}"
+                               for star in self.scienceTargets]
+                        self.scienceTargets.add_columns([Column(ra, name='RA'),
+                                                         Column(dec, name='DEC')])
+                except:
+                    self.scienceTargets = Table()
             elif child.tag == 'alignment':
                 data = [el.attrib for el in child.getchildren()]
-                self.alignmentStars = Table(data)
-                ra = [f"{star['targetRaH']}:{star['targetRaM']}:{star['targetRaS']}"
-                      for star in self.alignmentStars]
-                dec = [f"{star['targetDecD']}:{star['targetDecM']}:{star['targetDecS']}"
-                       for star in self.alignmentStars]
-                self.alignmentStars.add_columns([Column(ra, name='RA'),
-                                                 Column(dec, name='DEC')])
+                try:
+                    self.alignmentStars = Table(data)
+                    if len(data) > 0:
+                        ra = [f"{star['targetRaH']}:{star['targetRaM']}:{star['targetRaS']}"
+                              for star in self.alignmentStars]
+                        dec = [f"{star['targetDecD']}:{star['targetDecM']}:{star['targetDecS']}"
+                               for star in self.alignmentStars]
+                        self.alignmentStars.add_columns([Column(ra, name='RA'),
+                                                         Column(dec, name='DEC')])
+                except:
+                    self.alignmentStars = Table()
             else:
                 mask[child.tag] = [el.attrib for el in child.getchildren()]
 
