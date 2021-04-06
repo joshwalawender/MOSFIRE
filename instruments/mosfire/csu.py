@@ -413,8 +413,8 @@ def fit_transforms(pixels, physical):
     Ainv, res, rank, s = np.linalg.lstsq(Y, X, rcond=None)
     A[np.abs(A) < 1e-10] = 0
     Ainv[np.abs(A) < 1e-10] = 0
-    Apixel_to_physical = A
-    Aphysical_to_pixel = Ainv
+    Apixel_to_physical = [list(row) for row in list(A)]
+    Aphysical_to_pixel = [list(row) for row in list(Ainv)]
     return Apixel_to_physical, Aphysical_to_pixel
 
 

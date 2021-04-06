@@ -24,6 +24,9 @@ def verify_mask_with_image(mask, imagefile, tolerance=2, plot=False, filtersize=
                         filtersize=filtersize, plot=plot)
     log.info('Verifying bar positions')
     barsok = list()
+
+    diffs = {}
+
     for bar in range(1,93):
         found = foundbars[bar]
         if bar %2 == 0:
@@ -33,27 +36,30 @@ def verify_mask_with_image(mask, imagefile, tolerance=2, plot=False, filtersize=
             slitinfo = mask.slitpos[mask.slitpos['rightBarNumber'] == bar]
             expected_mm = float(slitinfo['rightBarPositionMM'])
         expected = physical_to_pixel([[expected_mm, bar_to_slit(bar)]])[0][0][0]
-        diff = abs(found - expected)
+        diffs[bar] = abs(found - expected)
 
         if not np.isclose(found, expected, atol=tolerance):
             log.warning(f'Bar {bar} out of tolerance: got {found:.1f} '
-                        f'expected {expected:.1f} (difference = {diff:.1f})')
+                        f'expected {expected:.1f} (difference = {diffs[bar]:.1f})')
             barsok.append(False)
         else:
             log.debug(f'Bar {bar} is within tolerance: got {found:.1f} '
-                      f'expected {expected:.1f} (difference = {diff:.1f})')
+                      f'expected {expected:.1f} (difference = {diffs[bar]:.1f})')
             barsok.append(True)
     if not np.all(barsok):
-        raise FailedCondition('Image did not match mask design')
+        log.error('Image did not match mask design')
+#         raise FailedCondition('Image did not match mask design')
     else:
         log.info(f'Bars all verified within {tolerance} pixels')
+
+    return diffs
 
 
 ## ------------------------------------------------------------------
 ##  Analyze Image to Determine Bar Positions
 ## ------------------------------------------------------------------
 def find_bar_positions_from_image(imagefile, filtersize=5, plot=False,
-                                  pixel_shim=10):
+                                  pixel_shim=5):
     '''Loop over all slits in the image and using the affine transformation
     determined by `fit_transforms`, select the Y pixel range over which this
     slit should be found.  Take a median filtered version of that image and
@@ -89,7 +95,10 @@ def find_bar_positions_from_image(imagefile, filtersize=5, plot=False,
         ypos[b2] = [y1, y2]
         gradx = np.gradient(medimage[y1:y2,:], axis=1)
         horizontal_profile = np.sum(gradx, axis=0)
-        bars[b1], bars[b2] = find_bar_edges(horizontal_profile)
+        try:
+            bars[b1], bars[b2] = find_bar_edges(horizontal_profile)
+        except:
+            print(f'Unable to fit bars: {b1}, {b2}')
 
     # Generate plot if called for
     if plot is True:
@@ -100,9 +109,17 @@ def find_bar_positions_from_image(imagefile, filtersize=5, plot=False,
         norm = viz.ImageNormalize(data, interval=viz.PercentileInterval(99.9),
                                   stretch=viz.LinearStretch())
         plt.imshow(data, norm=norm, origin='lower', cmap='Greys')
+
+
         for bar in bars.keys():
 #             plt.plot([0,2048], [ypos[bar][0], ypos[bar][0]], 'r-', alpha=0.1)
 #             plt.plot([0,2048], [ypos[bar][1], ypos[bar][1]], 'r-', alpha=0.1)
+
+            mms = np.linspace(4,270.4,2)
+            slit = bar_to_slit(bar)
+            pix = np.array([(physical_to_pixel(np.array([(mm, slit+0.5)])))[0][0] for mm in mms])
+            plt.plot(pix.transpose()[0], pix.transpose()[1], 'g-', alpha=0.5)
+
             plt.plot([bars[bar],bars[bar]], ypos[bar], 'r-', alpha=0.75)
             offset = {0: -20, 1:+20}[bar % 2]
             plt.text(bars[bar]+offset, np.mean(ypos[bar]), bar,
@@ -144,3 +161,19 @@ def find_bar_edges(horizontal_profile):
         x2 = None
     
     return (x1, x2)
+
+
+def find_individual_slits(imagefile, filtersize=3, plot=True):
+    '''Analyze an image of a mask where very slit is separated (all slits have
+    length ~7 arcsec).  Determine the center of each slit.  Used to fit or
+    verify the transform between slit mm and pixels.
+    '''
+    foundbars = find_bar_positions_from_image(imagefile,
+                        filtersize=filtersize, plot=plot)
+
+    
+    for slit in range(1,47,1):
+        leftbar, rightbar = slit_to_bars(slit)
+        xpix = np.mean( [foundbars[leftbar], foundbars[rightbar]] )
+    
+    
