@@ -73,9 +73,9 @@ def make_mask_starlist(filename='~/mask_starlist.txt',
     with open(starlist_file, 'w') as starlist:
         for file in CSUmask_filepath.glob('**/*.xml'):
             mask = Mask(file)
-            if mask.name in ['long2pos', 'long2pos_specphot']:
+            if re.match('long2pos', mask.name):
                 log.warning(f'Skipping {mask.name} from {file}')
-            elif re.match('LONGSLIT\-\d+x\d+\.?\d*', mask.name):
+            elif re.match('LONGSLIT\-\d+x\d+', mask.name):
                 log.warning(f'Skipping {mask.name} from {file}')
             else:
                 log.info(f'Processing mask file: {file}')
