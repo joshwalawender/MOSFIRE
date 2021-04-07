@@ -1,20 +1,23 @@
 from time import sleep
 
-from ..rotator import *
-from ..obsmode import *
-from ..fcs import *
-from ..detector import *
+from mosfire.rotator import *
+from mosfire.obsmode import *
+from mosfire.fcs import *
+from mosfire.detector import *
+
+description='''
+This script takes a set of exposures at different ROTTPOSN values:
+[-360, -315, -270, -225, -180, -135, -90, -45, 0, 45]
+It presumes you have configured a mask and turned on  the arc lamps, so that
+the arc line positions can be measured to examine flexure.
+'''
+
 
 ##-------------------------------------------------------------------------
 ## Parse Command Line Arguments
 ##-------------------------------------------------------------------------
 ## create a parser object for understanding command-line arguments
-p = argparse.ArgumentParser(description='''
-This script takes a set of exposures at different ROTTPOSN values:
-[-360, -315, -270, -225, -180, -135, -90, -45, 0, 45]
-It presumes you have configured a mask and turned on  the arc lamps, so that
-the arc line positions can be measured to examine flexure.
-''')
+p = argparse.ArgumentParser(description=description)
 ## add flags
 p.add_argument("-r", "--reverse", dest="reverse",
     default=False, action="store_true",

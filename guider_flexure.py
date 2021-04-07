@@ -6,12 +6,16 @@ import argparse
 import logging
 from time import sleep
 
-from ..core import *
-from ..fcs import *
-from ..detector import *
-from ..obsmode import *
+from mosfire.core import *
+from mosfire.fcs import *
+from mosfire.detector import *
+from mosfire.obsmode import *
 
 description = '''
+This script takes a set of exposures at different ROTTPOSN values:
+[-360, -315, -270, -225, -180, -135, -90, -45, 0, 45]
+It presumes you have configured a mask and turned on  the arc lamps, so that
+the arc line positions can be measured to examine flexure.
 '''
 
 
@@ -19,12 +23,7 @@ description = '''
 ## Parse Command Line Arguments
 ##-------------------------------------------------------------------------
 ## create a parser object for understanding command-line arguments
-p = argparse.ArgumentParser(description='''
-This script takes a set of exposures at different ROTTPOSN values:
-[-360, -315, -270, -225, -180, -135, -90, -45, 0, 45]
-It presumes you have configured a mask and turned on  the arc lamps, so that
-the arc line positions can be measured to examine flexure.
-''')
+p = argparse.ArgumentParser(description=description)
 ## add flags
 p.add_argument("-v", "--verbose", dest="verbose",
     default=False, action="store_true",
