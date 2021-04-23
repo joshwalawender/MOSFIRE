@@ -74,14 +74,6 @@ from .obsmode import grating_shim_ok, grating_turret_ok
 ##-----------------------------------------------------------------------------
 ## pre- and post- conditions
 ##-----------------------------------------------------------------------------
-def instrument_is_MOSFIRE():
-    '''Verifies that MOSFIRE is the currently selected instrument.
-    '''
-    INSTRUMEkw = ktl.cache(service='dcs', keyword='INSTRUME')
-    if INSTRUMEkw.read() != 'MOSFIRE':
-        raise FailedCondition('MOSFIRE is not the selected instrument')
-
-
 def check_connectivity():
     '''Pings the two switches on the instrument to verify network connectivity.
     '''

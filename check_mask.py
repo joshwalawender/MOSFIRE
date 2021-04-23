@@ -15,6 +15,7 @@ description ='''This script takes an xml file containing a mask design
 "bad angles" (e.g. -180, 0, +180) on the rotator.
 '''
 
+
 ##-------------------------------------------------------------------------
 ## Parse Command Line Arguments
 ##-------------------------------------------------------------------------
