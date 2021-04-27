@@ -236,14 +236,3 @@ def take_calibrations(filters, config=None, imaging=False,
         pass
 
     return None
-
-
-# if __name__ == '__main__':
-#     import argparse
-#     ## Parse Command Line Arguments
-#     p = argparse.ArgumentParser(description=description)
-#     ## add options
-#     p.add_argument("-c", "--config", dest="config", type=str,
-#         default=None,
-#         help="The configuration file to use.")
-#     args = p.parse_args()
