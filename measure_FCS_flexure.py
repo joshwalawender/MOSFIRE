@@ -1,3 +1,5 @@
+#! /usr/bin/env kpython3
+
 from time import sleep
 
 from mosfire.rotator import *

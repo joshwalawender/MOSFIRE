@@ -1,4 +1,5 @@
-#!kpython3
+#! /usr/bin/env kpython3
+
 description = '''
 acq_long2pos -- Acquire mask nod image sets at two different longslit mask
                 positions.
@@ -8,14 +9,13 @@ of a target in two longslits which are offset from the field center in the
 wavelength direction in order to sample the full range of wavelengths in the
 passband.
 
-                    |x|
-                    | | Upper left position, covers long wavelengths
-                    |x|
-                                 |  | Alignment position
-                                              |x|
-                                              | | Lower right, short wavelengths
-                                              |x|
-
+                   |x|
+                   | | Upper left position, covers long wavelengths
+                   |x|
+                                |  | Alignment position
+                                             |x|
+                                             | | Lower right, short wavelengths
+                                             |x|
 
 The normal behavior, which applies when the CSU is configured with the standard
 "long2pos" or "long2pos (align)" masks is to acquire a nod pair in each slit. 
@@ -57,12 +57,22 @@ p.add_argument("-v", "--verbose", dest="verbose",
 p.add_argument("-i", "--imaging", dest="imaging", type=bool,
     default=False, action="store_true",
     help="Take data in imaging mode rather than spectroscopy? (for testing)")
+p.add_argument("--mcds", "--mcds16", dest="mcds", type=bool,
+    default=False, action="store_true",
+    help=("Take data using MCDS16 readout mode? If neither --cds or --mcds are "
+          "set, will use current setting.")
+p.add_argument("--cds", dest="cds", type=bool,
+    default=False, action="store_true",
+    help=("Take data using CDS readout mode? If neither --cds or --mcds are "
+          "set, will use current setting.")
 ## add options
 p.add_argument("-f", "--filter", dest="filter", type=str, default='',
     choices=['Y', 'J', 'H', 'K', 'Ks', 'J2', 'J3', 'nb1061', ''],
     help="The filter to take data in.")
 p.add_argument("-e", "--exptime", dest="exptime", type=float, default=0,
     help="The exposure time (defaults to 0 which means use existing setting).")
+p.add_argument("-g", "--guidecycles", dest="guidecycles", type=float, default=3,
+    help="The number of guider cycles to wait after large offsets.")
 args = p.parse_args()
 
 
@@ -219,8 +229,10 @@ def run_acq_long_2pos(min_guide_cycles=5):
     log.info(f"  FWHM     = {guider_fwhm:.0f}")
     guider_snr = magiq['SNR'].read(binary=True)
     log.info(f"  SNR      = {guider_snr:.0f}")
-#     guider_counts = magiq['STARCNT'].read(binary=True)
-#     log.info(f"  STARCT   = {guider_counts:.0f} s")
+    guider_counts = magiq['STARCNT'].read(binary=True)
+    log.info(f"  STARCT   = {guider_counts:.0f} s")
+
+    are_we_guiding = 
 
     # Should we guide?
     if ITIME > min_guide_cycles*guider_exptime:
@@ -228,14 +240,18 @@ def run_acq_long_2pos(min_guide_cycles=5):
         
 
 
-    # Set the specified observing parameters
+    # Set the specified exposure time
     if args.exptime > 0:
         log.info(f'Setting exposure time to {exptime}')
         mosfire.set_exptime(exptime)
-        if args.exptime < 30:
-            log.info(f'Setting sampling mode to CDS')
-            mosfire.set_sampmode('CDS')
-
+    # Set the specified sampling mode
+    if args.mcds is True:
+        log.info(f'Setting sampling mode to MCDS16')
+        mosfire.set_sampmode('MCDS16')
+    if args.cds is True:
+        log.info(f'Setting sampling mode to CDS')
+        mosfire.set_sampmode('CDS')
+    # Set the specified filter and obsmode
     if args.filter != '':
         obsmode = f'{args.filter}-spectroscopy' if args.imaging is False\
                   else f'{args.filter}-imaging'
@@ -243,7 +259,7 @@ def run_acq_long_2pos(min_guide_cycles=5):
         mosfire.set_obsmode(obsmode)
 
     specphot = (maskname=='long2pos_specphot')
-    acq_long2pos(wide=specphot, wait=3*guider_exptime)
+    acq_long2pos(wide=specphot, wait=args.guidecycles*guider_exptime)
 
 
 if __name__ == '__main__':

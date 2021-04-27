@@ -41,7 +41,7 @@ Here's a realistic example to show how cryptic direct keywords can be and why I 
 
 Using keywords:
 ```
-if dwrn2lv < 25:
+if dwrn2lv.read(binary=True) < 25:
     utbn2fil.write('on')
 ```
 
@@ -71,10 +71,6 @@ Instrument GUIs would be the most complex level simply because they are non-line
 
 1. Does there need to be a distinction between Instrument Functions (#2 above) and Instrument Scripts (#3) or is that merely confusing the landscape?
 
-1. How do we organize code?  I started a draft which was a single package which could cover all instruments.  Each instrument was a sub-module (e.g. `from instruments import mosfire`).  In principle, this would allow some code sharing, but this may not be very useful in practice.
-
 1. Object oriented vs. functional?  Luca, John P., and I did a little work on this and my current preference is functions for everything unless it clearly maps better to an object (e.g. a MOSFIRE mask is an object in my code).  To provide structure, I have drafted a template which encourages use of pre- and post-conditions.
-
-1. How does the python code (presumably developed using git and GitHub) integrate with `kroot`?
 
 1. How do we make the python code callable from the command line? Using `entry_points` in `setup.py`?  Putting compiled versions of the code in the path using makefiles?

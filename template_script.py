@@ -1,4 +1,4 @@
-#!kpython3
+#! /usr/bin/env kpython3
 
 ## Import General Tools
 import inspect
