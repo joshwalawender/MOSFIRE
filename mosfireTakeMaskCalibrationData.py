@@ -3,7 +3,8 @@
 ## Import General Tools
 import argparse
 
-from instruments.mosfire.core import log
+from mosfire.core import log
+from mosfire.calibration import take_calibrations
 
 
 description = '''
@@ -147,7 +148,6 @@ for maskname in masks.keys():
 if args.Shutdown == 1:
     log.info(f"Shutdown when done requested")
 
-from instruments.mosfire.calibration import take_calibrations
 log.info('Taking calibrations')
 take_calibrations(masks, config=cfg)
 

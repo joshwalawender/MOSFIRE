@@ -6,8 +6,14 @@ import numpy as np
 import socket
 import subprocess
 import sys
+from datetime import datetime, timedelta
+from time import sleep
 
-import ktl
+try:
+    import ktl
+except:
+    print('Failed to import ktl')
+    sys.exit(1)
 
 
 ##-------------------------------------------------------------------------

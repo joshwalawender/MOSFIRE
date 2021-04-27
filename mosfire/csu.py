@@ -1,8 +1,4 @@
-import inspect
-from datetime import datetime, timedelta
-from time import sleep
 import re
-import numpy as np
 from astropy.table import Table, Column, Row
 
 from .core import *

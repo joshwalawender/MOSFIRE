@@ -1,7 +1,3 @@
-import inspect
-from datetime import datetime
-from time import sleep
-
 from astropy import units as u
 from astropy.coordinates import Angle
 
