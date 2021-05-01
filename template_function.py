@@ -37,3 +37,23 @@ def function(arguments, skipprecond=False, skippostcond=False):
             raise FailedCondition('description of failure')
 
     return None
+
+
+def function_with_args():
+    description = '''
+    '''
+    p = argparse.ArgumentParser(description=description)
+    ## add flags
+    p.add_argument("-v", "--verbose", dest="verbose",
+        default=False, action="store_true",
+        help="Be verbose! (default = False)")
+    ## add options
+    p.add_argument("--input", dest="input", type=str,
+        help="The input.")
+    ## add arguments
+    p.add_argument('argument', type=int,
+                   help="A single argument")
+    p.add_argument('allothers', nargs='*',
+                   help="All other arguments")
+    args = p.parse_args()
+    function(**args)

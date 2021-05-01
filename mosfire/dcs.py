@@ -76,6 +76,14 @@ def mxy(dx, dy, skipprecond=False, skippostcond=False):
     return None
 
 
+def mxy_with_args():
+    p = argparse.ArgumentParser(description=description)
+    p.add_argument('dx', type=float, help="X distance in arcsec")
+    p.add_argument('dy', type=float, help="Y distance in arcsec")
+    args = p.parse_args()
+    mxy(args.dx, args.dy)
+
+
 ##-----------------------------------------------------------------------------
 ## sltmov offset
 ##-----------------------------------------------------------------------------

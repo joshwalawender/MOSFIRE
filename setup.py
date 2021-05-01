@@ -1,7 +1,14 @@
 from setuptools import setup, find_packages
 
-cl_scripts = ['take_exposure=mosfire.detector:take_exposure',
+cl_scripts = [# detector
+              'take_exposure=mosfire.detector:take_exposure',
+              'goi=mosfire.detector:take_exposure',
               'waitfor_exposure=mosfire.detector:waitfor_exposure',
+              'wfgo=mosfire.detector:waitfor_exposure',
+              'exptime=mosfire.detector:exptime_with_args',
+              'coadds=mosfire.detector:coadds_with_args',
+              'sampmode=mosfire.detector:sampmode_with_args',
+              # dcs
               'markbase=mosfire.dcs:markbase',
               'gotobase=mosfire.dcs:gotobase',
               ]

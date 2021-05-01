@@ -60,9 +60,6 @@ def exptime(skipprecond=False, skippostcond=False):
     return ITIME
 
 
-##-----------------------------------------------------------------------------
-## set exptime
-##-----------------------------------------------------------------------------
 def set_exptime(input, skipprecond=False, skippostcond=False):
     '''Set exposure time per coadd in seconds.  Note the ITIME keyword uses ms.
     '''
@@ -91,6 +88,18 @@ def set_exptime(input, skipprecond=False, skippostcond=False):
         log.debug(f'Exposure time is now {ITIME:.1f} sec')
     
     return None
+
+
+def exptime_with_args():
+    description = '''Set or view the exposure time in seconds
+    '''
+    p = argparse.ArgumentParser(description=description)
+    p.add_argument('exptime', type=float, default=0,
+                   help="The exposure time (sec)")
+    args = p.parse_args()
+    if args.exptime != 0.0:
+        set_exptime(args.exptime)
+    print(f"Exposure Time = {exptime():.1f}")
 
 
 ##-----------------------------------------------------------------------------
@@ -123,9 +132,6 @@ def coadds(skipprecond=False, skippostcond=False):
     return COADDS
 
 
-##-----------------------------------------------------------------------------
-## set coadds
-##-----------------------------------------------------------------------------
 def set_coadds(input, skipprecond=False, skippostcond=False):
     '''Set coadds
     '''
@@ -155,6 +161,18 @@ def set_coadds(input, skipprecond=False, skippostcond=False):
             raise FailedCondition('Failed to set COADDS')
     
     return None
+
+
+def coadds_with_args():
+    description = '''Set or view the number of coadds
+    '''
+    p = argparse.ArgumentParser(description=description)
+    p.add_argument('coadds', type=int, default=0,
+                   help="The number of coadds")
+    args = p.parse_args()
+    if args.coadds != 0:
+        set_coadds(args.coadds)
+    print(f"Coadds = {coadds():d}")
 
 
 ##-----------------------------------------------------------------------------
@@ -191,9 +209,6 @@ def sampmode(skipprecond=False, skippostcond=False):
     return output
 
 
-##-----------------------------------------------------------------------------
-## set sampmode & numreads
-##-----------------------------------------------------------------------------
 def set_sampmode(input, skipprecond=False, skippostcond=False):
     '''Set the sampling mode from a string (e.g. CDS, MCDS16, etc.)
     '''
@@ -229,6 +244,19 @@ def set_sampmode(input, skipprecond=False, skippostcond=False):
             raise FailedCondition(f'Failed to set SAMPMODE and NUMREADS. "{input}" != "{result}"')
 
     return None
+
+
+def sampmode_with_args():
+    description = '''Set or view the sampling mode
+    '''
+    p = argparse.ArgumentParser(description=description)
+    p.add_argument('sampmode', type=str, default='',
+                   help="The sampling mode (CDS or MCDS[1-16])")
+    args = p.parse_args()
+    if args.sampmode != '':
+        set_sampmode(args.sampmode)
+    print(f"Sampling Mode = {sampmode()}")
+
 
 
 ##-----------------------------------------------------------------------------
