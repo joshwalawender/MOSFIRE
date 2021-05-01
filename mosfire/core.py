@@ -69,7 +69,7 @@ mosfire_data_file_path = Path(__file__).parent
 with open(mosfire_data_file_path.joinpath('MOSFIRE_transforms.txt'), 'r') as FO:
     transforms = yaml.safe_load(FO.read())
 
-log = create_log(name, loglevel='INFO')
+log = create_log(name, loglevel='INFO', logfile='~/mosfire.log')
 
 from .fcs import FCS_ok
 from .hatch import hatch_ok
