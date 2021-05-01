@@ -171,8 +171,8 @@ class Mask(object):
             plt.show()
         
         return result
-        
-        
+
+
     def slit_corners(self, scienceslitno):
         '''Return the 4 corners of the science slit in RA and Dec.
         '''

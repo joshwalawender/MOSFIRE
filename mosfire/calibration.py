@@ -221,8 +221,26 @@ def take_calibrations(filters, config=None, imaging=False,
     cfg = read_calibration_config(config)
 
     # Iterate over masks and take cals
-    for i,mask in enumerate(filters.keys()):
-        log.info(f"Taking calibrations for mask {i+1}/{len(filters)}")
+    for i,maskinput in enumerate(filters.keys()):
+        if isinstance(maskinput, Mask):
+            mask = maskinput
+            log.info(f"Taking calibrations for mask {i+1}/{len(filters)}: {mask.name}")
+        elif isinstance(maskinput, Path):
+            if maskinput.exists():
+                mask = Mask(maskinput)
+            else:
+                log.error(f'Could not find file: {maskinput}')
+                continue
+        elif isinstance(maskinput, str):
+            maskpath = Path(maskinput)
+            if maskpath.exists():
+                mask = Mask(maskpath)
+            else:
+                log.error(f'Could not find file: {maskpath}')
+                continue
+        else:
+            log.error(f'Could not parse input: {maskinput}')
+            continue
         take_calibrations_for_a_mask(mask, filters[mask], cfg, imaging=imaging,
                                      skipprecond=skipprecond,
                                      skippostcond=skippostcond)
