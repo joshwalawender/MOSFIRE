@@ -9,13 +9,13 @@ of a target in two longslits which are offset from the field center in the
 wavelength direction in order to sample the full range of wavelengths in the
 passband.
 
-                   |x|
-                   | | Upper left position, covers long wavelengths
-                   |x|
-                                |  | Alignment position
-                                             |x|
-                                             | | Lower right, short wavelengths
-                                             |x|
+                  |x|
+                  | | Upper left position, covers long wavelengths
+                  |x|
+                               |  | Alignment position
+                                            |x|
+                                            | | Lower right, short wavelengths
+                                            |x|
 
 The normal behavior, which applies when the CSU is configured with the standard
 "long2pos" or "long2pos (align)" masks is to acquire a nod pair in each slit. 
@@ -27,7 +27,7 @@ spectrum from the "wide" part can be used as a spectrophotometric observation
 (no slit loss from the extra-wide slit).
 
 Modification History:
-    2021-04-23 [JoshW] Initial adaptation from the c-shell script.  Incorporates
+    2021-04-23 [JoshW] Initial adaptation from the shell script.  Incorporates
                        changes to improve positioning accuracy.
 '''
 
@@ -97,12 +97,9 @@ log.addHandler(LogFileHandler)
 
 
 ##-------------------------------------------------------------------------
-## Cache keyword services
+## Cache mosfire keyword services
 ##-------------------------------------------------------------------------
 mosfireGS = ktl.cache(service='mosfire')
-mds = ktl.cache(service='mds')
-magiq = ktl.cache(service='magiq')
-dcs = ktl.cache(service='dcs')
 
 
 ##-------------------------------------------------------------------------
@@ -218,27 +215,13 @@ def run_acq_long_2pos(min_guide_cycles=5):
         raise Exception(f"Mask {maskname} is not a long2pos mask")
 
     # Check guider and science exposure times
-    log.info(f"Guider Exposure Parameters:")
-    guider_exptime = magiq['TTIME'].read(binary=True)
-    log.info(f"  TTIME    = {guider_exptime:.0f} s")
-    guider_xypos = magiq['XYPOS'].read()
-    log.info(f"  XYPOS    = {guider_xypos}")
-    guider_centroid = magiq['CENTROID'].read()
-    log.info(f"  CENTROID = {guider_centroid}")
-    guider_fwhm = magiq['FWHM'].read(binary=True)
-    log.info(f"  FWHM     = {guider_fwhm:.0f}")
-    guider_snr = magiq['SNR'].read(binary=True)
-    log.info(f"  SNR      = {guider_snr:.0f}")
-    guider_counts = magiq['STARCNT'].read(binary=True)
-    log.info(f"  STARCT   = {guider_counts:.0f} s")
-
-    are_we_guiding = 
+    camparms = mosfire.get_camparms()
+    for key in camparms.keys():
+        log.info(f'MAGIQ: {key} = {camparms[key]}')
 
     # Should we guide?
     if ITIME > min_guide_cycles*guider_exptime:
         we_should_guide = True
-        
-
 
     # Set the specified exposure time
     if args.exptime > 0:

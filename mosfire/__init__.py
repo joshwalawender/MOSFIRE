@@ -15,3 +15,4 @@ from .analysis import *
 from .shutdown import *
 from .utilities import *
 from .dcs import *
+from .magiq import *
