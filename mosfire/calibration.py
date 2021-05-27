@@ -224,7 +224,6 @@ def take_calibrations(filters, config=None, imaging=False,
     for i,maskinput in enumerate(filters.keys()):
         if isinstance(maskinput, Mask):
             mask = maskinput
-            log.info(f"Taking calibrations for mask {i+1}/{len(filters)}: {mask.name}")
         elif isinstance(maskinput, Path):
             if maskinput.exists():
                 mask = Mask(maskinput)
@@ -241,6 +240,7 @@ def take_calibrations(filters, config=None, imaging=False,
         else:
             log.error(f'Could not parse input: {maskinput}')
             continue
+        log.info(f"Taking calibrations for mask {i+1}/{len(filters)}: {mask.name}")
         take_calibrations_for_a_mask(mask, filters[mask], cfg, imaging=imaging,
                                      skipprecond=skipprecond,
                                      skippostcond=skippostcond)
