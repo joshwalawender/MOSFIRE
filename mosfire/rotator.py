@@ -2,6 +2,7 @@ from astropy import units as u
 from astropy.coordinates import Angle
 
 from .core import *
+from .dcs import instrument_is_MOSFIRE
 
 
 ##-----------------------------------------------------------------------------

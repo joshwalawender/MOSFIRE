@@ -49,14 +49,6 @@ p.add_argument('HFlatCount', type=int, help='number of Flats to acquire in H ban
 p.add_argument('HFlatLamp', type=str, help='lamp to use for H-band flats')
 p.add_argument('HFlatTime', type=int, help='exposure Time for Flats in H band')
 p.add_argument('HLampsOff', type=int, help='flag indicating whether to acquire Lamps on/Lamps Off pair in H band')
-p.add_argument('J2NeonCount', type=int, help='number of Ne exposures to acquire in J2 band')
-p.add_argument('J2NeonTime', type=int, help='exposures Time for Ne arcs in J2 band')
-p.add_argument('J2ArgonCount', type=int, help='number of Ar exposures to acquire in J2 band')
-p.add_argument('J2ArgonTime', type=int, help='exposures Time for Ar arcs in J2 band')
-p.add_argument('J2FlatCount', type=int, help='number of Flats to acquire in J2 band')
-p.add_argument('J2FlatLamp', type=str, help='lamp to use for J2-band flats')
-p.add_argument('J2FlatTime', type=int, help='exposure Time for Flats in J2 band')
-p.add_argument('J2LampsOff', type=int, help='flag indicating whether to acquire Lamps on/Lamps Off pair in J band')
 p.add_argument('KNeonCount', type=int, help='number of Ne exposures to acquire in K band')
 p.add_argument('KNeonTime', type=int, help='exposure Time for Ne arcs in K band')
 p.add_argument('KArgonCount', type=int, help='number of Ar exposures to acquire in K band')
@@ -78,11 +70,11 @@ p.add_argument('masks', nargs='+',
 
 args = p.parse_args()
 
-
 cfg = {'Y':
         {'flat_count': args.YFlatCount,
          'flat_exptime': args.YFlatTime,
          'flatoff_count': args.YFlatCount if args.YLampsOff == 1 else 0,
+         'flat_power': 4,
          'ne_arc_exptime': args.YNeonTime,
          'ne_arc_count': args.YNeonCount,
          'ar_arc_exptime': args.YArgonTime,
@@ -92,6 +84,7 @@ cfg = {'Y':
         {'flat_count': args.JFlatCount,
          'flat_exptime': args.JFlatTime,
          'flatoff_count': args.JFlatCount if args.JLampsOff == 1 else 0,
+         'flat_power': 9,
          'ne_arc_exptime': args.JNeonTime,
          'ne_arc_count': args.JNeonCount,
          'ar_arc_exptime': args.JArgonTime,
@@ -101,6 +94,7 @@ cfg = {'Y':
         {'flat_count': args.HFlatCount,
          'flat_exptime': args.HFlatTime,
          'flatoff_count': args.HFlatCount if args.HLampsOff == 1 else 0,
+         'flat_power': 13.5,
          'ne_arc_exptime': args.HNeonTime,
          'ne_arc_count': args.HNeonCount,
          'ar_arc_exptime': args.HArgonTime,
@@ -110,48 +104,40 @@ cfg = {'Y':
         {'flat_count': args.KFlatCount,
          'flat_exptime': args.KFlatTime,
          'flatoff_count': args.KFlatCount if args.KLampsOff == 1 else 0,
+         'flat_power': 14,
          'ne_arc_exptime': args.KNeonTime,
          'ne_arc_count': args.KNeonCount,
          'ar_arc_exptime': args.KArgonTime,
          'ar_arc_count': args.KArgonCount,
         },
-       'J2':
-        {'flat_count': args.J2FlatCount,
-         'flat_exptime': args.J2FlatTime,
-         'flatoff_count': args.J2FlatCount if args.J2LampsOff == 1 else 0,
-         'ne_arc_exptime': args.J2NeonTime,
-         'ne_arc_count': args.J2NeonCount,
-         'ar_arc_exptime': args.J2ArgonTime,
-         'ar_arc_count': args.J2ArgonCount,
-        },
       }
 
 assert len(args.masks) % 5 == 0
 
-masks = dict()
+filters = dict()
 for masknumber in range(int(len(args.masks) / 5)):
     maskfile = args.masks[masknumber*5]
-    masks[maskfile] = list()
+    filters[maskfile] = list()
     for filtno,filt in enumerate(['Y', 'J', 'H', 'K']):
         idx = masknumber*5 + filtno + 1
         if args.masks[idx] == '1':
-            masks[maskfile].append(filt)
+            filters[maskfile].append(filt)
 
 log.info(f'mosfireTakeMaskCalibrationData started')
 log.info('Configuration:')
 for filt in cfg.keys():
     log.info(f"{filt}: {cfg[filt]}")
 log.info('Masks:')
-for maskname in masks.keys():
-    log.info(f"{maskname}: {masks[maskname]}")
+for maskname in filters.keys():
+    log.info(f"{maskname}: {filters[maskname]}")
 
 if args.Shutdown == 1:
     log.info(f"Shutdown when done requested")
 
 log.info('Taking calibrations')
-take_calibrations(masks, config=cfg)
+take_calibrations(filters, config=cfg)
 
 if args.Shutdown == 1:
-    from instruments.mosfire.core import end_of_night_shutdown
+    from mosfire.shutdown import end_of_night_shutdown
     log.info('Performing end of night shutdown')
     end_of_night_shutdown()

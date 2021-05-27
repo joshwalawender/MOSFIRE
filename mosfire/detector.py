@@ -297,7 +297,7 @@ def take_exposure(exptime=None, coadds=None, sampmode=None, object=None,
         waitfor_FCS()
     
     GOkw = ktl.cache(service='mds', keyword='GO')
-    log.info('Taking exposure')
+    log.info('Starting exposure')
     GOkw.write(True)
 
     ##-------------------------------------------------------------------------
