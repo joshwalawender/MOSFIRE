@@ -83,7 +83,13 @@ def _set_obsmode(destination, wait=True, timeout=60,
     ## Script Contents
     setobsmodekw = ktl.cache(service='mosfire', keyword='SETOBSMODE')
     log.info(f"Setting mode to {destination}")
-    setobsmodekw.write(destination, wait=True)
+    try:
+        setobsmodekw.write(destination, wait=True)
+    except ktl.Exceptions.ktlError as err:
+        log.warning(f'Got KTL error: {err}')
+        log.warning(f'Retrying after short sleep')
+        sleep(2)
+        setobsmodekw.write(destination, wait=True)
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks

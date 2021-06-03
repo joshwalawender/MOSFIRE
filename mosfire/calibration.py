@@ -234,19 +234,10 @@ def take_calibrations(filters, config=None, imaging=False,
     for i,maskinput in enumerate(filters.keys()):
         if isinstance(maskinput, Mask):
             mask = maskinput
-        elif isinstance(maskinput, Path):
-            if maskinput.exists():
-                mask = Mask(maskinput)
-            else:
-                log.error(f'Could not find file: {maskinput}')
-                continue
         elif isinstance(maskinput, str):
-            maskpath = Path(maskinput)
-            if maskpath.exists():
-                mask = Mask(maskpath)
-            else:
-                log.error(f'Could not find file: {maskpath}')
-                continue
+            mask = Mask(maskinput)
+        elif isinstance(maskinput, Path):
+            mask = Mask(maskinput)
         else:
             log.error(f'Could not parse input: {maskinput}')
             continue

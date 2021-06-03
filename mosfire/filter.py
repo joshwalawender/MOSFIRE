@@ -246,6 +246,8 @@ def go_dark(wait=True, timeout=30,
         _go_dark()
     except:
         # A single retry
+        log.warning('Go dark failed, retrying.')
+        sleep(2)
         _go_dark()
 
     ##-------------------------------------------------------------------------

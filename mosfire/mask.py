@@ -1,4 +1,5 @@
 import random
+import re
 import xml.etree.ElementTree as ET
 
 from astropy.io import fits
@@ -74,16 +75,16 @@ class Mask(object):
                     log.debug(f'"{input}" interpreted as RANDOM')
                     self.build_random_mask()
                 else:
-                    try:
-                        length, width = input.split('x')
-                        width = float(width)
-                        length = int(length)
+                    longslit_match = re.match('LONGSLIT-(\d+)x(\d+\.?\d+)', input)
+                    if longslit_match is not None:
+                        length = int(longslit_match.group(1))
+                        width = float(longslit_match.group(2))
                         assert length <= 46
                         assert width > 0
-                        log.debug(f'"{input}" interpreted as long slit. '
-                                  f'Length={length} bars, width={width:.2f}"')
-                        self.build_longslit(input)
-                    except:
+                        log.debug(f'"{input}" interpreted as long slit. '\
+                                  f'Length={length} bars, width={width:.1f}"')
+                        self.build_longslit(input[9:])
+                    else:
                         log.debug(f'Unable to parse "{input}" as long slit')
                         log.error(f'Unable to parse "{input}"')
                         raise ValueError(f'Unable to parse "{input}"')
