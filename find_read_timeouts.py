@@ -9,6 +9,8 @@ from pathlib import Path
 import argparse
 import logging
 import re
+import numpy as np
+from astropy.table import Table, Row
 
 description = '''Parse mds logs and find aborted exposures and read timeouts.
 '''
@@ -226,6 +228,100 @@ def generate_read_timeout_history(skipprecond=False, skippostcond=True):
         pass
 
 
+##-------------------------------------------------------------------------
+## find_read_timeouts_in_syslog
+##-------------------------------------------------------------------------
+def find_read_timeouts_in_syslog(skipprecond=False, skippostcond=True):
+    '''Alternative method for finding read timeouts in the syslog.
+    
+    Has the advantage of using timestamps (even though they are terrible in that
+    they don't include a year).
+    
+    '''
+    this_script_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_script_name}")
+
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        pass
+    
+    ##-------------------------------------------------------------------------
+    ## Script Contents
+
+    logfile = Path('/s/sdata1300/syslogs/MDS.log')
+#     logfile = Path('~/MDSlogsample3.txt').expanduser()
+
+#     abortsfile = Path('/s/sdata1300/syslogs/MDS_aborts.txt')
+    abortsfile = Path('~/MDS_aborts.txt').expanduser()
+    if abortsfile.exists() is True:
+        fits_table = Table.read(abortsfile, format='ascii.csv')
+        fits_table.sort('date')
+        last_found_ts = datetime.strptime(fits_table[-1]['date'], '%Y-%m-%d %H:%M:%S')
+    else:
+        fits_table = Table(names=('date', 'filename', 'aborted?'),
+                           dtype=('a20', 'a30', 'a60'))
+        last_found_ts = datetime(year=1, month=1, day=1)
+
+    # Compile some regular expressions
+    timestamp_pattern = '(\w{3,4}\s\d{1,2}\s\d{2}:\d{2}:\d{2})'
+    sidecar_callback = 'kaimana mds_server: \[.*\] \(.*\) mds.c \d+: SIDECAR callback received. '
+    hbtimestamp_pattern = '(\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2})'
+    find_sidecar_callback = re.compile(f'{timestamp_pattern} {sidecar_callback}')
+    find_timestamp = re.compile(f'{timestamp_pattern} {sidecar_callback} Name=heartbeat, value={hbtimestamp_pattern}')
+    find_fitswrite = re.compile(f'{timestamp_pattern} {sidecar_callback} Name=exposureStatus, value=(.*)Fits writing complete')
+    find_filename = re.compile(f'{timestamp_pattern} {sidecar_callback} Name=lastFilename, value=Z.+\\\\(.+\.fits)')
+
+    with open(logfile, 'r') as syslog:
+        new_fits_info = [None, None, None]
+        lastHBtime = datetime(year=2010, month=1, day=1)
+        for line in syslog:
+            found_callback = find_sidecar_callback.search(line)
+            if found_callback is not None:
+                linets = datetime.strptime(f'{lastHBtime.year} {found_callback.group(1)}', '%Y %b %d %H:%M:%S')
+                # check for heatbeat line
+                match_timestamp = find_timestamp.search(line)
+                if match_timestamp is not None:
+                    lastHBtime = datetime.strptime(match_timestamp.group(2), '%Y/%m/%d %H:%M:%S')
+
+                if linets > last_found_ts:
+                    # check for a FITS file
+                    match_fitswrite = find_fitswrite.search(line)
+                    if match_fitswrite is not None:
+                        if new_fits_info[0] is not None:
+                            print('Error parsing log file for FITS write')
+                            sys.exit(1)
+                        write_type = match_fitswrite.group(2)
+                        timestamp = datetime.strptime(f'{lastHBtime.year} {match_fitswrite.group(1)}', '%Y %b %d %H:%M:%S')
+                        new_fits_info[0] = timestamp.strftime('%Y-%m-%d %H:%M:%S')
+                        new_fits_info[2] = write_type.strip().strip(':')
+                    # Check for fits file
+                    match_filename = find_filename.search(line)
+                    if match_filename is not None:
+                        if new_fits_info[1] is not None:
+                            print('Error parsing log file for filename')
+                            sys.exit(1)
+                        filename = match_filename.group(2)
+                        new_fits_info[1] = filename
+            if new_fits_info[0] is not None and new_fits_info[1] is not None:
+                fits_table.add_row(new_fits_info)
+                print(i, new_fits_info)
+                new_fits_info = [None, None, None]
+
+    print(fits_table)
+    fits_table.write(abortsfile, format='ascii.csv')
+
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        pass
+
+
 if __name__ == '__main__':
     now_year = int(datetime.now().strftime('%y'))
     find_read_timeouts_by_year(now_year)
+#     find_read_timeouts_in_syslog()
