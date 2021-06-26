@@ -1,4 +1,4 @@
-#! /usr/bin/env kpython3
+#! @KPYTHON3@
 
 description = '''
 acq_long2pos -- Acquire mask nod image sets at two different longslit mask

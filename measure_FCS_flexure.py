@@ -1,4 +1,4 @@
-#! /usr/bin/env kpython3
+#! @KPYTHON3@
 
 from time import sleep
 

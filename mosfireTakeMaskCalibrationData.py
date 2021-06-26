@@ -1,4 +1,4 @@
-#!kpython3
+#! @KPYTHON3@
 
 ## Import General Tools
 import argparse

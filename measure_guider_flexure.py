@@ -1,4 +1,4 @@
-#! /usr/bin/env kpython3
+#! @KPYTHON3@
 
 ## Import General Tools
 from pathlib import Path
