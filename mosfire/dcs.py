@@ -1,5 +1,6 @@
 from .core import *
 
+dcs = ktl.cache(service='dcs')
 
 ##-----------------------------------------------------------------------------
 ## pre- and post- conditions
@@ -35,8 +36,6 @@ def mxy(dx, dy, skipprecond=False, skippostcond=False):
     
     ##-------------------------------------------------------------------------
     ## Script Contents
-
-    dcs = ktl.cache(service='dcs')
 
     autresum = dcs['autresum'].read()
     angle = 0.136 * np.pi/180 # offset between CSU and detector [rad]
@@ -104,7 +103,6 @@ def sltmov(distance, skipprecond=False, skippostcond=False):
     ##-------------------------------------------------------------------------
     ## Script Contents
 
-    dcs = ktl.cache(service='dcs')
     angle = -3.74 * np.pi/180 # slit angle with respect to detector y pixels
     dx = distance * np.sin(angle)
     dy = distance * np.cos(angle)
@@ -140,7 +138,6 @@ def gotobase(skipprecond=False, skippostcond=False):
     ##-------------------------------------------------------------------------
     ## Script Contents
 
-    dcs = ktl.cache(service='dcs')
     # modify -s dcs raoff=0 decoff=0 rel2base=true
     dcs['RAOFF'].write(0)
     dcs['DECOFF'].write(0)
@@ -175,7 +172,6 @@ def markbase(skipprecond=False, skippostcond=False):
     ##-------------------------------------------------------------------------
     ## Script Contents
 
-    dcs = ktl.cache(service='dcs')
     dcs['MARK'].write(True)
 
     ##-------------------------------------------------------------------------

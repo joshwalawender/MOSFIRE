@@ -71,7 +71,7 @@ p.add_argument("-f", "--filter", dest="filter", type=str, default='',
     help="The filter to take data in.")
 p.add_argument("-e", "--exptime", dest="exptime", type=float, default=0,
     help="The exposure time (defaults to 0 which means use existing setting).")
-p.add_argument("-g", "--guidecycles", dest="guidecycles", type=float, default=3,
+p.add_argument("-g", "--guidecycles", dest="guidecycles", type=float, default=2,
     help="The number of guider cycles to wait after large offsets.")
 args = p.parse_args()
 
@@ -105,7 +105,9 @@ mosfireGS = ktl.cache(service='mosfire')
 ##-------------------------------------------------------------------------
 ## acq_long2pos
 ##-------------------------------------------------------------------------
-def acq_long2pos(wide=False, waittime=10):
+def acq_long2pos(wide=False, waittime=10, wait_on_slitmov=False):
+    '''Execute the offset pattern and trigger images for the long2pos sequence.
+    '''
     log.info('Starting long2pos acquisition')
     log.debug('Setting SCRIPTRUN=1')
     mosfire.start_scriptrun()
@@ -131,11 +133,17 @@ def acq_long2pos(wide=False, waittime=10):
 
     log.info('acquiring slit nod data in upper left position')
     mosfire.sltmov(-7)
+    if wait_on_slitmov == True:
+        log.info(f'Waiting {waittime} seconds for guider')
+        sleep(waittime)
     log.debug('Setting YOFFSET=-7 FRAMEID=B')
     mosfireGS['YOFFSET'].write(-7.0)
     mosfireGS['FRAMEID'].write('B')
     mosfire.take_exposure()
     mosfire.sltmov(14)
+    if wait_on_slitmov == True:
+        log.info(f'Waiting {waittime} seconds for guider')
+        sleep(waittime)
     log.debug('Setting YOFFSET=+7 FRAMEID=A')
     mosfireGS['YOFFSET'].write(7.0)
     mosfireGS['FRAMEID'].write('A')
@@ -162,11 +170,17 @@ def acq_long2pos(wide=False, waittime=10):
 
     log.info('acquiring slit nod data in lower right position')
     mosfire.sltmov(-7)
+    if wait_on_slitmov == True:
+        log.info(f'Waiting {waittime} seconds for guider')
+        sleep(waittime)
     log.debug('Setting YOFFSET=-7 FRAMEID=B')
     mosfireGS['YOFFSET'].write(-7.0)
     mosfireGS['FRAMEID'].write('B')
     mosfire.take_exposure()
     mosfire.sltmov(14)
+    if wait_on_slitmov == True:
+        log.info(f'Waiting {waittime} seconds for guider')
+        sleep(waittime)
     log.debug('Setting YOFFSET=+7 FRAMEID=A')
     mosfireGS['YOFFSET'].write(7.0)
     mosfireGS['FRAMEID'].write('A')
@@ -185,7 +199,7 @@ def acq_long2pos_specphot():
     acq_long2pos(wide=True)
 
 
-def run_acq_long_2pos(min_guide_cycles=5):
+def run_acq_long_2pos():
     '''Adopted from acq_long2pos shell script and modified based on advice from
     Shui and based on the experience of the KCWI nod and shuffle mode.
     
@@ -219,10 +233,6 @@ def run_acq_long_2pos(min_guide_cycles=5):
     for key in camparms.keys():
         log.info(f'MAGIQ: {key} = {camparms[key]}')
 
-    # Should we guide?
-    if ITIME > min_guide_cycles*guider_exptime:
-        we_should_guide = True
-
     # Set the specified exposure time
     if args.exptime > 0:
         log.info(f'Setting exposure time to {exptime}')
@@ -242,7 +252,7 @@ def run_acq_long_2pos(min_guide_cycles=5):
         mosfire.set_obsmode(obsmode)
 
     specphot = (maskname=='long2pos_specphot')
-    acq_long2pos(wide=specphot, wait=args.guidecycles*guider_exptime)
+    acq_long2pos(wide=specphot, wait=args.guidecycles*camparms['exptime'])
 
 
 if __name__ == '__main__':
