@@ -13,7 +13,7 @@ def instrument_is_MOSFIRE():
 
 
 def are_we_guiding():
-    '''Verifies that we are currently guiding
+    '''Checks if we are currently guiding
     '''
     return dcs['AUTACTIV'].read() == 'yes'
 
@@ -33,7 +33,7 @@ def get_camparms(skipprecond=False, skippostcond=False):
         log.debug('Skipping pre condition checks')
     else:
         pass
-    
+
     ##-------------------------------------------------------------------------
     ## Script Contents
 
@@ -76,7 +76,7 @@ def wait_for_guider(ncycles=2, timeout=20, skipprecond=False, skippostcond=False
         log.debug('Skipping pre condition checks')
     else:
         pass
-    
+
     ##-------------------------------------------------------------------------
     ## Script Contents
 
@@ -131,7 +131,7 @@ def mxy(dx, dy, guidecycles=2, skipprecond=False, skippostcond=False):
     else:
         instrument_is_MOSFIRE()
         # tracking is True?
-    
+
     ##-------------------------------------------------------------------------
     ## Script Contents
 
@@ -157,11 +157,11 @@ def mxy(dx, dy, guidecycles=2, skipprecond=False, skippostcond=False):
                         '-m', '{exec_date}        {offset_str}']
     subprocess.call(mosfireScriptMsg)
 
-    tick = datetime.utcnow()
-    subprocess.call(['wftel', autresum])
-    tock = datetime.utcnow()
-    duration = (tock-tick).total_seconds()
-    log.debug(f'mxy wftel completed in {duration:.2f} sec')
+#     tick = datetime.utcnow()
+#     subprocess.call(['wftel', autresum])
+#     tock = datetime.utcnow()
+#     duration = (tock-tick).total_seconds()
+#     log.debug(f'mxy wftel completed in {duration:.2f} sec')
 
     wait_for_guider(ncycles=guidecycles)
 
@@ -236,7 +236,7 @@ def gotobase(guidecycles=2, skipprecond=False, skippostcond=False):
         log.debug('Skipping pre condition checks')
     else:
         instrument_is_MOSFIRE()
-    
+
     ##-------------------------------------------------------------------------
     ## Script Contents
 
@@ -271,7 +271,7 @@ def markbase(skipprecond=False, skippostcond=False):
         log.debug('Skipping pre condition checks')
     else:
         instrument_is_MOSFIRE()
-    
+
     ##-------------------------------------------------------------------------
     ## Script Contents
 
