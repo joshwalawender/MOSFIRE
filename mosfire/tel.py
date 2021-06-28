@@ -1,5 +1,4 @@
 from .core import *
-from .magiq import get_camparms
 dcs = ktl.cache(service='dcs')
 
 ##-----------------------------------------------------------------------------
