@@ -14,9 +14,56 @@ def instrument_is_MOSFIRE():
 
 
 ##-----------------------------------------------------------------------------
+## wait_for_guider
+##-----------------------------------------------------------------------------
+def wait_for_guider(ncycles=2, skipprecond=False, skippostcond=False):
+    '''Wait for guider to complete ncycles
+    '''
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
+
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        pass
+    
+    ##-------------------------------------------------------------------------
+    ## Script Contents
+
+    if dcs['AUTACTIV'].read() == 'no':
+        # We are not guiding
+        return None
+
+    # waitfor -s dcs axestat=tracking
+    ktl.waitfor('$dcs.AXESTAT == tracking', timeout=None)
+    # get AUTRESUM value (i)
+    autresum0 = dcs['AUTRESUM'].read()
+    # wait until AURESUM increments (j) (timeout=20s)
+    ktl.waitfor(f'$dcs.AUTRESUM != {autresum0}', timeout=20)
+    # wait until AUTGO is RESUMEACK or GUIDE (timeout=20s)
+    ktl.waitfor('($dcs.AUTGO == guide) or ($dcs.AUTGO == resumeAck)')
+
+    camparms = mosfire.get_camparms()
+    waittime = ncycles*camparms['exptime']
+    log.debug(f'Waiting {ncycles} ({waittime:.1f) s})')
+    sleep(waittime)
+
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        pass
+
+    return None
+
+
+##-----------------------------------------------------------------------------
 ## mxy offset
 ##-----------------------------------------------------------------------------
-def mxy(dx, dy, skipprecond=False, skippostcond=False):
+def mxy(dx, dy, guidecycles=2, skipprecond=False, skippostcond=False):
     '''Moves dx dy arcseconds in the instrument pixel coordinates.
     
     Calls shell scripts:
@@ -63,8 +110,10 @@ def mxy(dx, dy, skipprecond=False, skippostcond=False):
     subprocess.call(['wftel', autresum])
     tock = datetime.utcnow()
     duration = (tock-tick).total_seconds()
-    print(f'mxy wftel completed in {duration:.2f} sec')
-    
+    log.debug(f'mxy wftel completed in {duration:.2f} sec')
+
+    wait_for_guider(ncycles=guidecycles)
+
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
     if skippostcond is True:
@@ -79,14 +128,16 @@ def mxy_with_args():
     p = argparse.ArgumentParser(description=description)
     p.add_argument('dx', type=float, help="X distance in arcsec")
     p.add_argument('dy', type=float, help="Y distance in arcsec")
+    p.add_argument('guidecycles', type=int,
+                   help="Number of guider cycles to wait after the move")
     args = p.parse_args()
-    mxy(args.dx, args.dy)
+    mxy(args.dx, args.dy, args.guidecycles)
 
 
 ##-----------------------------------------------------------------------------
 ## sltmov offset
 ##-----------------------------------------------------------------------------
-def sltmov(distance, skipprecond=False, skippostcond=False):
+def sltmov(distance, guidecycles=2, skipprecond=False, skippostcond=False):
     '''Move along slit
     '''
     this_function_name = inspect.currentframe().f_code.co_name
@@ -107,7 +158,7 @@ def sltmov(distance, skipprecond=False, skippostcond=False):
     dx = distance * np.sin(angle)
     dy = distance * np.cos(angle)
     log.info(f'Making sltmov {distance}')
-    mxy(dx, dy)
+    mxy(dx, dy, guidecycles=guidecycles)
     
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
@@ -122,7 +173,7 @@ def sltmov(distance, skipprecond=False, skippostcond=False):
 ##-----------------------------------------------------------------------------
 ## gotobase
 ##-----------------------------------------------------------------------------
-def gotobase(skipprecond=False, skippostcond=False):
+def gotobase(guidecycles=2, skipprecond=False, skippostcond=False):
     '''gotobase
     '''
     this_function_name = inspect.currentframe().f_code.co_name
@@ -142,7 +193,8 @@ def gotobase(skipprecond=False, skippostcond=False):
     dcs['RAOFF'].write(0)
     dcs['DECOFF'].write(0)
     dcs['REL2BASE'].write(True)
-    
+    wait_for_guider(ncycles=guidecycles)
+
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
     if skippostcond is True:

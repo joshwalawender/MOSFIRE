@@ -47,6 +47,7 @@ def get_camparms(skipprecond=False, skippostcond=False):
     if skippostcond is True:
         log.debug('Skipping post condition checks')
     else:
-        pass
+        if CAMPARMS['camname'] != 'MOSFIRE':
+            raise FailedCondition(f"MOSFIRE is not the current guider ({CAMPARMS['camname']})")
 
     return CAMPARMS

@@ -1,5 +1,5 @@
 from .core import *
-from .dcs import instrument_is_MOSFIRE
+from .tel import instrument_is_MOSFIRE
 
 
 ##-----------------------------------------------------------------------------
