@@ -54,17 +54,17 @@ p = argparse.ArgumentParser(description=description)
 p.add_argument("-v", "--verbose", dest="verbose",
     default=False, action="store_true",
     help="Be verbose! (default = False)")
-p.add_argument("-i", "--imaging", dest="imaging", type=bool,
+p.add_argument("-i", "--imaging", dest="imaging",
     default=False, action="store_true",
     help="Take data in imaging mode rather than spectroscopy? (for testing)")
-p.add_argument("--mcds", "--mcds16", dest="mcds", type=bool,
+p.add_argument("--mcds", "--mcds16", dest="mcds",
     default=False, action="store_true",
     help=("Take data using MCDS16 readout mode? If neither --cds or --mcds are "
-          "set, will use current setting.")
-p.add_argument("--cds", dest="cds", type=bool,
+          "set, will use current setting."))
+p.add_argument("--cds", dest="cds",
     default=False, action="store_true",
     help=("Take data using CDS readout mode? If neither --cds or --mcds are "
-          "set, will use current setting.")
+          "set, will use current setting."))
 ## add options
 p.add_argument("-f", "--filter", dest="filter", type=str, default='',
     choices=['Y', 'J', 'H', 'K', 'Ks', 'J2', 'J3', 'nb1061', ''],
@@ -108,6 +108,10 @@ mosfireGS = ktl.cache(service='mosfire')
 def acq_long2pos(wide=False, waittime=10, wait_on_slitmov=False):
     '''Execute the offset pattern and trigger images for the long2pos sequence.
     '''
+    pixel_scale = mosfireGS['pscale'].read(binary=True)
+    offsetx = 245.8 * pixel_scale
+    offsety = -88.0 * pixel_scale
+
     log.info('Starting long2pos acquisition')
     log.debug('Setting SCRIPTRUN=1')
     mosfire.start_scriptrun()
@@ -116,9 +120,9 @@ def acq_long2pos(wide=False, waittime=10, wait_on_slitmov=False):
     log.debug('Setting PATTERN=long2pos')
     mosfireGS['PATTERN'].write('long2pos')
 
-    pixel_scale = mosfireGS['pscale'].read(binary=True)
     log.info('Offsetting to upper left position')
-    mosfire.mxy(250.25*pixel_scale, -89.0*pixel_scale)
+#     mosfire.mxy(250.25*pixel_scale, -89.0*pixel_scale)
+    mosfire.mxy(offsetx, offsety)
     log.info(f'Waiting {waittime} seconds for guider')
     sleep(waittime)
     log.debug('Setting XOFFSET=-45 YOFFSET=0')
@@ -155,7 +159,8 @@ def acq_long2pos(wide=False, waittime=10, wait_on_slitmov=False):
     sleep(waittime)
 
     log.info('Offsetting to lower right position')
-    mosfire.mxy(-250.25*pixel_scale, 89.0*pixel_scale)
+#     mosfire.mxy(-250.25*pixel_scale, 89.0*pixel_scale)
+    mosfire.mxy(-offsetx, -offsety)
     log.info(f'Waiting {waittime} seconds for guider')
     sleep(waittime)
     log.debug('Setting XOFFSET=+45 YOFFSET=0')
@@ -210,7 +215,7 @@ def run_acq_long_2pos():
       exposure.
     '''
     # Check that MOSFIRE is the selected instrument
-    instrument_is_MOSFIRE() # raises exception if not
+    mosfire.instrument_is_MOSFIRE() # raises exception if not
 
     log.info(f"Science Exposure Parameters:")
     # Read exposure time
@@ -224,7 +229,7 @@ def run_acq_long_2pos():
     log.info(f"  Sampling Mode = {sampmode}")
     # Check the mask
     maskname = mosfireGS['maskname'].read()
-    if maskname[:9] != 'long2pos':
+    if maskname[:8] != 'long2pos':
         log.error(f"Mask {maskname} is not a long2pos mask")
         raise Exception(f"Mask {maskname} is not a long2pos mask")
 
@@ -252,7 +257,7 @@ def run_acq_long_2pos():
         mosfire.set_obsmode(obsmode)
 
     specphot = (maskname=='long2pos_specphot')
-    acq_long2pos(wide=specphot, wait=args.guidecycles*camparms['exptime'])
+    acq_long2pos(wide=specphot, waittime=args.guidecycles*camparms['exptime'])
 
 
 if __name__ == '__main__':

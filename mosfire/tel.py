@@ -94,7 +94,8 @@ def wait_for_guider(ncycles=2, timeout=20, skipprecond=False, skippostcond=False
     ktl.waitfor(f'$dcs.AUTRESUM != {autresum0}', timeout=timeout)
     # wait until AUTGO is RESUMEACK or GUIDE (timeout=20s)
     log.debug('Wait for AUTGO to be guide or resumeAck')
-    ktl.waitfor('($dcs.AUTGO == guide) or ($dcs.AUTGO == resumeAck)')
+    if dcs['AUTGO'].read() not in ['guide', 'resumeAck']:
+        ktl.waitfor('($dcs.AUTGO == guide) or ($dcs.AUTGO == resumeAck)')
 
     camparms = get_camparms()
     waittime = ncycles*camparms['exptime']
