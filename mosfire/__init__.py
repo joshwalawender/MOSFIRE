@@ -15,4 +15,3 @@ from .analysis import *
 from .shutdown import *
 from .utilities import *
 from .tel import *
-from .magiq import *

@@ -1,5 +1,5 @@
 from .core import *
-
+from .magiq import get_camparms
 dcs = ktl.cache(service='dcs')
 
 ##-----------------------------------------------------------------------------
@@ -13,10 +13,59 @@ def instrument_is_MOSFIRE():
         raise FailedCondition('MOSFIRE is not the selected instrument')
 
 
+def are_we_guiding():
+    '''Verifies that we are currently guiding
+    '''
+    return dcs['AUTACTIV'].read() == 'yes'
+
+
+##-----------------------------------------------------------------------------
+## Get MAGIQ Exposure Parameters
+##-----------------------------------------------------------------------------
+def get_camparms(skipprecond=False, skippostcond=False):
+    '''Get and parse the CAMPARMS keyword.  Return a dict with the values.
+    '''
+    this_function_name = inspect.currentframe().f_code.co_name
+    log.debug(f"Executing: {this_function_name}")
+
+    ##-------------------------------------------------------------------------
+    ## Pre-Condition Checks
+    if skipprecond is True:
+        log.debug('Skipping pre condition checks')
+    else:
+        pass
+    
+    ##-------------------------------------------------------------------------
+    ## Script Contents
+
+    # CAMPARMS = mosfire,866,386,49,49,2.00,1,5,5400
+    CAMPARMSkw = ktl.cache(service='magiq', keyword='CAMPARMS')
+    camname, starx, stary, boxx, boxy, exptime, aa, bb, count = CAMPARMSkw.read().split(',')
+    CAMPARMS = {'camname': camname,
+                'stary': float(stary),
+                'stary': float(stary),
+                'boxx': int(boxx),
+                'boxy': int(boxy),
+                'exptime': float(exptime),
+                'a': aa,
+                'b': bb,
+                'count': count,
+                }
+
+    ##-------------------------------------------------------------------------
+    ## Post-Condition Checks
+    if skippostcond is True:
+        log.debug('Skipping post condition checks')
+    else:
+        pass
+
+    return CAMPARMS
+
+
 ##-----------------------------------------------------------------------------
 ## wait_for_guider
 ##-----------------------------------------------------------------------------
-def wait_for_guider(ncycles=2, skipprecond=False, skippostcond=False):
+def wait_for_guider(ncycles=2, timeout=20, skipprecond=False, skippostcond=False):
     '''Wait for guider to complete ncycles
     '''
     this_function_name = inspect.currentframe().f_code.co_name
@@ -32,22 +81,25 @@ def wait_for_guider(ncycles=2, skipprecond=False, skippostcond=False):
     ##-------------------------------------------------------------------------
     ## Script Contents
 
-    if dcs['AUTACTIV'].read() == 'no':
-        # We are not guiding
+    log.debug('Checking for guiding')
+    if are_we_guiding() is False:
         return None
 
     # waitfor -s dcs axestat=tracking
+    log.debug('Wait for tracking')
     ktl.waitfor('$dcs.AXESTAT == tracking', timeout=None)
     # get AUTRESUM value (i)
     autresum0 = dcs['AUTRESUM'].read()
     # wait until AURESUM increments (j) (timeout=20s)
-    ktl.waitfor(f'$dcs.AUTRESUM != {autresum0}', timeout=20)
+    log.debug(f'Wait for AUTRESUM to increment (timeout={timeout})')
+    ktl.waitfor(f'$dcs.AUTRESUM != {autresum0}', timeout=timeout)
     # wait until AUTGO is RESUMEACK or GUIDE (timeout=20s)
+    log.debug('Wait for AUTGO to be guide or resumeAck')
     ktl.waitfor('($dcs.AUTGO == guide) or ($dcs.AUTGO == resumeAck)')
 
-    camparms = mosfire.get_camparms()
+    camparms = get_camparms()
     waittime = ncycles*camparms['exptime']
-    log.debug(f'Waiting {ncycles} ({waittime:.1f) s})')
+    log.debug(f'Waiting {ncycles} guide cycles ({waittime:.1f} s)')
     sleep(waittime)
 
     ##-------------------------------------------------------------------------
