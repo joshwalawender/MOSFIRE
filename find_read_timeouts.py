@@ -183,7 +183,13 @@ def find_read_timeouts_by_year(year, skipprecond=False, skippostcond=True):
     if new_aborted > 0 or new_timeout > 0:
         print(f'{new_timeout} new Read Timeouts')
         print(f'{new_aborted} new Aborts')
-        print(f'out of {new_all} new frames taken')
+        print(f'out of {new_all} new frames taken\n')
+        print('    New Read Timeouts:\n')
+        for file in aborted_files['Read Timeout'][-new_timeout:]:
+            print(file)
+        print('    New Aborts:\n')
+        for file in aborted_files['Abort'][-new_timeout:]:
+            print(file)
 
     ##-------------------------------------------------------------------------
     ## Post-Condition Checks
