@@ -341,6 +341,59 @@ class Mask(object):
         self.alignmentStars = Table([as_dict])
 
 
+    def build_custom_single_object_mask(self, input):
+        '''Build a longslit mask
+        '''
+        if input is None:
+            width = 0.7
+            wide_width = 4
+            sidebias_arcsec = 44.08
+            sidebias_mm = 44.08 * 0.507/0.7
+            input = [[20, sidebias_arcsec, wide_width],
+                     [21, sidebias_arcsec, width],
+                     [22, 0, width],
+                     [23, 0, wide_width],
+                     [24, -sidebias_arcsec, width],
+                     [25, -sidebias_arcsec, wide_width]]
+
+        assert len(input) <= 46
+        self.name = f'Custom Single Object Mask'
+        slits_list = []
+        for slit in input:
+            slitno, bias_arcsec, this_width = slit
+            leftbar = slitno*2
+            leftmm = 145.82707536231888 + -0.17768476719087264*leftbar + (this_width-0.7)/2*0.507/0.7 + bias_arcsec*0.507/0.7
+            rightbar = slitno*2-1
+            rightmm = leftmm - this_width*0.507/0.7
+            slitcent = (slitno-23) * .490454545 + bias_arcsec
+            slits_list.append( {'centerPositionArcsec': slitcent,
+                                'leftBarNumber': leftbar,
+                                'leftBarPositionMM': leftmm,
+                                'rightBarNumber': rightbar,
+                                'rightBarPositionMM': rightmm,
+                                'slitNumber': slitno,
+                                'slitWidthArcsec': this_width,
+                                'target': ''} )
+
+        self.slitpos = Table(slits_list)
+        self.slitpos.sort('slitNumber')
+
+        # Alignment Box
+        slit23 = self.slitpos[self.slitpos['slitNumber'] == 23][0]
+        leftmm = slit23['leftBarPositionMM'] - 1.65*0.507/0.7
+        rightmm = slit23['rightBarPositionMM'] + 1.65*0.507/0.7
+        as_dict = {'centerPositionArcsec': 0.0,
+                   'leftBarNumber': 46,
+                   'leftBarPositionMM': leftmm,
+                   'mechSlitNumber': 23,
+                   'rightBarNumber': 45,
+                   'rightBarPositionMM': rightmm,
+                   'slitWidthArcsec': 4.0,
+                   'targetCenterDistance': 0,
+                   }
+        self.alignmentStars = Table([as_dict])
+
+
     def build_open_mask(self):
         '''Build OPEN mask
         '''
