@@ -12,7 +12,7 @@ from astropy import visualization as viz
 from astropy.modeling import models, fitting
 
 from .core import *
-from .csu import slit_to_bars, physical_to_pixel, bar_to_slit
+from .csu import slit_to_bars, physical_to_pixel, pixel_to_physical, bar_to_slit
 
 
 ## ------------------------------------------------------------------
@@ -85,6 +85,7 @@ def find_bar_positions_from_image(imagefile, filtersize=5, plot=False,
     medimage = ndimage.median_filter(data, size=(1, filtersize))
     
     bars = {}
+    bars_mm = {}
     ypos = {}
     for slit in range(1,47):
         b1, b2 = slit_to_bars(slit)
@@ -97,6 +98,9 @@ def find_bar_positions_from_image(imagefile, filtersize=5, plot=False,
         horizontal_profile = np.sum(gradx, axis=0)
         try:
             bars[b1], bars[b2] = find_bar_edges(horizontal_profile)
+            ypix_estimate = (y1+y2)/2
+            bars_mm[b1] = pixel_to_physical(np.array([(bars[b1], ypix_estimate)]))[0][0][0]
+            bars_mm[b2] = pixel_to_physical(np.array([(bars[b2], ypix_estimate)]))[0][0][0]
         except:
             print(f'Unable to fit bars: {b1}, {b2}')
 
@@ -127,7 +131,7 @@ def find_bar_positions_from_image(imagefile, filtersize=5, plot=False,
                      horizontalalignment='center', verticalalignment='center')
         plt.savefig(str(plotfile), bbox_inches='tight')
 
-    return bars
+    return bars, bars_mm
 
 
 def find_bar_edges(horizontal_profile):
