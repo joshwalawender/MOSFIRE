@@ -14,7 +14,8 @@ def filter1_ok(timeout=3):
     while datetime.utcnow() < endat and mmf1s_status.read() not in ['OK', 'Moving']:
         log.debug(f'Filter1 status is "{mmf1s_status.read()}"')
         sleep(0.5)
-    if mmf1s_status.read() not in ['OK', 'Moving']:
+    filter1_status = mmf1s_status.read()
+    if filter1_status not in ['OK', 'Moving']:
         raise FailedCondition(f'Filter 1 status is not OK: "{filter1_status}"')
 
 
@@ -28,7 +29,8 @@ def filter2_ok(timeout=3):
     while datetime.utcnow() < endat and mmf2s_status.read() not in ['OK', 'Moving']:
         log.debug(f'Filter2 status is "{mmf2s_status.read()}"')
         sleep(0.5)
-    if mmf2s_status.read() not in ['OK', 'Moving']:
+    filter2_status = mmf2s_status.read()
+    if filter2_status not in ['OK', 'Moving']:
         raise FailedCondition(f'Filter 2 status is not OK: "{filter2_status}"')
 
 

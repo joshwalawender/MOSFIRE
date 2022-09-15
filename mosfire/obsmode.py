@@ -1,5 +1,5 @@
 from .core import *
-
+from ktl.Exceptions import ktlError
 
 ##-----------------------------------------------------------------------------
 ## pre- and post- conditions
@@ -85,7 +85,7 @@ def _set_obsmode(destination, wait=True, timeout=60,
     log.info(f"Setting mode to {destination}")
     try:
         setobsmodekw.write(destination, wait=True)
-    except ktl.Exceptions.ktlError as err:
+    except ktlError as err:
         log.warning(f'Got KTL error: {err}')
         log.warning(f'Retrying after short sleep')
         sleep(2)
